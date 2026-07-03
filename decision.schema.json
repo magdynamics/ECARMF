@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ECARMF Economic Schema",
+  "type": "object",
+  "properties": {
+    "asset_id": {
+      "type": "string"
+    },
+    "revenue_assumption": {
+      "type": "number"
+    },
+    "cost_assumption": {
+      "type": "number"
+    },
+    "inflation_rate": {
+      "type": "number"
+    }
+  },
+  "additionalProperties": true
+}

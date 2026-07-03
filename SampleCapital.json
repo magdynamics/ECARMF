@@ -1,0 +1,9 @@
+[
+  {
+    "threshold_id": "T-001",
+    "metric": "cost_overrun_percent",
+    "warning": 5,
+    "breach": 10,
+    "critical": 20
+  }
+]

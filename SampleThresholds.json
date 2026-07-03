@@ -1,0 +1,9 @@
+[
+  {
+    "risk_id": "R-001",
+    "asset_id": "A-001",
+    "category": "construction",
+    "likelihood": 3,
+    "impact": 4
+  }
+]

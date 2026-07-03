@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ECARMF Threshold Schema",
+  "type": "object",
+  "properties": {
+    "threshold_id": {
+      "type": "string"
+    },
+    "metric": {
+      "type": "string"
+    },
+    "warning": {
+      "type": "number"
+    },
+    "breach": {
+      "type": "number"
+    },
+    "critical": {
+      "type": "number"
+    }
+  },
+  "additionalProperties": true
+}

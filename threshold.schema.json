@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ECARMF Risk Schema",
+  "type": "object",
+  "properties": {
+    "risk_id": {
+      "type": "string"
+    },
+    "asset_id": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "likelihood": {
+      "type": "number"
+    },
+    "impact": {
+      "type": "number"
+    }
+  },
+  "additionalProperties": true
+}

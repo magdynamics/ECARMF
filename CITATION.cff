@@ -1,0 +1,6 @@
+cff-version: 1.2.0
+title: ECARMF — Economic Capital Asset Risk Management Framework
+version: 0.1.0-foundation
+message: If you use ECARMF, please cite this repository.
+authors:
+  - name: ECARMF Contributors

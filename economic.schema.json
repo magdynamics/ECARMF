@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ECARMF Capital Schema",
+  "type": "object",
+  "properties": {
+    "asset_id": {
+      "type": "string"
+    },
+    "equity": {
+      "type": "number"
+    },
+    "debt": {
+      "type": "number"
+    },
+    "reserves": {
+      "type": "number"
+    }
+  },
+  "additionalProperties": true
+}

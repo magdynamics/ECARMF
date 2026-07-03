@@ -1,0 +1,9 @@
+name: Validate Schemas
+on: [push, pull_request]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Placeholder validation
+        run: echo "Schema validation will be implemented in Version 0.2"
