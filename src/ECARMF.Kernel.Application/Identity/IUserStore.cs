@@ -24,4 +24,5 @@ public static class SeedUsers
     public const string Owner = "owner@platform";
     public const string SystemActor = "system:flywheel";
     public const string AdvisorActor = "system:advisor";
+    public const string ExtractorActor = "system:extractor";
 }

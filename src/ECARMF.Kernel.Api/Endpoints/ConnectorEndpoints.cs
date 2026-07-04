@@ -17,6 +17,8 @@ public static class ConnectorEndpoints
 
     public record IngestRequest(string RawPayload);
 
+    public record ExtractDocumentRequest(string? FileName, string? ContentBase64, string? Text);
+
     public static IEndpointRouteBuilder MapConnectorEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/connectors");
@@ -73,6 +75,52 @@ public static class ConnectorEndpoints
 
             await connectors.EnsureSeedConnectorsAsync(tenantId, ct);
             var result = await ingestion.IngestAsync(tenantId, connectorId, request.RawPayload, user!.Identifier, ct);
+            return result.Success ? Results.Ok(result) : Results.BadRequest(result);
+        });
+
+        // Document intake: unstructured file/text -> extraction agent ->
+        // the same connector ingestion path as everything else.
+        group.MapPost("/{connectorId}/extract-document", async (
+            string connectorId, ExtractDocumentRequest request, HttpContext context,
+            IUserStore users, IDocumentExtractor extractor, IDocumentTextReader reader,
+            IConnectorStore connectors, CancellationToken ct) =>
+        {
+            if (!TenantResolution.TryGetTenant(context, out var tenantId))
+                return TenantResolution.MissingTenantResult();
+            var (error, user) = await AccessGuard.RequireAsync(context, users, tenantId, Permissions.ConnectorIngest, ct);
+            if (error is not null) return error;
+
+            var documentName = string.IsNullOrWhiteSpace(request.FileName) ? "pasted-text" : request.FileName;
+            string documentText;
+
+            if (!string.IsNullOrWhiteSpace(request.Text))
+            {
+                documentText = request.Text;
+            }
+            else if (!string.IsNullOrWhiteSpace(request.ContentBase64))
+            {
+                byte[] bytes;
+                try
+                {
+                    bytes = Convert.FromBase64String(request.ContentBase64);
+                }
+                catch (FormatException)
+                {
+                    return Results.BadRequest(new { error = "contentBase64 is not valid base64." });
+                }
+
+                var (ok, textOrError) = reader.ReadText(documentName, bytes);
+                if (!ok) return Results.BadRequest(new { error = textOrError });
+                documentText = textOrError;
+            }
+            else
+            {
+                return Results.BadRequest(new { error = "Provide either text or contentBase64." });
+            }
+
+            await connectors.EnsureSeedConnectorsAsync(tenantId, ct);
+            var result = await extractor.ExtractAndIngestAsync(
+                tenantId, connectorId, documentName, documentText, user!.Identifier, ct);
             return result.Success ? Results.Ok(result) : Results.BadRequest(result);
         });
 

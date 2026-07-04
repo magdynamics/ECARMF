@@ -41,6 +41,7 @@ public static class AuditCategories
     public const string WorkflowExecuted = "WorkflowExecuted";
     public const string AdvisorBriefGenerated = "AdvisorBriefGenerated";
     public const string AdvisorFeedbackRecorded = "AdvisorFeedbackRecorded";
+    public const string DocumentExtracted = "DocumentExtracted";
     public const string PackageLoaded = "PackageLoaded";
     public const string PackageActivated = "PackageActivated";
     public const string PackageDeactivated = "PackageDeactivated";

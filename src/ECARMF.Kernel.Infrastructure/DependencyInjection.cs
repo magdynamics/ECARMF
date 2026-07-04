@@ -31,6 +31,7 @@ public static class DependencyInjection
         services.AddScoped<Application.Workflow.INotificationStore, EfNotificationStore>();
         services.AddScoped<Application.Advisor.IAdvisorStore, EfAdvisorStore>();
         services.AddSingleton<Application.Advisor.ILanguageModelClient, Ai.AnthropicLanguageModelClient>();
+        services.AddSingleton<Application.Ingestion.IDocumentTextReader, Ai.DocumentTextReader>();
 
         return services;
     }

@@ -25,6 +25,10 @@ export function DataEntry({ tenant, user }: { tenant: string; user: string }) {
   const [connectors, setConnectors] = useState<Connector[]>([])
   const [connectorId, setConnectorId] = useState('manual-entry')
   const [rawPayload, setRawPayload] = useState('')
+  const [docConnectorId, setDocConnectorId] = useState('manual-entry')
+  const [docText, setDocText] = useState('')
+  const [docFile, setDocFile] = useState<File | null>(null)
+  const [docBusy, setDocBusy] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -75,6 +79,36 @@ export function DataEntry({ tenant, user }: { tenant: string; user: string }) {
       )
     } catch (e) {
       setError(e instanceof ApiError ? e.message : String(e))
+    }
+  }
+
+  async function extractDocument() {
+    setMessage(null)
+    setError(null)
+    setDocBusy(true)
+    try {
+      let body: { fileName?: string; contentBase64?: string; text?: string }
+      if (docFile) {
+        const bytes = new Uint8Array(await docFile.arrayBuffer())
+        let binary = ''
+        bytes.forEach((b) => (binary += String.fromCharCode(b)))
+        body = { fileName: docFile.name, contentBase64: btoa(binary) }
+      } else {
+        body = { fileName: 'pasted-text', text: docText }
+      }
+      const result = await api.post<{
+        backend: string
+        rawPayload: string
+        ingestion: { recordIds: string[]; warnings: string[] }
+      }>(`/api/connectors/${docConnectorId}/extract-document`, body)
+      setMessage(
+        `Document extracted via ${result.backend} — ${result.ingestion.recordIds.length} record(s) ingested through '${docConnectorId}'.` +
+          (result.ingestion.warnings.length ? ` Warnings: ${result.ingestion.warnings.join(' | ')}` : ''),
+      )
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : String(e))
+    } finally {
+      setDocBusy(false)
     }
   }
 
@@ -137,6 +171,47 @@ export function DataEntry({ tenant, user }: { tenant: string; user: string }) {
           placeholder='e.g. {"opportunityType":"RealEstateAcquisition","title":"Former Kmart site","estimatedValue":4200000}'
           value={rawPayload}
           onChange={(e) => setRawPayload(e.target.value)}
+        />
+      </section>
+
+      <section className="panel">
+        <h2>Extract a document <span className="state state-staged">INPUT</span></h2>
+        <p className="muted small">
+          The document way in: upload a PDF/text file or paste an email or invoice, and the
+          extraction agent (<code>system:extractor</code>) turns it into the payload the selected
+          connector expects — then normal ingestion runs. Templates with regex patterns extract
+          deterministically; JSON templates use the AI backend (needs an Anthropic API key on the
+          server).
+        </p>
+        <div className="form-row">
+          <label>
+            Connector
+            <select value={docConnectorId} onChange={(e) => setDocConnectorId(e.target.value)}>
+              {connectors.length === 0 && <option value="manual-entry">manual-entry</option>}
+              {connectors.map((c) => (
+                <option key={c.connectorId} value={c.connectorId}>
+                  {c.name} ({c.sourceCategory}, maps via {c.schemaTemplateId})
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            File (.pdf, .txt, .eml)
+            <input
+              type="file"
+              accept=".pdf,.txt,.eml,.md,.csv"
+              onChange={(e) => setDocFile(e.target.files?.[0] ?? null)}
+            />
+          </label>
+          <button onClick={extractDocument} disabled={docBusy || (!docFile && !docText.trim())}>
+            {docBusy ? 'Extracting…' : 'Extract & ingest'}
+          </button>
+        </div>
+        <textarea
+          rows={5}
+          placeholder="…or paste the document text here (an email, an invoice, a statement)."
+          value={docText}
+          onChange={(e) => setDocText(e.target.value)}
         />
       </section>
     </div>

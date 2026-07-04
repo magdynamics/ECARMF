@@ -27,6 +27,7 @@ public static class DependencyInjection
         services.AddScoped<Analytics.IDeviationMonitor, Analytics.DeviationMonitoringService>();
         services.AddScoped<Workflow.IWorkflowEngine, Workflow.WorkflowEngine>();
         services.AddScoped<Advisor.IExecutiveAdvisor, Advisor.ExecutiveAdvisorService>();
+        services.AddScoped<Ingestion.IDocumentExtractor, Ingestion.DocumentExtractionService>();
 
         return services;
     }

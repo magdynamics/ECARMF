@@ -53,6 +53,7 @@ public class EfUserStore : IUserStore
         AddIfMissing(SeedUsers.Owner, "Executive / Owner", false, [RoleCatalog.ExecutiveOwner]);
         AddIfMissing(SeedUsers.SystemActor, "Flywheel AI System Actor", true, [RoleCatalog.AISystemActor]);
         AddIfMissing(SeedUsers.AdvisorActor, "Executive Advisor AI Agent", true, [RoleCatalog.AISystemActor]);
+        AddIfMissing(SeedUsers.ExtractorActor, "Document Extraction AI Agent", true, [RoleCatalog.AISystemActor]);
 
         if (missing.Count > 0)
         {
