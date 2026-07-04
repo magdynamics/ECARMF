@@ -1,0 +1,24 @@
+# Microsoft Office temporary lock files
+~$*
+
+# Local staging archives of past GitHub web uploads (content already in repo)
+FILED AND UPLOADED/
+
+# .NET build output
+bin/
+obj/
+*.user
+.vs/
+
+# Test results
+TestResults/
+*.trx
+
+# Node / frontend
+node_modules/
+dist/
+*.local
+
+# Environment / secrets
+.env
+appsettings.*.Local.json

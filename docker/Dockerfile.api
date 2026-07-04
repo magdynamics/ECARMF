@@ -1,0 +1,21 @@
+# ECARMF Platform Kernel API — multi-stage build
+# Build context is the repository root: docker build -f docker/Dockerfile.api .
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /source
+
+COPY ECARMF.sln .
+COPY src/ECARMF.Kernel.Domain/ECARMF.Kernel.Domain.csproj src/ECARMF.Kernel.Domain/
+COPY src/ECARMF.Kernel.Application/ECARMF.Kernel.Application.csproj src/ECARMF.Kernel.Application/
+COPY src/ECARMF.Kernel.Infrastructure/ECARMF.Kernel.Infrastructure.csproj src/ECARMF.Kernel.Infrastructure/
+COPY src/ECARMF.Kernel.Api/ECARMF.Kernel.Api.csproj src/ECARMF.Kernel.Api/
+RUN dotnet restore src/ECARMF.Kernel.Api/ECARMF.Kernel.Api.csproj
+
+COPY src/ src/
+RUN dotnet publish src/ECARMF.Kernel.Api/ECARMF.Kernel.Api.csproj -c Release -o /app --no-restore
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+WORKDIR /app
+COPY --from=build /app .
+EXPOSE 8080
+ENTRYPOINT ["dotnet", "ECARMF.Kernel.Api.dll"]
