@@ -168,7 +168,60 @@ flywheel concept maps onto a generic kernel primitive:
 | Learning feedback (execution results improving future evaluations) | Rules triggered by decision follow-up events (e.g. `Accept`, `Hold`) emitting Trust / ControlEffectiveness ScoreRecords — see `packages/flywheel-opportunity-evaluation-v1.json` |
 | Flywheel KPIs (confidence averages, trust movement, override rate, cycle completion) | Dashboard queries over ScoreRecords and the Audit Log — no dedicated KPI backend |
 
-### 6.8 Guidance for Future Contributors and AI Agents
+### 6.8 Ingestion: Connectors and SchemaTemplates
+
+Records arrive through configured **DataSourceConnector** instances (source
+category + ingestion mode + a **SchemaTemplate** reference + reliability
+tier + provenance class). Templates are declarative field mappings shipped
+in packages and registered in the fifth registry (`SchemaTemplateRegistry`)
+— adding a second bank is a new connector row reusing the bank template,
+not new code. Everything lands through one door
+(`POST /api/connectors/{id}/ingest`), stamped with `sourceId`,
+`sourceCategory`, `provenance` (HumanEntered / ExternalSystemVerified /
+AIGenerated), `reliabilityRating`, `ingestedAt`, and the template version,
+then enters the same immutable intake pipeline as every record. Reference
+templates for all six source categories ship in
+`packages/connector-reference-templates-v1.json`; live third-party
+integrations (OAuth, SFTP, MQTT) are later connector instances — the
+mechanism already supports them without kernel changes.
+
+**AI analytical sources earn trust, never assume it:** AI-generated scores
+carry `provenance: AIGenerated`, and the `AILearningFeedbackService`
+publishes predicted-vs-actual `ModelAccuracy` ScoreRecords (e.g. every
+dual-approval verdict grades the rule that placed the hold). This is the
+loop that stops the flywheel reinforcing its own errors.
+
+### 6.9 Identity, Roles & Access
+
+Every API call authenticates a seeded identity via `X-User-Id` (OAuth/SSO
+integration is future work; the permission mechanism is real). The full
+eight-role catalog is enforced through generic composable permissions
+(`Capability:RequireDualApproval:Approve`, `Package:Manage`, …); the Owner
+is the only unrestricted role; the AI system actor (`system:flywheel`) is a
+first-class User whose actions are logged under its own identity and who
+can never hold approval permissions. Submitter and approver are the
+authenticated identity — segregation of duties (approver ≠ submitter)
+enforces against real identities, and every audit entry's `Actor` is a real
+User reference, never a placeholder.
+
+### 6.10 Capital Intelligence and Performance Intelligence
+
+Both compose on existing primitives rather than adding parallel mechanisms:
+
+- **AllocationRecommendation** (Capital Intelligence, ECARMF-011): where /
+  how much / which institution / which jurisdiction, with mandatory
+  reasoning, confidence, assumptions, risk factors, ranked
+  `alternativesConsidered`, and `supportingScoreRecordIds` grounding every
+  claim in ScoreRecords. Three autonomy tiers — Autonomous (AI executes),
+  RecommendOnly (human approves/modifies/rejects), Escalated (AI stops) —
+  decided by `AutonomyPolicy`; an AI actor can generate but never decide.
+- **Performance frameworks** (KPI/OKR) are package metadata in the sixth
+  registry (`PerformanceFrameworkRegistry`). KPI calculation is a
+  declarative formula evaluated in the same event-processing pass;
+  `KPIActual` / `KPIVariance` / `OKRAttainment` are ScoreRecord types, so
+  allocation reasoning and dashboards read them like every other score.
+
+### 6.11 Guidance for Future Contributors and AI Agents
 
 1. Read `ECARMF-001-Foundation-Standard.md` and `ECARMF 002/` before coding.
 2. New domain behavior = new Knowledge Package manifest (see
