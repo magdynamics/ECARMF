@@ -19,6 +19,7 @@ public static class DependencyInjection
         services.AddScoped<IApprovalService, ApprovalService>();
         services.AddScoped<Ingestion.IDataSourceConnector, Ingestion.ConnectorIngestionService>();
         services.AddScoped<Flywheel.IAILearningFeedbackService, Flywheel.AILearningFeedbackService>();
+        services.AddScoped<Capital.ICapitalAllocationEngine, Capital.CapitalAllocationEngine>();
 
         return services;
     }

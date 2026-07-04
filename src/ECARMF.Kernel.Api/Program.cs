@@ -46,6 +46,7 @@ app.MapRegistryEndpoints();
 app.MapScoreEndpoints();
 app.MapUserEndpoints();
 app.MapConnectorEndpoints();
+app.MapAllocationEndpoints();
 
 using (var scope = app.Services.CreateScope())
 {

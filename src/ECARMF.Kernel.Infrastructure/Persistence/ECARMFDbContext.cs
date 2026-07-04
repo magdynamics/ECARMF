@@ -25,8 +25,28 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<ConnectorRecord> Connectors => Set<ConnectorRecord>();
 
+    public DbSet<AllocationRecord> Allocations => Set<AllocationRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<AllocationRecord>(entity =>
+        {
+            entity.ToTable("Allocations");
+            entity.HasKey(a => a.Id);
+            entity.Property(a => a.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(a => a.TargetReference).HasMaxLength(400).IsRequired();
+            entity.Property(a => a.TargetAssetClass).HasMaxLength(200);
+            entity.Property(a => a.RecommendedAmount).HasPrecision(18, 2);
+            entity.Property(a => a.ModifiedAmount).HasPrecision(18, 2);
+            entity.Property(a => a.ConfidenceScore).HasPrecision(5, 4);
+            entity.Property(a => a.TargetInstitution).HasMaxLength(400);
+            entity.Property(a => a.TargetJurisdiction).HasMaxLength(100);
+            entity.Property(a => a.Tier).HasMaxLength(50).IsRequired();
+            entity.Property(a => a.Status).HasMaxLength(50).IsRequired();
+            entity.Property(a => a.DecidedBy).HasMaxLength(400);
+            entity.HasIndex(a => new { a.TenantId, a.CreatedAt });
+        });
+
         modelBuilder.Entity<ConnectorRecord>(entity =>
         {
             entity.ToTable("Connectors");

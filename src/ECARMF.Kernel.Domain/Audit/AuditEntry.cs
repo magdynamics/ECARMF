@@ -35,6 +35,8 @@ public static class AuditCategories
     public const string OutcomeRecorded = "OutcomeRecorded";
     public const string ApprovalRecorded = "ApprovalRecorded";
     public const string ScoreComputed = "ScoreComputed";
+    public const string AllocationRecommended = "AllocationRecommended";
+    public const string AllocationDecided = "AllocationDecided";
     public const string PackageLoaded = "PackageLoaded";
     public const string PackageActivated = "PackageActivated";
     public const string PackageDeactivated = "PackageDeactivated";
