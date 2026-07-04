@@ -37,6 +37,27 @@ public static class ManifestValidator
         CheckNames(errors, "rule", manifest.Rules.Select(r => r.RuleId));
         CheckNames(errors, "capability", manifest.Capabilities.Select(c => c.CapabilityId));
         CheckNames(errors, "schema template", manifest.SchemaTemplates.Select(t => t.TemplateId));
+        CheckNames(errors, "performance framework", manifest.PerformanceFrameworks.Select(f => f.FrameworkId));
+
+        foreach (var framework in manifest.PerformanceFrameworks)
+        {
+            var label = string.IsNullOrWhiteSpace(framework.FrameworkId) ? "(unnamed framework)" : framework.FrameworkId;
+            var kpiIds = new HashSet<string>(framework.Kpis.Select(k => k.KpiId), StringComparer.OrdinalIgnoreCase);
+
+            foreach (var kpi in framework.Kpis)
+            {
+                if (string.IsNullOrWhiteSpace(kpi.KpiId))
+                    errors.Add($"Framework '{label}' has a KPI with no KpiId.");
+                if (string.IsNullOrWhiteSpace(kpi.Formula))
+                    errors.Add($"Framework '{label}' KPI '{kpi.KpiId}' has no Formula.");
+            }
+
+            foreach (var okr in framework.Okrs)
+            {
+                foreach (var kr in okr.KeyResults.Where(kr => !kpiIds.Contains(kr.KpiId)))
+                    errors.Add($"Framework '{label}' OKR '{okr.OkrId}' references unknown KPI '{kr.KpiId}'.");
+            }
+        }
 
         foreach (var template in manifest.SchemaTemplates)
         {

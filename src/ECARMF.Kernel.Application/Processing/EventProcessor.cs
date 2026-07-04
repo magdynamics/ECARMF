@@ -44,19 +44,22 @@ public class EventProcessor : IEventProcessor
     private readonly IScoreStore _scores;
     private readonly IKernelEventBus _bus;
     private readonly IAuditLog _audit;
+    private readonly Performance.IPerformanceEvaluator _performance;
 
     public EventProcessor(
         ITenantRegistryProvider registries,
         IOutcomeStore outcomes,
         IScoreStore scores,
         IKernelEventBus bus,
-        IAuditLog audit)
+        IAuditLog audit,
+        Performance.IPerformanceEvaluator performance)
     {
         _registries = registries;
         _outcomes = outcomes;
         _scores = scores;
         _bus = bus;
         _audit = audit;
+        _performance = performance;
     }
 
     public async Task<ProcessingResult> ProcessAsync(KernelEvent kernelEvent, CancellationToken ct = default)
@@ -138,6 +141,13 @@ public class EventProcessor : IEventProcessor
 
         var isIntakeEvent = string.Equals(
             kernelEvent.EventName, KernelEventNames.RecordReceived, StringComparison.OrdinalIgnoreCase);
+
+        // Performance frameworks evaluate in the same pass: KPI calculation
+        // is a rule/formula over the record, not a separate mechanism.
+        if (isIntakeEvent)
+        {
+            await _performance.EvaluateAsync(kernelEvent, ct);
+        }
 
         // An outcome is recorded whenever a rule fires, and always for the
         // intake event (where the default-approve policy applies). Follow-up

@@ -2,13 +2,14 @@ using System.Collections.Concurrent;
 
 namespace ECARMF.Kernel.Application.Registries;
 
-/// <summary>The five kernel registries belonging to one tenant.</summary>
+/// <summary>The six kernel registries belonging to one tenant.</summary>
 public sealed record TenantRegistries(
     IEntityRegistry Entities,
     IRuleRegistry Rules,
     IEventRegistry Events,
     ICapabilityRegistry Capabilities,
-    ISchemaTemplateRegistry SchemaTemplates);
+    ISchemaTemplateRegistry SchemaTemplates,
+    IPerformanceFrameworkRegistry PerformanceFrameworks);
 
 /// <summary>
 /// Tenant isolation boundary for the in-memory runtime. Each tenant gets its
@@ -37,6 +38,7 @@ public class TenantRegistryProvider : ITenantRegistryProvider
             new RuleRegistry(),
             new EventRegistry(),
             new CapabilityRegistry(),
-            new SchemaTemplateRegistry()));
+            new SchemaTemplateRegistry(),
+            new PerformanceFrameworkRegistry()));
     }
 }

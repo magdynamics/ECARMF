@@ -1,0 +1,81 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "Performance Frameworks",
+  "version": "1",
+  "status": "Published",
+  "owner": "ECARMF Standards Committee",
+  "description": "Industry KPI/OKR frameworks. Build Chain is fully live (computed from SiteView-style operational records); Restaurant, Real Estate, and Renewable Energy ship as definitions + formula tests until live data sources exist for them.",
+
+  "packageId": "ecarmf.performance-frameworks",
+  "name": "Performance Frameworks",
+  "packageVersion": "1.0.0",
+  "publisher": "ECARMF",
+  "dependencies": [],
+  "entities": [],
+  "events": [],
+  "rules": [],
+  "capabilities": [
+    { "capabilityId": "PerformanceIntelligence", "name": "Performance Intelligence", "description": "KPI/OKR evaluation over the record pipeline." }
+  ],
+
+  "performanceFrameworks": [
+    {
+      "frameworkId": "buildchain-operational-v1",
+      "name": "Build Chain Operational KPI Framework v1",
+      "industry": "Construction",
+      "description": "Live framework computed from SiteView-style OperationalEvent records.",
+      "kpis": [
+        { "kpiId": "on-time-completion", "name": "On-time completion %", "formula": "completedOnTime / totalCompleted", "triggerRecordType": "OperationalEvent", "subjectField": "siteId", "unit": "ratio", "targetValue": 0.9, "direction": "higher" },
+        { "kpiId": "cost-variance", "name": "Cost variance %", "formula": "(actualCost - plannedCost) / plannedCost", "triggerRecordType": "OperationalEvent", "subjectField": "siteId", "unit": "ratio", "targetValue": 0.05, "direction": "lower" },
+        { "kpiId": "equipment-utilization", "name": "Equipment utilization rate", "formula": "runtimeHours / availableHours", "triggerRecordType": "OperationalEvent", "subjectField": "siteId", "unit": "ratio", "targetValue": 0.75, "direction": "higher" },
+        { "kpiId": "safety-incident-rate", "name": "Safety incident rate", "formula": "incidents / laborHours", "triggerRecordType": "OperationalEvent", "subjectField": "siteId", "unit": "per-hour", "targetValue": 0.001, "direction": "lower" }
+      ],
+      "okrs": [
+        {
+          "okrId": "buildchain-operational-excellence",
+          "objective": "Operational excellence across build sites",
+          "keyResults": [
+            { "krId": "kr-ontime", "kpiId": "on-time-completion", "targetValue": 0.9 },
+            { "krId": "kr-utilization", "kpiId": "equipment-utilization", "targetValue": 0.75 }
+          ]
+        }
+      ]
+    },
+    {
+      "frameworkId": "restaurant-operations-v1",
+      "name": "Restaurant Operations KPI Framework v1",
+      "industry": "Restaurant",
+      "description": "Definitions + formula tests only; no live data source yet.",
+      "kpis": [
+        { "kpiId": "table-turnover", "name": "Table turnover rate", "formula": "partiesServed / tables", "triggerRecordType": "RestaurantShift", "subjectField": "locationId", "unit": "ratio", "targetValue": 4, "direction": "higher" },
+        { "kpiId": "food-cost-pct", "name": "Food cost %", "formula": "foodCost / revenue", "triggerRecordType": "RestaurantShift", "subjectField": "locationId", "unit": "ratio", "targetValue": 0.3, "direction": "lower" },
+        { "kpiId": "labor-cost-pct", "name": "Labor cost %", "formula": "laborCost / revenue", "triggerRecordType": "RestaurantShift", "subjectField": "locationId", "unit": "ratio", "targetValue": 0.28, "direction": "lower" }
+      ],
+      "okrs": []
+    },
+    {
+      "frameworkId": "realestate-portfolio-v1",
+      "name": "Real Estate Portfolio KPI Framework v1",
+      "industry": "RealEstate",
+      "description": "Definitions + formula tests only; no live data source yet.",
+      "kpis": [
+        { "kpiId": "occupancy-rate", "name": "Occupancy rate", "formula": "occupiedUnits / totalUnits", "triggerRecordType": "PropertyReport", "subjectField": "propertyId", "unit": "ratio", "targetValue": 0.93, "direction": "higher" },
+        { "kpiId": "noi-margin", "name": "NOI margin", "formula": "(revenue - operatingExpenses) / revenue", "triggerRecordType": "PropertyReport", "subjectField": "propertyId", "unit": "ratio", "targetValue": 0.55, "direction": "higher" },
+        { "kpiId": "rent-collection-rate", "name": "Rent collection rate", "formula": "rentCollected / rentBilled", "triggerRecordType": "PropertyReport", "subjectField": "propertyId", "unit": "ratio", "targetValue": 0.97, "direction": "higher" }
+      ],
+      "okrs": []
+    },
+    {
+      "frameworkId": "renewable-energy-v1",
+      "name": "Renewable Energy KPI Framework v1",
+      "industry": "RenewableEnergy",
+      "description": "Definitions + formula tests only; no live data source yet.",
+      "kpis": [
+        { "kpiId": "capacity-factor", "name": "Capacity factor", "formula": "actualMwh / (nameplateMw * periodHours)", "triggerRecordType": "GenerationReport", "subjectField": "plantId", "unit": "ratio", "targetValue": 0.32, "direction": "higher" },
+        { "kpiId": "availability", "name": "Availability", "formula": "availableHours / periodHours", "triggerRecordType": "GenerationReport", "subjectField": "plantId", "unit": "ratio", "targetValue": 0.97, "direction": "higher" },
+        { "kpiId": "om-cost-per-mwh", "name": "O&M cost per MWh", "formula": "omCost / actualMwh", "triggerRecordType": "GenerationReport", "subjectField": "plantId", "unit": "usd-per-mwh", "targetValue": 14, "direction": "lower" }
+      ],
+      "okrs": []
+    }
+  ]
+}

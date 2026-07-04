@@ -76,7 +76,8 @@ public class TransactionPipelineTests
         await using var enumerator = _bus.ReadAllAsync(timeout.Token).GetAsyncEnumerator(timeout.Token);
         Assert.True(await enumerator.MoveNextAsync());
 
-        var processor = new EventProcessor(_registries, _outcomeStore, _scoreStore, _bus, _audit);
+        var processor = new EventProcessor(_registries, _outcomeStore, _scoreStore, _bus, _audit,
+            new ECARMF.Kernel.Application.Performance.PerformanceEvaluationService(_registries, _scoreStore, _audit));
         var result = await processor.ProcessAsync(enumerator.Current);
         return (receipt, result);
     }

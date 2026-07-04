@@ -73,7 +73,8 @@ public class FlywheelCycleTests
             Tenant, "Opportunity", "scout@example.com", payload));
         Assert.True(receipt.EventPublished);
 
-        var processor = new EventProcessor(_registries, _outcomeStore, _scoreStore, _bus, _audit);
+        var processor = new EventProcessor(_registries, _outcomeStore, _scoreStore, _bus, _audit,
+            new ECARMF.Kernel.Application.Performance.PerformanceEvaluationService(_registries, _scoreStore, _audit));
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         await using var enumerator = _bus.ReadAllAsync(timeout.Token).GetAsyncEnumerator(timeout.Token);
 
@@ -227,7 +228,8 @@ public class FlywheelCycleTests
             Tenant, "withdrawal", "treasurer@example.com",
             new Dictionary<string, string> { ["ventureId"] = "V-001", ["amount"] = "60000" }));
 
-        var processor = new EventProcessor(_registries, _outcomeStore, _scoreStore, _bus, _audit);
+        var processor = new EventProcessor(_registries, _outcomeStore, _scoreStore, _bus, _audit,
+            new ECARMF.Kernel.Application.Performance.PerformanceEvaluationService(_registries, _scoreStore, _audit));
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         await using var enumerator = _bus.ReadAllAsync(timeout.Token).GetAsyncEnumerator(timeout.Token);
         Assert.True(await enumerator.MoveNextAsync());

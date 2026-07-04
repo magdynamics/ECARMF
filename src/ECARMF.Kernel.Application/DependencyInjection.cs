@@ -20,6 +20,9 @@ public static class DependencyInjection
         services.AddScoped<Ingestion.IDataSourceConnector, Ingestion.ConnectorIngestionService>();
         services.AddScoped<Flywheel.IAILearningFeedbackService, Flywheel.AILearningFeedbackService>();
         services.AddScoped<Capital.ICapitalAllocationEngine, Capital.CapitalAllocationEngine>();
+        services.AddScoped<Performance.PerformanceEvaluationService>();
+        services.AddScoped<Performance.IPerformanceEvaluator>(sp => sp.GetRequiredService<Performance.PerformanceEvaluationService>());
+        services.AddScoped<Performance.IFrameworkRecommender>(sp => sp.GetRequiredService<Performance.PerformanceEvaluationService>());
 
         return services;
     }

@@ -34,6 +34,20 @@ public static class RegistryEndpoints
                 ? Results.Ok(registries.GetFor(tenantId).SchemaTemplates.GetAll())
                 : TenantResolution.MissingTenantResult());
 
+        group.MapGet("/performanceframeworks", (HttpContext context, ITenantRegistryProvider registries) =>
+            TenantResolution.TryGetTenant(context, out var tenantId)
+                ? Results.Ok(registries.GetFor(tenantId).PerformanceFrameworks.GetAll())
+                : TenantResolution.MissingTenantResult());
+
+        // Framework recommendation: MVP industry-classification lookup; the
+        // interface supports an AI-driven recommender later.
+        app.MapGet("/api/performance/recommend", (
+            string industry, HttpContext context,
+            ECARMF.Kernel.Application.Performance.IFrameworkRecommender recommender) =>
+            TenantResolution.TryGetTenant(context, out var tenantId)
+                ? Results.Ok(recommender.Recommend(tenantId, industry ?? string.Empty))
+                : TenantResolution.MissingTenantResult());
+
         return group;
     }
 }

@@ -31,4 +31,6 @@ public class KnowledgePackageManifest : UniversalBaseEntity
     public List<CapabilityDeclaration> Capabilities { get; set; } = [];
 
     public List<SchemaTemplateDeclaration> SchemaTemplates { get; set; } = [];
+
+    public List<PerformanceFrameworkDeclaration> PerformanceFrameworks { get; set; } = [];
 }
