@@ -11,11 +11,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddECARMFApplication(this IServiceCollection services)
     {
-        services.AddSingleton<IEntityRegistry, EntityRegistry>();
-        services.AddSingleton<IRuleRegistry, RuleRegistry>();
-        services.AddSingleton<IEventRegistry, EventRegistry>();
-        services.AddSingleton<ICapabilityRegistry, CapabilityRegistry>();
-
+        services.AddSingleton<ITenantRegistryProvider, TenantRegistryProvider>();
         services.AddSingleton<IKernelEventBus, InProcessKernelEventBus>();
         services.AddScoped<IPackageLoader, PackageLoader>();
         services.AddScoped<ITransactionIntakeService, TransactionIntakeService>();

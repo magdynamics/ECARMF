@@ -31,19 +31,19 @@ public class EfAuditLog : IAuditLog
         await _db.SaveChangesAsync(ct);
     }
 
-    public async Task<IReadOnlyList<AuditEntry>> GetByCorrelationAsync(Guid correlationId, CancellationToken ct = default)
+    public async Task<IReadOnlyList<AuditEntry>> GetByCorrelationAsync(string tenantId, Guid correlationId, CancellationToken ct = default)
     {
         var records = await _db.AuditEntries.AsNoTracking()
-            .Where(a => a.CorrelationId == correlationId)
+            .Where(a => a.TenantId == tenantId && a.CorrelationId == correlationId)
             .OrderBy(a => a.OccurredAt)
             .ToListAsync(ct);
         return records.Select(ToEntry).ToList();
     }
 
-    public async Task<IReadOnlyList<AuditEntry>> GetByTimeRangeAsync(DateTimeOffset from, DateTimeOffset to, CancellationToken ct = default)
+    public async Task<IReadOnlyList<AuditEntry>> GetByTimeRangeAsync(string tenantId, DateTimeOffset from, DateTimeOffset to, CancellationToken ct = default)
     {
         var records = await _db.AuditEntries.AsNoTracking()
-            .Where(a => a.OccurredAt >= from && a.OccurredAt <= to)
+            .Where(a => a.TenantId == tenantId && a.OccurredAt >= from && a.OccurredAt <= to)
             .OrderBy(a => a.OccurredAt)
             .ToListAsync(ct);
         return records.Select(ToEntry).ToList();
@@ -52,6 +52,7 @@ public class EfAuditLog : IAuditLog
     private static AuditRecord ToRecord(AuditEntry entry) => new()
     {
         Id = entry.Id,
+        TenantId = entry.TenantId,
         CorrelationId = entry.CorrelationId,
         Category = entry.Category,
         Summary = entry.Summary,
@@ -62,6 +63,7 @@ public class EfAuditLog : IAuditLog
     private static AuditEntry ToEntry(AuditRecord record) => new()
     {
         Id = record.Id,
+        TenantId = record.TenantId,
         CorrelationId = record.CorrelationId,
         Category = record.Category,
         Summary = record.Summary,

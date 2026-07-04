@@ -23,40 +23,44 @@ public class ECARMFDbContext : DbContext
         {
             entity.ToTable("AuditEntries");
             entity.HasKey(a => a.Id);
+            entity.Property(a => a.TenantId).HasMaxLength(100).IsRequired();
             entity.Property(a => a.Category).HasMaxLength(100).IsRequired();
             entity.Property(a => a.Summary).IsRequired();
             entity.Property(a => a.DetailJson).IsRequired();
-            entity.HasIndex(a => a.CorrelationId);
-            entity.HasIndex(a => a.OccurredAt);
+            entity.HasIndex(a => new { a.TenantId, a.CorrelationId });
+            entity.HasIndex(a => new { a.TenantId, a.OccurredAt });
         });
 
         modelBuilder.Entity<OutcomeRecord>(entity =>
         {
             entity.ToTable("TransactionOutcomes");
             entity.HasKey(o => o.Id);
+            entity.Property(o => o.TenantId).HasMaxLength(100).IsRequired();
             entity.Property(o => o.EventName).HasMaxLength(200).IsRequired();
             entity.Property(o => o.Outcome).HasMaxLength(50).IsRequired();
             entity.Property(o => o.Reason).IsRequired();
             entity.Property(o => o.RuleId).HasMaxLength(200);
             entity.Property(o => o.PackageId).HasMaxLength(200);
             entity.Property(o => o.PackageVersion).HasMaxLength(50);
-            entity.HasIndex(o => o.TransactionId);
+            entity.HasIndex(o => new { o.TenantId, o.TransactionId });
         });
 
         modelBuilder.Entity<TransactionRecord>(entity =>
         {
             entity.ToTable("Transactions");
             entity.HasKey(t => t.Id);
+            entity.Property(t => t.TenantId).HasMaxLength(100).IsRequired();
             entity.Property(t => t.TransactionType).HasMaxLength(200).IsRequired();
             entity.Property(t => t.SubmittedBy).HasMaxLength(400).IsRequired();
             entity.Property(t => t.PayloadJson).IsRequired();
-            entity.HasIndex(t => t.ReceivedAt);
+            entity.HasIndex(t => new { t.TenantId, t.ReceivedAt });
         });
 
         modelBuilder.Entity<KnowledgePackageRecord>(entity =>
         {
             entity.ToTable("KnowledgePackages");
             entity.HasKey(p => p.Id);
+            entity.Property(p => p.TenantId).HasMaxLength(100).IsRequired();
             entity.Property(p => p.PackageId).HasMaxLength(200).IsRequired();
             entity.Property(p => p.Name).HasMaxLength(400).IsRequired();
             entity.Property(p => p.PackageVersion).HasMaxLength(50).IsRequired();
@@ -64,7 +68,7 @@ public class ECARMFDbContext : DbContext
             entity.Property(p => p.Owner).HasMaxLength(400);
             entity.Property(p => p.Status).HasMaxLength(50);
             entity.Property(p => p.ManifestJson).IsRequired();
-            entity.HasIndex(p => new { p.PackageId, p.PackageVersion }).IsUnique();
+            entity.HasIndex(p => new { p.TenantId, p.PackageId, p.PackageVersion }).IsUnique();
         });
     }
 }

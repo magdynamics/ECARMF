@@ -13,38 +13,48 @@ public class InMemoryPackageStore : IPackageStore
 
     public IReadOnlyList<StoredPackage> Items => _packages;
 
-    public Task<bool> ExistsAsync(string packageId, string packageVersion, CancellationToken ct = default) =>
-        Task.FromResult(_packages.Any(p => Matches(p, packageId, packageVersion)));
+    public Task<bool> ExistsAsync(string tenantId, string packageId, string packageVersion, CancellationToken ct = default) =>
+        Task.FromResult(_packages.Any(p => Matches(p, tenantId, packageId, packageVersion)));
 
-    public Task AddAsync(KnowledgePackageManifest manifest, PackageLoadState state, string? statusDetail, CancellationToken ct = default)
+    public Task AddAsync(string tenantId, KnowledgePackageManifest manifest, PackageLoadState state, string? statusDetail, CancellationToken ct = default)
     {
-        _packages.Add(new StoredPackage(manifest, state, statusDetail));
+        _packages.Add(new StoredPackage(tenantId, manifest, state, statusDetail));
         return Task.CompletedTask;
     }
 
-    public Task<StoredPackage?> GetAsync(string packageId, string packageVersion, CancellationToken ct = default) =>
-        Task.FromResult(_packages.FirstOrDefault(p => Matches(p, packageId, packageVersion)));
+    public Task<StoredPackage?> GetAsync(string tenantId, string packageId, string packageVersion, CancellationToken ct = default) =>
+        Task.FromResult(_packages.FirstOrDefault(p => Matches(p, tenantId, packageId, packageVersion)));
 
-    public Task UpdateStateAsync(string packageId, string packageVersion, PackageLoadState state, string? statusDetail, CancellationToken ct = default)
+    public Task UpdateStateAsync(string tenantId, string packageId, string packageVersion, PackageLoadState state, string? statusDetail, CancellationToken ct = default)
     {
-        var index = _packages.FindIndex(p => Matches(p, packageId, packageVersion));
+        var index = _packages.FindIndex(p => Matches(p, tenantId, packageId, packageVersion));
         if (index < 0)
         {
-            throw new InvalidOperationException($"Package '{packageId}' version '{packageVersion}' is not persisted.");
+            throw new InvalidOperationException(
+                $"Package '{packageId}' version '{packageVersion}' is not persisted for tenant '{tenantId}'.");
         }
 
         _packages[index] = _packages[index] with { State = state, StatusDetail = statusDetail };
         return Task.CompletedTask;
     }
 
-    public Task<IReadOnlyList<StoredPackage>> GetAllAsync(CancellationToken ct = default) =>
-        Task.FromResult<IReadOnlyList<StoredPackage>>(_packages.ToList());
+    public Task<IReadOnlyList<StoredPackage>> GetAllAsync(string tenantId, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<StoredPackage>>(
+            _packages.Where(p => SameTenant(p, tenantId)).ToList());
 
-    public Task<IReadOnlyList<StoredPackage>> GetByStateAsync(PackageLoadState state, CancellationToken ct = default) =>
+    public Task<IReadOnlyList<StoredPackage>> GetByStateAsync(string tenantId, PackageLoadState state, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<StoredPackage>>(
+            _packages.Where(p => SameTenant(p, tenantId) && p.State == state).ToList());
+
+    public Task<IReadOnlyList<StoredPackage>> GetByStateAllTenantsAsync(PackageLoadState state, CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<StoredPackage>>(_packages.Where(p => p.State == state).ToList());
 
-    private static bool Matches(StoredPackage p, string packageId, string packageVersion) =>
-        string.Equals(p.Manifest.PackageId, packageId, StringComparison.OrdinalIgnoreCase)
+    private static bool SameTenant(StoredPackage p, string tenantId) =>
+        string.Equals(p.TenantId, tenantId, StringComparison.OrdinalIgnoreCase);
+
+    private static bool Matches(StoredPackage p, string tenantId, string packageId, string packageVersion) =>
+        SameTenant(p, tenantId)
+        && string.Equals(p.Manifest.PackageId, packageId, StringComparison.OrdinalIgnoreCase)
         && string.Equals(p.Manifest.PackageVersion, packageVersion, StringComparison.OrdinalIgnoreCase);
 }
 
@@ -86,11 +96,15 @@ public class InMemoryAuditLog : IAuditLog
         return Task.CompletedTask;
     }
 
-    public Task<IReadOnlyList<AuditEntry>> GetByCorrelationAsync(Guid correlationId, CancellationToken ct = default) =>
+    public Task<IReadOnlyList<AuditEntry>> GetByCorrelationAsync(string tenantId, Guid correlationId, CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<AuditEntry>>(
-            Items.Where(a => a.CorrelationId == correlationId).OrderBy(a => a.OccurredAt).ToList());
+            Items.Where(a => string.Equals(a.TenantId, tenantId, StringComparison.OrdinalIgnoreCase)
+                          && a.CorrelationId == correlationId)
+                .OrderBy(a => a.OccurredAt).ToList());
 
-    public Task<IReadOnlyList<AuditEntry>> GetByTimeRangeAsync(DateTimeOffset from, DateTimeOffset to, CancellationToken ct = default) =>
+    public Task<IReadOnlyList<AuditEntry>> GetByTimeRangeAsync(string tenantId, DateTimeOffset from, DateTimeOffset to, CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<AuditEntry>>(
-            Items.Where(a => a.OccurredAt >= from && a.OccurredAt <= to).OrderBy(a => a.OccurredAt).ToList());
+            Items.Where(a => string.Equals(a.TenantId, tenantId, StringComparison.OrdinalIgnoreCase)
+                          && a.OccurredAt >= from && a.OccurredAt <= to)
+                .OrderBy(a => a.OccurredAt).ToList());
 }

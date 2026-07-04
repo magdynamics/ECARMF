@@ -5,6 +5,8 @@ public class OutcomeRecord
 {
     public Guid Id { get; set; }
 
+    public string TenantId { get; set; } = string.Empty;
+
     public Guid TransactionId { get; set; }
 
     public string EventName { get; set; } = string.Empty;

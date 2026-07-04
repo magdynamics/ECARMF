@@ -8,19 +8,27 @@ public static class AuditEndpoints
     {
         app.MapGet("/api/audit/transaction/{transactionId:guid}", async (
             Guid transactionId,
+            HttpContext context,
             IAuditLog audit,
             CancellationToken ct) =>
         {
-            var entries = await audit.GetByCorrelationAsync(transactionId, ct);
+            if (!TenantResolution.TryGetTenant(context, out var tenantId))
+                return TenantResolution.MissingTenantResult();
+
+            var entries = await audit.GetByCorrelationAsync(tenantId, transactionId, ct);
             return Results.Ok(entries);
         });
 
         app.MapGet("/api/audit", async (
             DateTimeOffset? from,
             DateTimeOffset? to,
+            HttpContext context,
             IAuditLog audit,
             CancellationToken ct) =>
         {
+            if (!TenantResolution.TryGetTenant(context, out var tenantId))
+                return TenantResolution.MissingTenantResult();
+
             var rangeEnd = to ?? DateTimeOffset.UtcNow;
             var rangeStart = from ?? rangeEnd.AddHours(-24);
 
@@ -29,7 +37,7 @@ public static class AuditEndpoints
                 return Results.BadRequest(new { error = "'from' must be earlier than 'to'." });
             }
 
-            var entries = await audit.GetByTimeRangeAsync(rangeStart, rangeEnd, ct);
+            var entries = await audit.GetByTimeRangeAsync(tenantId, rangeStart, rangeEnd, ct);
             return Results.Ok(entries);
         });
 

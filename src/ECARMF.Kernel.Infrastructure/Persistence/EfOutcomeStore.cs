@@ -17,6 +17,7 @@ public class EfOutcomeStore : IOutcomeStore
         _db.TransactionOutcomes.Add(new OutcomeRecord
         {
             Id = outcome.Id,
+            TenantId = outcome.TenantId,
             TransactionId = outcome.TransactionId,
             EventName = outcome.EventName,
             Outcome = outcome.Outcome.ToString(),

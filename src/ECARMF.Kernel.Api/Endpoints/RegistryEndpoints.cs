@@ -8,18 +8,26 @@ public static class RegistryEndpoints
     {
         var group = app.MapGroup("/api/registries");
 
-        group.MapGet("/entities", (IEntityRegistry registry) =>
-            Results.Ok(registry.GetAll()));
+        group.MapGet("/entities", (HttpContext context, ITenantRegistryProvider registries) =>
+            TenantResolution.TryGetTenant(context, out var tenantId)
+                ? Results.Ok(registries.GetFor(tenantId).Entities.GetAll())
+                : TenantResolution.MissingTenantResult());
 
-        group.MapGet("/rules", (IRuleRegistry registry) =>
-            Results.Ok(registry.GetAll()));
+        group.MapGet("/rules", (HttpContext context, ITenantRegistryProvider registries) =>
+            TenantResolution.TryGetTenant(context, out var tenantId)
+                ? Results.Ok(registries.GetFor(tenantId).Rules.GetAll())
+                : TenantResolution.MissingTenantResult());
 
-        group.MapGet("/events", (IEventRegistry registry) =>
-            Results.Ok(registry.GetAll()));
+        group.MapGet("/events", (HttpContext context, ITenantRegistryProvider registries) =>
+            TenantResolution.TryGetTenant(context, out var tenantId)
+                ? Results.Ok(registries.GetFor(tenantId).Events.GetAll())
+                : TenantResolution.MissingTenantResult());
 
-        group.MapGet("/capabilities", (ICapabilityRegistry registry) =>
-            Results.Ok(registry.GetAll()));
+        group.MapGet("/capabilities", (HttpContext context, ITenantRegistryProvider registries) =>
+            TenantResolution.TryGetTenant(context, out var tenantId)
+                ? Results.Ok(registries.GetFor(tenantId).Capabilities.GetAll())
+                : TenantResolution.MissingTenantResult());
 
-        return app;
+        return group;
     }
 }

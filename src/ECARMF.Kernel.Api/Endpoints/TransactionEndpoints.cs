@@ -14,9 +14,12 @@ public static class TransactionEndpoints
     {
         app.MapPost("/api/transactions", async (
             SubmitTransactionRequest request,
+            HttpContext context,
             ITransactionIntakeService intake,
             CancellationToken ct) =>
         {
+            if (!TenantResolution.TryGetTenant(context, out var tenantId))
+                return TenantResolution.MissingTenantResult();
             if (string.IsNullOrWhiteSpace(request.TransactionType))
                 return Results.BadRequest(new { error = "transactionType is required." });
             if (string.IsNullOrWhiteSpace(request.SubmittedBy))
@@ -27,7 +30,7 @@ public static class TransactionEndpoints
                 kv => JsonValueToString(kv.Value));
 
             var receipt = await intake.ReceiveAsync(
-                new TransactionSubmission(request.TransactionType, request.SubmittedBy, payload), ct);
+                new TransactionSubmission(tenantId, request.TransactionType, request.SubmittedBy, payload), ct);
 
             return Results.Accepted($"/api/transactions/{receipt.TransactionId}", receipt);
         });

@@ -7,6 +7,7 @@ using ECARMF.Kernel.Domain.Transactions;
 namespace ECARMF.Kernel.Application.Transactions;
 
 public sealed record TransactionSubmission(
+    string TenantId,
     string TransactionType,
     string SubmittedBy,
     IReadOnlyDictionary<string, string> Payload);
@@ -25,24 +26,25 @@ public interface ITransactionIntakeService
 /// <summary>
 /// Transaction intake. Order is non-negotiable: the transaction is durably
 /// persisted and audited before anything downstream can observe it (audit
-/// integrity first); only then is TransactionReceived published.
+/// integrity first); only then is TransactionReceived published. Everything
+/// is scoped to the submitting tenant.
 /// </summary>
 public class TransactionIntakeService : ITransactionIntakeService
 {
     private readonly ITransactionStore _store;
     private readonly IKernelEventBus _bus;
-    private readonly IEventRegistry _events;
+    private readonly ITenantRegistryProvider _registries;
     private readonly IAuditLog _audit;
 
     public TransactionIntakeService(
         ITransactionStore store,
         IKernelEventBus bus,
-        IEventRegistry events,
+        ITenantRegistryProvider registries,
         IAuditLog audit)
     {
         _store = store;
         _bus = bus;
-        _events = events;
+        _registries = registries;
         _audit = audit;
     }
 
@@ -50,6 +52,7 @@ public class TransactionIntakeService : ITransactionIntakeService
     {
         var transaction = new Transaction
         {
+            TenantId = submission.TenantId,
             EntityType = nameof(Transaction),
             EntityName = submission.TransactionType,
             Status = "Received",
@@ -71,6 +74,7 @@ public class TransactionIntakeService : ITransactionIntakeService
 
         await _audit.AppendAsync(new AuditEntry
         {
+            TenantId = submission.TenantId,
             CorrelationId = transaction.TransactionId,
             Category = AuditCategories.TransactionReceived,
             Summary = $"Transaction '{transaction.TransactionType}' received from '{transaction.SubmittedBy}'.",
@@ -78,10 +82,11 @@ public class TransactionIntakeService : ITransactionIntakeService
             OccurredAt = transaction.ReceivedAt
         }, ct);
 
-        if (!_events.IsDeclared(KernelEventNames.TransactionReceived))
+        var events = _registries.GetFor(submission.TenantId).Events;
+        if (!events.IsDeclared(KernelEventNames.TransactionReceived))
         {
             return new TransactionReceipt(transaction.TransactionId, transaction.ReceivedAt, false,
-                $"Transaction persisted, but no active Knowledge Package declares '{KernelEventNames.TransactionReceived}'; no processing will occur.");
+                $"Transaction persisted, but no active Knowledge Package of this tenant declares '{KernelEventNames.TransactionReceived}'; no processing will occur.");
         }
 
         // Rules see the payload fields plus the intake facts.
@@ -90,6 +95,7 @@ public class TransactionIntakeService : ITransactionIntakeService
         eventPayload.TryAdd("submittedBy", transaction.SubmittedBy);
 
         await _bus.PublishAsync(new KernelEvent(
+            submission.TenantId,
             KernelEventNames.TransactionReceived,
             transaction.TransactionId,
             eventPayload,
@@ -97,6 +103,7 @@ public class TransactionIntakeService : ITransactionIntakeService
 
         await _audit.AppendAsync(new AuditEntry
         {
+            TenantId = submission.TenantId,
             CorrelationId = transaction.TransactionId,
             Category = AuditCategories.EventPublished,
             Summary = $"Event '{KernelEventNames.TransactionReceived}' published.",

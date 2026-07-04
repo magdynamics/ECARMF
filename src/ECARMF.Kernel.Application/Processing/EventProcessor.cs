@@ -29,28 +29,25 @@ public interface IEventProcessor
 
 /// <summary>
 /// The kernel's rule execution mechanism. Consumes an event, evaluates the
-/// subscribed rules in registry order, and produces an explainable outcome:
-/// first matching rule fires and decides. When no rule matches a
+/// tenant's subscribed rules in registry order, and produces an explainable
+/// outcome: first matching rule fires and decides. When no rule matches a
 /// TransactionReceived event, the default policy approves — controls are
 /// exception-based, and the default is itself recorded and explained.
 /// </summary>
 public class EventProcessor : IEventProcessor
 {
-    private readonly IRuleRegistry _rules;
-    private readonly IEventRegistry _events;
+    private readonly ITenantRegistryProvider _registries;
     private readonly IOutcomeStore _outcomes;
     private readonly IKernelEventBus _bus;
     private readonly IAuditLog _audit;
 
     public EventProcessor(
-        IRuleRegistry rules,
-        IEventRegistry events,
+        ITenantRegistryProvider registries,
         IOutcomeStore outcomes,
         IKernelEventBus bus,
         IAuditLog audit)
     {
-        _rules = rules;
-        _events = events;
+        _registries = registries;
         _outcomes = outcomes;
         _bus = bus;
         _audit = audit;
@@ -58,7 +55,8 @@ public class EventProcessor : IEventProcessor
 
     public async Task<ProcessingResult> ProcessAsync(KernelEvent kernelEvent, CancellationToken ct = default)
     {
-        var subscribed = _rules.GetRulesForEvent(kernelEvent.EventName);
+        var registries = _registries.GetFor(kernelEvent.TenantId);
+        var subscribed = registries.Rules.GetRulesForEvent(kernelEvent.EventName);
         var evaluations = new List<RuleEvaluation>();
         Registered<RuleDeclaration>? fired = null;
 
@@ -81,6 +79,7 @@ public class EventProcessor : IEventProcessor
         // downstream happens (audit integrity first).
         var evaluationEntries = evaluations.Select(e => new AuditEntry
         {
+            TenantId = kernelEvent.TenantId,
             CorrelationId = kernelEvent.CorrelationId,
             Category = AuditCategories.RuleEvaluated,
             Summary = $"Rule '{e.RuleId}' evaluated for event '{kernelEvent.EventName}': {(e.Matched ? "matched" : "did not match")}.",
@@ -109,6 +108,7 @@ public class EventProcessor : IEventProcessor
 
         var outcome = new TransactionOutcome
         {
+            TenantId = kernelEvent.TenantId,
             TransactionId = kernelEvent.CorrelationId,
             EventName = kernelEvent.EventName,
             Outcome = fired?.Declaration.OutcomeOnMatch ?? RuleOutcome.Approved,
@@ -125,6 +125,7 @@ public class EventProcessor : IEventProcessor
 
         await _audit.AppendAsync(new AuditEntry
         {
+            TenantId = kernelEvent.TenantId,
             CorrelationId = kernelEvent.CorrelationId,
             Category = AuditCategories.OutcomeRecorded,
             Summary = $"Outcome '{outcome.Outcome}' recorded for event '{kernelEvent.EventName}': {outcome.Reason}",
@@ -144,7 +145,7 @@ public class EventProcessor : IEventProcessor
         if (isIntakeEvent)
         {
             var followUpEvent = $"Transaction{outcome.Outcome}";
-            if (_events.IsDeclared(followUpEvent))
+            if (registries.Events.IsDeclared(followUpEvent))
             {
                 var payload = new Dictionary<string, string>(kernelEvent.Payload, StringComparer.OrdinalIgnoreCase)
                 {
@@ -153,7 +154,7 @@ public class EventProcessor : IEventProcessor
                 };
 
                 await _bus.PublishAsync(new KernelEvent(
-                    followUpEvent, kernelEvent.CorrelationId, payload, DateTimeOffset.UtcNow), ct);
+                    kernelEvent.TenantId, followUpEvent, kernelEvent.CorrelationId, payload, DateTimeOffset.UtcNow), ct);
             }
         }
 

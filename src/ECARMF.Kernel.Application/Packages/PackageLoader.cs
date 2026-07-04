@@ -8,39 +8,31 @@ namespace ECARMF.Kernel.Application.Packages;
 public class PackageLoader : IPackageLoader
 {
     private readonly IPackageStore _store;
-    private readonly IEntityRegistry _entities;
-    private readonly IRuleRegistry _rules;
-    private readonly IEventRegistry _events;
-    private readonly ICapabilityRegistry _capabilities;
+    private readonly ITenantRegistryProvider _registries;
     private readonly IAuditLog _audit;
 
     public PackageLoader(
         IPackageStore store,
-        IEntityRegistry entities,
-        IRuleRegistry rules,
-        IEventRegistry events,
-        ICapabilityRegistry capabilities,
+        ITenantRegistryProvider registries,
         IAuditLog audit)
     {
         _store = store;
-        _entities = entities;
-        _rules = rules;
-        _events = events;
-        _capabilities = capabilities;
+        _registries = registries;
         _audit = audit;
     }
 
-    public async Task<PackageOperationResult> LoadAsync(KnowledgePackageManifest manifest, CancellationToken ct = default)
+    public async Task<PackageOperationResult> LoadAsync(string tenantId, KnowledgePackageManifest manifest, CancellationToken ct = default)
     {
         if (!string.IsNullOrWhiteSpace(manifest.PackageId)
             && !string.IsNullOrWhiteSpace(manifest.PackageVersion)
-            && await _store.ExistsAsync(manifest.PackageId, manifest.PackageVersion, ct))
+            && await _store.ExistsAsync(tenantId, manifest.PackageId, manifest.PackageVersion, ct))
         {
             return PackageOperationResult.Fail(null,
                 $"Package '{manifest.PackageId}' version '{manifest.PackageVersion}' is already loaded.");
         }
 
-        var errors = ManifestValidator.Validate(manifest, _events);
+        var registries = _registries.GetFor(tenantId);
+        var errors = ManifestValidator.Validate(manifest, registries.Events);
 
         if (errors.Count > 0)
         {
@@ -48,23 +40,23 @@ public class PackageLoader : IPackageLoader
             // unidentifiable manifest cannot satisfy the unique package index.
             if (!string.IsNullOrWhiteSpace(manifest.PackageId) && !string.IsNullOrWhiteSpace(manifest.PackageVersion))
             {
-                await _store.AddAsync(manifest, PackageLoadState.Failed, string.Join(" ", errors), ct);
-                await AuditLifecycleAsync(manifest, AuditCategories.PackageFailed,
+                await _store.AddAsync(tenantId, manifest, PackageLoadState.Failed, string.Join(" ", errors), ct);
+                await AuditLifecycleAsync(tenantId, manifest, AuditCategories.PackageFailed,
                     $"Package '{manifest.PackageId}' v{manifest.PackageVersion} failed validation.", string.Join(" ", errors), ct);
             }
 
             return PackageOperationResult.Fail(PackageLoadState.Failed, errors);
         }
 
-        await _store.AddAsync(manifest, PackageLoadState.Staged, null, ct);
-        await AuditLifecycleAsync(manifest, AuditCategories.PackageLoaded,
+        await _store.AddAsync(tenantId, manifest, PackageLoadState.Staged, null, ct);
+        await AuditLifecycleAsync(tenantId, manifest, AuditCategories.PackageLoaded,
             $"Package '{manifest.PackageId}' v{manifest.PackageVersion} staged.", null, ct);
         return PackageOperationResult.Ok(PackageLoadState.Staged);
     }
 
-    public async Task<PackageOperationResult> ActivateAsync(string packageId, string packageVersion, CancellationToken ct = default)
+    public async Task<PackageOperationResult> ActivateAsync(string tenantId, string packageId, string packageVersion, CancellationToken ct = default)
     {
-        var stored = await _store.GetAsync(packageId, packageVersion, ct);
+        var stored = await _store.GetAsync(tenantId, packageId, packageVersion, ct);
         if (stored is null)
         {
             return PackageOperationResult.Fail(null,
@@ -77,34 +69,36 @@ public class PackageLoader : IPackageLoader
                 $"Package '{packageId}' version '{packageVersion}' cannot be activated from state '{stored.State}'.");
         }
 
-        var dependencyErrors = await ResolveDependenciesAsync(stored.Manifest, ct);
+        var dependencyErrors = await ResolveDependenciesAsync(tenantId, stored.Manifest, ct);
         if (dependencyErrors.Count > 0)
         {
             return PackageOperationResult.Fail(stored.State, dependencyErrors);
         }
 
+        var registries = _registries.GetFor(tenantId);
+
         try
         {
-            RegisterAll(stored.Manifest);
+            RegisterAll(registries, stored.Manifest);
         }
         catch (RegistryConflictException ex)
         {
-            UnregisterAll(packageId, packageVersion);
-            await _store.UpdateStateAsync(packageId, packageVersion, PackageLoadState.Failed, ex.Message, ct);
-            await AuditLifecycleAsync(stored.Manifest, AuditCategories.PackageFailed,
+            UnregisterAll(registries, packageId, packageVersion);
+            await _store.UpdateStateAsync(tenantId, packageId, packageVersion, PackageLoadState.Failed, ex.Message, ct);
+            await AuditLifecycleAsync(tenantId, stored.Manifest, AuditCategories.PackageFailed,
                 $"Package '{packageId}' v{packageVersion} activation failed.", ex.Message, ct);
             return PackageOperationResult.Fail(PackageLoadState.Failed, ex.Message);
         }
 
-        await _store.UpdateStateAsync(packageId, packageVersion, PackageLoadState.Active, null, ct);
-        await AuditLifecycleAsync(stored.Manifest, AuditCategories.PackageActivated,
+        await _store.UpdateStateAsync(tenantId, packageId, packageVersion, PackageLoadState.Active, null, ct);
+        await AuditLifecycleAsync(tenantId, stored.Manifest, AuditCategories.PackageActivated,
             $"Package '{packageId}' v{packageVersion} activated.", null, ct);
         return PackageOperationResult.Ok(PackageLoadState.Active);
     }
 
-    public async Task<PackageOperationResult> DeactivateAsync(string packageId, string packageVersion, CancellationToken ct = default)
+    public async Task<PackageOperationResult> DeactivateAsync(string tenantId, string packageId, string packageVersion, CancellationToken ct = default)
     {
-        var stored = await _store.GetAsync(packageId, packageVersion, ct);
+        var stored = await _store.GetAsync(tenantId, packageId, packageVersion, ct);
         if (stored is null)
         {
             return PackageOperationResult.Fail(null,
@@ -117,7 +111,7 @@ public class PackageLoader : IPackageLoader
                 $"Package '{packageId}' version '{packageVersion}' cannot be deactivated from state '{stored.State}'.");
         }
 
-        var actives = await _store.GetByStateAsync(PackageLoadState.Active, ct);
+        var actives = await _store.GetByStateAsync(tenantId, PackageLoadState.Active, ct);
         var dependent = actives.FirstOrDefault(p =>
             !string.Equals(p.Manifest.PackageId, packageId, StringComparison.OrdinalIgnoreCase)
             && p.Manifest.Dependencies.Any(d =>
@@ -129,60 +123,79 @@ public class PackageLoader : IPackageLoader
                 $"Cannot deactivate: active package '{dependent.Manifest.PackageId}' version '{dependent.Manifest.PackageVersion}' depends on '{packageId}'.");
         }
 
-        UnregisterAll(packageId, packageVersion);
-        await _store.UpdateStateAsync(packageId, packageVersion, PackageLoadState.Deactivated, null, ct);
-        await AuditLifecycleAsync(stored.Manifest, AuditCategories.PackageDeactivated,
+        UnregisterAll(_registries.GetFor(tenantId), packageId, packageVersion);
+        await _store.UpdateStateAsync(tenantId, packageId, packageVersion, PackageLoadState.Deactivated, null, ct);
+        await AuditLifecycleAsync(tenantId, stored.Manifest, AuditCategories.PackageDeactivated,
             $"Package '{packageId}' v{packageVersion} deactivated.", null, ct);
         return PackageOperationResult.Ok(PackageLoadState.Deactivated);
     }
 
     public async Task RehydrateActiveAsync(CancellationToken ct = default)
     {
-        var pending = (await _store.GetByStateAsync(PackageLoadState.Active, ct)).ToList();
-        var registeredIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var allActive = await _store.GetByStateAllTenantsAsync(PackageLoadState.Active, ct);
 
-        // Multi-pass: register packages whose dependencies are already in, until
-        // no progress. Leftovers have unresolvable dependencies and are failed.
-        var progressed = true;
-        while (progressed && pending.Count > 0)
+        foreach (var tenantGroup in allActive.GroupBy(p => p.TenantId, StringComparer.OrdinalIgnoreCase))
         {
-            progressed = false;
-
-            foreach (var package in pending.ToList())
+            // A package without a tenant cannot be rehydrated into any
+            // tenant's registries; mark it failed rather than crash startup.
+            if (string.IsNullOrWhiteSpace(tenantGroup.Key))
             {
-                var ready = package.Manifest.Dependencies.All(d => registeredIds.Contains(d.PackageId));
-                if (!ready)
+                foreach (var orphan in tenantGroup)
                 {
-                    continue;
-                }
-
-                try
-                {
-                    RegisterAll(package.Manifest);
-                    registeredIds.Add(package.Manifest.PackageId);
-                }
-                catch (RegistryConflictException ex)
-                {
-                    UnregisterAll(package.Manifest.PackageId, package.Manifest.PackageVersion);
                     await _store.UpdateStateAsync(
-                        package.Manifest.PackageId, package.Manifest.PackageVersion,
-                        PackageLoadState.Failed, $"Rehydration conflict: {ex.Message}", ct);
+                        orphan.TenantId, orphan.Manifest.PackageId, orphan.Manifest.PackageVersion,
+                        PackageLoadState.Failed, "Rehydration failed: package has no tenant.", ct);
                 }
-
-                pending.Remove(package);
-                progressed = true;
+                continue;
             }
-        }
 
-        foreach (var unresolved in pending)
-        {
-            await _store.UpdateStateAsync(
-                unresolved.Manifest.PackageId, unresolved.Manifest.PackageVersion,
-                PackageLoadState.Failed, "Rehydration failed: dependency is no longer active.", ct);
+            var registries = _registries.GetFor(tenantGroup.Key);
+            var pending = tenantGroup.ToList();
+            var registeredIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            // Multi-pass: register packages whose dependencies are already in,
+            // until no progress. Leftovers have unresolvable dependencies.
+            var progressed = true;
+            while (progressed && pending.Count > 0)
+            {
+                progressed = false;
+
+                foreach (var package in pending.ToList())
+                {
+                    var ready = package.Manifest.Dependencies.All(d => registeredIds.Contains(d.PackageId));
+                    if (!ready)
+                    {
+                        continue;
+                    }
+
+                    try
+                    {
+                        RegisterAll(registries, package.Manifest);
+                        registeredIds.Add(package.Manifest.PackageId);
+                    }
+                    catch (RegistryConflictException ex)
+                    {
+                        UnregisterAll(registries, package.Manifest.PackageId, package.Manifest.PackageVersion);
+                        await _store.UpdateStateAsync(
+                            tenantGroup.Key, package.Manifest.PackageId, package.Manifest.PackageVersion,
+                            PackageLoadState.Failed, $"Rehydration conflict: {ex.Message}", ct);
+                    }
+
+                    pending.Remove(package);
+                    progressed = true;
+                }
+            }
+
+            foreach (var unresolved in pending)
+            {
+                await _store.UpdateStateAsync(
+                    tenantGroup.Key, unresolved.Manifest.PackageId, unresolved.Manifest.PackageVersion,
+                    PackageLoadState.Failed, "Rehydration failed: dependency is no longer active.", ct);
+            }
         }
     }
 
-    private async Task<List<string>> ResolveDependenciesAsync(KnowledgePackageManifest manifest, CancellationToken ct)
+    private async Task<List<string>> ResolveDependenciesAsync(string tenantId, KnowledgePackageManifest manifest, CancellationToken ct)
     {
         var errors = new List<string>();
         if (manifest.Dependencies.Count == 0)
@@ -190,7 +203,7 @@ public class PackageLoader : IPackageLoader
             return errors;
         }
 
-        var actives = await _store.GetByStateAsync(PackageLoadState.Active, ct);
+        var actives = await _store.GetByStateAsync(tenantId, PackageLoadState.Active, ct);
 
         foreach (var dependency in manifest.Dependencies)
         {
@@ -221,31 +234,32 @@ public class PackageLoader : IPackageLoader
             && actualVersion >= minimumVersion;
     }
 
-    private void RegisterAll(KnowledgePackageManifest manifest)
+    private static void RegisterAll(TenantRegistries registries, KnowledgePackageManifest manifest)
     {
         foreach (var entity in manifest.Entities)
-            _entities.Register(entity, manifest.PackageId, manifest.PackageVersion);
+            registries.Entities.Register(entity, manifest.PackageId, manifest.PackageVersion);
         foreach (var @event in manifest.Events)
-            _events.Register(@event, manifest.PackageId, manifest.PackageVersion);
+            registries.Events.Register(@event, manifest.PackageId, manifest.PackageVersion);
         foreach (var capability in manifest.Capabilities)
-            _capabilities.Register(capability, manifest.PackageId, manifest.PackageVersion);
+            registries.Capabilities.Register(capability, manifest.PackageId, manifest.PackageVersion);
         foreach (var rule in manifest.Rules)
-            _rules.Register(rule, manifest.PackageId, manifest.PackageVersion);
+            registries.Rules.Register(rule, manifest.PackageId, manifest.PackageVersion);
     }
 
-    private void UnregisterAll(string packageId, string packageVersion)
+    private static void UnregisterAll(TenantRegistries registries, string packageId, string packageVersion)
     {
-        _entities.UnregisterPackage(packageId, packageVersion);
-        _events.UnregisterPackage(packageId, packageVersion);
-        _capabilities.UnregisterPackage(packageId, packageVersion);
-        _rules.UnregisterPackage(packageId, packageVersion);
+        registries.Entities.UnregisterPackage(packageId, packageVersion);
+        registries.Events.UnregisterPackage(packageId, packageVersion);
+        registries.Capabilities.UnregisterPackage(packageId, packageVersion);
+        registries.Rules.UnregisterPackage(packageId, packageVersion);
     }
 
     private Task AuditLifecycleAsync(
-        KnowledgePackageManifest manifest, string category, string summary, string? detail, CancellationToken ct)
+        string tenantId, KnowledgePackageManifest manifest, string category, string summary, string? detail, CancellationToken ct)
     {
         var entry = new AuditEntry
         {
+            TenantId = tenantId,
             CorrelationId = manifest.EntityId,
             Category = category,
             Summary = summary,

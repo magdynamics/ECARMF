@@ -9,6 +9,11 @@ public abstract class UniversalBaseEntity
 {
     public Guid EntityId { get; set; } = Guid.NewGuid();
 
+    /// <summary>Platform tenancy dimension: the client this entity belongs to.
+    /// The kernel serves multiple clients; no managed object exists outside a
+    /// tenant. (Platform extension on top of the ECARMF-002 base schema.)</summary>
+    public string TenantId { get; set; } = string.Empty;
+
     public string EntityType { get; set; } = string.Empty;
 
     public string EntityName { get; set; } = string.Empty;

@@ -18,6 +18,7 @@ public class EfTransactionStore : ITransactionStore
         _db.Transactions.Add(new TransactionRecord
         {
             Id = transaction.TransactionId,
+            TenantId = transaction.TenantId,
             TransactionType = transaction.TransactionType,
             SubmittedBy = transaction.SubmittedBy,
             PayloadJson = JsonSerializer.Serialize(transaction.Payload),

@@ -6,6 +6,8 @@ public class TransactionRecord
 {
     public Guid Id { get; set; }
 
+    public string TenantId { get; set; } = string.Empty;
+
     public string TransactionType { get; set; } = string.Empty;
 
     public string SubmittedBy { get; set; } = string.Empty;

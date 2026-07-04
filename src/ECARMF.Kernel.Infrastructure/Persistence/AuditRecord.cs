@@ -5,6 +5,8 @@ public class AuditRecord
 {
     public Guid Id { get; set; }
 
+    public string TenantId { get; set; } = string.Empty;
+
     public Guid CorrelationId { get; set; }
 
     public string Category { get; set; } = string.Empty;

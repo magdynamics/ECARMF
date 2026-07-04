@@ -14,10 +14,13 @@ namespace ECARMF.Kernel.Tests;
 /// <summary>
 /// Full pipeline test using the shipped Treasury Controls v1 sample package:
 /// transaction intake -> TransactionReceived event -> rule evaluation ->
-/// explainable outcome, with the audit trail written along the way.
+/// explainable outcome, with the audit trail written along the way — all
+/// tenant-scoped.
 /// </summary>
 public class TransactionPipelineTests
 {
+    private const string Tenant = "tenant-a";
+
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
         Converters = { new JsonStringEnumConverter() }
@@ -27,10 +30,7 @@ public class TransactionPipelineTests
     private readonly InMemoryTransactionStore _transactionStore = new();
     private readonly InMemoryOutcomeStore _outcomeStore = new();
     private readonly InMemoryAuditLog _audit = new();
-    private readonly EntityRegistry _entities = new();
-    private readonly RuleRegistry _rules = new();
-    private readonly EventRegistry _events = new();
-    private readonly CapabilityRegistry _capabilities = new();
+    private readonly TenantRegistryProvider _registries = new();
     private readonly InProcessKernelEventBus _bus = new();
 
     private static KnowledgePackageManifest LoadSampleManifest()
@@ -49,20 +49,21 @@ public class TransactionPipelineTests
         return manifest!;
     }
 
-    private async Task ActivateSamplePackageAsync()
+    private async Task ActivateSamplePackageAsync(string tenantId = Tenant)
     {
-        var loader = new PackageLoader(_packageStore, _entities, _rules, _events, _capabilities, _audit);
-        var loadResult = await loader.LoadAsync(LoadSampleManifest());
+        var loader = new PackageLoader(_packageStore, _registries, _audit);
+        var loadResult = await loader.LoadAsync(tenantId, LoadSampleManifest());
         Assert.True(loadResult.Success, string.Join("; ", loadResult.Errors));
-        var activateResult = await loader.ActivateAsync("ecarmf.treasury-controls", "1.0.0");
+        var activateResult = await loader.ActivateAsync(tenantId, "ecarmf.treasury-controls", "1.0.0");
         Assert.True(activateResult.Success, string.Join("; ", activateResult.Errors));
     }
 
     private async Task<(TransactionReceipt Receipt, ProcessingResult Result)> SubmitAndProcessAsync(
-        string transactionType, string amount)
+        string transactionType, string amount, string tenantId = Tenant)
     {
-        var intake = new TransactionIntakeService(_transactionStore, _bus, _events, _audit);
+        var intake = new TransactionIntakeService(_transactionStore, _bus, _registries, _audit);
         var receipt = await intake.ReceiveAsync(new TransactionSubmission(
+            tenantId,
             transactionType,
             "treasurer@example.com",
             new Dictionary<string, string> { ["ventureId"] = "V-001", ["amount"] = amount }));
@@ -73,7 +74,7 @@ public class TransactionPipelineTests
         await using var enumerator = _bus.ReadAllAsync(timeout.Token).GetAsyncEnumerator(timeout.Token);
         Assert.True(await enumerator.MoveNextAsync());
 
-        var processor = new EventProcessor(_rules, _events, _outcomeStore, _bus, _audit);
+        var processor = new EventProcessor(_registries, _outcomeStore, _bus, _audit);
         var result = await processor.ProcessAsync(enumerator.Current);
         return (receipt, result);
     }
@@ -100,6 +101,7 @@ public class TransactionPipelineTests
         Assert.Equal("TREASURY-R-001", result.Outcome.RuleId);
         Assert.Equal("ecarmf.treasury-controls", result.Outcome.PackageId);
         Assert.Equal("1.0.0", result.Outcome.PackageVersion);
+        Assert.Equal(Tenant, result.Outcome.TenantId);
         Assert.Contains("60000", result.Outcome.Reason);
         Assert.Contains("V-001", result.Outcome.Reason);
 
@@ -147,6 +149,7 @@ public class TransactionPipelineTests
         Assert.True(await enumerator.MoveNextAsync());
         Assert.Equal("TransactionFlagged", enumerator.Current.EventName);
         Assert.Equal("Flagged", enumerator.Current.Payload["outcome"]);
+        Assert.Equal(Tenant, enumerator.Current.TenantId);
     }
 
     [Fact]
@@ -155,7 +158,7 @@ public class TransactionPipelineTests
         await ActivateSamplePackageAsync();
 
         var (receipt, _) = await SubmitAndProcessAsync("withdrawal", "60000");
-        var trail = await _audit.GetByCorrelationAsync(receipt.TransactionId);
+        var trail = await _audit.GetByCorrelationAsync(Tenant, receipt.TransactionId);
 
         Assert.Equal(
             [
@@ -170,14 +173,37 @@ public class TransactionPipelineTests
     [Fact]
     public async Task Without_active_package_transaction_is_persisted_but_not_processed()
     {
-        var intake = new TransactionIntakeService(_transactionStore, _bus, _events, _audit);
+        var intake = new TransactionIntakeService(_transactionStore, _bus, _registries, _audit);
 
         var receipt = await intake.ReceiveAsync(new TransactionSubmission(
-            "withdrawal", "treasurer@example.com",
+            Tenant, "withdrawal", "treasurer@example.com",
             new Dictionary<string, string> { ["amount"] = "60000" }));
 
         Assert.False(receipt.EventPublished);
         Assert.NotNull(receipt.Note);
         Assert.Single(_transactionStore.Items);
+    }
+
+    [Fact]
+    public async Task Package_active_for_one_tenant_does_not_process_another_tenants_transactions()
+    {
+        // Treasury controls are active for tenant-a only.
+        await ActivateSamplePackageAsync("tenant-a");
+
+        var intake = new TransactionIntakeService(_transactionStore, _bus, _registries, _audit);
+        var receipt = await intake.ReceiveAsync(new TransactionSubmission(
+            "tenant-b", "withdrawal", "treasurer@other-client.com",
+            new Dictionary<string, string> { ["ventureId"] = "V-9", ["amount"] = "999999" }));
+
+        // Tenant B has no active package: persisted, never processed —
+        // tenant A's controls must not leak into tenant B's treasury.
+        Assert.False(receipt.EventPublished);
+        Assert.NotNull(receipt.Note);
+
+        // And tenant B's audit trail is invisible to tenant A.
+        var tenantATrail = await _audit.GetByCorrelationAsync("tenant-a", receipt.TransactionId);
+        Assert.Empty(tenantATrail);
+        var tenantBTrail = await _audit.GetByCorrelationAsync("tenant-b", receipt.TransactionId);
+        Assert.Single(tenantBTrail);
     }
 }

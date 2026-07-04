@@ -12,6 +12,8 @@ public class TransactionOutcome
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 
+    public string TenantId { get; set; } = string.Empty;
+
     public Guid TransactionId { get; set; }
 
     /// <summary>The event whose processing produced this outcome.</summary>
