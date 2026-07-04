@@ -31,6 +31,11 @@ public class ScoreRecord
 
     public string? PackageVersion { get; set; }
 
+    /// <summary>HumanEntered | ExternalSystemVerified | AIGenerated. An
+    /// AI-generated score is never equivalent to verified ground truth just
+    /// because it looks numeric and confident.</summary>
+    public string Provenance { get; set; } = "AIGenerated";
+
     /// <summary>Ties the score into its flywheel cycle in the audit log.</summary>
     public Guid CorrelationId { get; set; }
 

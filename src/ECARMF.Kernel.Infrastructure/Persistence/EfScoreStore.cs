@@ -26,6 +26,7 @@ public class EfScoreStore : IScoreStore
             RuleId = score.RuleId,
             PackageId = score.PackageId,
             PackageVersion = score.PackageVersion,
+            Provenance = score.Provenance,
             CorrelationId = score.CorrelationId,
             ComputedAt = score.ComputedAt
         });
@@ -70,6 +71,7 @@ public class EfScoreStore : IScoreStore
         RuleId = entry.RuleId,
         PackageId = entry.PackageId,
         PackageVersion = entry.PackageVersion,
+        Provenance = entry.Provenance,
         CorrelationId = entry.CorrelationId,
         ComputedAt = entry.ComputedAt
     };

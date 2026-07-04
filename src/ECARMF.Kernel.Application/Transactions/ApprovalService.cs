@@ -43,6 +43,7 @@ public class ApprovalService : IApprovalService
     private readonly ITenantRegistryProvider _registries;
     private readonly IKernelEventBus _bus;
     private readonly IAuditLog _audit;
+    private readonly Flywheel.IAILearningFeedbackService _feedback;
 
     public ApprovalService(
         ITransactionStore transactions,
@@ -50,7 +51,8 @@ public class ApprovalService : IApprovalService
         IApprovalStore approvals,
         ITenantRegistryProvider registries,
         IKernelEventBus bus,
-        IAuditLog audit)
+        IAuditLog audit,
+        Flywheel.IAILearningFeedbackService feedback)
     {
         _transactions = transactions;
         _outcomes = outcomes;
@@ -58,6 +60,7 @@ public class ApprovalService : IApprovalService
         _registries = registries;
         _bus = bus;
         _audit = audit;
+        _feedback = feedback;
     }
 
     public async Task<ApprovalResult> DecideAsync(ApprovalSubmission submission, CancellationToken ct = default)
@@ -155,6 +158,18 @@ public class ApprovalService : IApprovalService
                 ["eventName"] = outcome.EventName
             }
         }, ct);
+
+        // Flywheel feedback re-entry: the flagging rule implicitly predicted
+        // the record should not proceed. The human verdict is ground truth —
+        // publish predicted-vs-actual as a ModelAccuracy score so the rule's
+        // package accrues (or loses) earned trust over time.
+        await _feedback.PublishModelAccuracyAsync(
+            submission.TenantId,
+            submission.TransactionId,
+            KernelOutcomes.Rejected,
+            outcome.Outcome,
+            $"{latest.PackageId}@{latest.PackageVersion}:{latest.RuleId}",
+            ct);
 
         // Notify packages that subscribed to the resolution, if declared.
         var followUp = outcome.Outcome;

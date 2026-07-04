@@ -17,12 +17,14 @@ public class ApprovalWorkflowTests
     private readonly InMemoryTransactionStore _transactions = new();
     private readonly InMemoryOutcomeStore _outcomes = new();
     private readonly InMemoryApprovalStore _approvals = new();
+    private readonly InMemoryScoreStore _scores = new();
     private readonly TenantRegistryProvider _registries = new();
     private readonly InProcessKernelEventBus _bus = new();
     private readonly InMemoryAuditLog _audit = new();
 
     private ApprovalService CreateService() =>
-        new(_transactions, _outcomes, _approvals, _registries, _bus, _audit);
+        new(_transactions, _outcomes, _approvals, _registries, _bus, _audit,
+            new ECARMF.Kernel.Application.Flywheel.AILearningFeedbackService(_scores, _audit));
 
     private Guid SeedFlaggedRecord(string submittedBy = "treasurer@example.com")
     {
@@ -79,6 +81,39 @@ public class ApprovalWorkflowTests
 
         Assert.True(result.Success);
         Assert.Equal(KernelOutcomes.Rejected, result.Outcome!.Outcome);
+    }
+
+    [Fact]
+    public async Task Human_verdict_feeds_back_as_ModelAccuracy_score()
+    {
+        var id = SeedFlaggedRecord();
+        var service = CreateService();
+
+        // Human confirms the control's implied prediction (reject) -> accuracy 1.
+        await service.DecideAsync(new ApprovalSubmission(
+            Tenant, id, "cfo@example.com", ApprovalVerdict.Reject, null));
+
+        var score = _scores.Items.Single(s => s.ScoreType == "ModelAccuracy");
+        Assert.Equal(1m, score.Value);
+        Assert.Equal("AIGenerated", score.Provenance);
+        Assert.Equal("Model", score.SubjectType);
+        Assert.Contains("TREASURY-R-001", score.SubjectId);
+        Assert.Equal(id, score.CorrelationId);
+    }
+
+    [Fact]
+    public async Task Overridden_control_scores_zero_accuracy()
+    {
+        var id = SeedFlaggedRecord();
+        var service = CreateService();
+
+        // Human overrides the hold (approve) -> the control's flag did not
+        // match ground truth -> accuracy 0.
+        await service.DecideAsync(new ApprovalSubmission(
+            Tenant, id, "cfo@example.com", ApprovalVerdict.Approve, null));
+
+        var score = _scores.Items.Single(s => s.ScoreType == "ModelAccuracy");
+        Assert.Equal(0m, score.Value);
     }
 
     [Fact]

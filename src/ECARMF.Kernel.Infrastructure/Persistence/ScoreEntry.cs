@@ -21,6 +21,8 @@ public class ScoreEntry
 
     public string? PackageVersion { get; set; }
 
+    public string Provenance { get; set; } = string.Empty;
+
     public Guid CorrelationId { get; set; }
 
     public DateTimeOffset ComputedAt { get; set; }

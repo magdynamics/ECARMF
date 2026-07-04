@@ -23,8 +23,26 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<UserRecord> Users => Set<UserRecord>();
 
+    public DbSet<ConnectorRecord> Connectors => Set<ConnectorRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<ConnectorRecord>(entity =>
+        {
+            entity.ToTable("Connectors");
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(c => c.ConnectorId).HasMaxLength(200).IsRequired();
+            entity.Property(c => c.Name).HasMaxLength(400).IsRequired();
+            entity.Property(c => c.SourceCategory).HasMaxLength(100).IsRequired();
+            entity.Property(c => c.IngestionMode).HasMaxLength(50).IsRequired();
+            entity.Property(c => c.SchemaTemplateId).HasMaxLength(200).IsRequired();
+            entity.Property(c => c.ReliabilityRating).HasPrecision(5, 4);
+            entity.Property(c => c.ProvenanceClass).HasMaxLength(50).IsRequired();
+            entity.Property(c => c.Status).HasMaxLength(50).IsRequired();
+            entity.HasIndex(c => new { c.TenantId, c.ConnectorId }).IsUnique();
+        });
+
         modelBuilder.Entity<UserRecord>(entity =>
         {
             entity.ToTable("Users");
