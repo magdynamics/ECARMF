@@ -1,0 +1,155 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "COSO Internal Control Framework",
+  "version": "1",
+  "status": "Published",
+  "owner": "ECARMF Standards Committee",
+  "description": "COSO 2013 Internal Control — Integrated Framework as executable metadata: control assessments flow in as records, effectiveness scores accumulate per COSO component, material weaknesses and significant deficiencies are logged and routed to the auditor, and a maturity KPI framework tracks the five components against target.",
+
+  "packageId": "ecarmf.coso-internal-controls",
+  "name": "COSO Internal Control Framework",
+  "packageVersion": "1.0.0",
+  "publisher": "ECARMF",
+  "dependencies": [
+    { "packageId": "ecarmf.treasury-controls", "minimumVersion": "1.0.0" }
+  ],
+
+  "entities": [
+    {
+      "entityTypeName": "ControlAssessment",
+      "description": "One tested control: which COSO component it belongs to, how effective it operated, and any deficiency classification.",
+      "attributes": [
+        { "name": "controlId", "dataType": "string", "required": true },
+        { "name": "cosoComponent", "dataType": "string", "required": true },
+        { "name": "effectivenessRating", "dataType": "number", "required": true },
+        { "name": "deficiencySeverity", "dataType": "string", "required": false },
+        { "name": "assessor", "dataType": "string", "required": false }
+      ]
+    }
+  ],
+
+  "events": [
+    {
+      "eventName": "ControlDeficiencyLogged",
+      "description": "A control deficiency was identified — a material weakness, a significant deficiency, or an effectiveness rating below tolerance.",
+      "payloadFields": [
+        { "name": "outcome", "dataType": "string", "required": true },
+        { "name": "reason", "dataType": "string", "required": true }
+      ]
+    }
+  ],
+
+  "rules": [
+    {
+      "ruleId": "COSO-R-010",
+      "name": "Record control effectiveness",
+      "description": "Scoring-only rule: every assessment lands in the score fabric per control and per COSO component before any deficiency decision.",
+      "triggerEvent": "RecordReceived",
+      "priority": 50,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "ControlAssessment" },
+        { "field": "effectivenessRating", "operator": "GreaterOrEqual", "value": "0" }
+      ],
+      "outcomeOnMatch": "",
+      "reasonTemplate": "",
+      "emitScores": [
+        { "scoreType": "ControlEffectiveness", "value": "{effectivenessRating}", "subjectType": "Control", "subjectIdField": "controlId" },
+        { "scoreType": "COSOComponentHealth", "value": "{effectivenessRating}", "subjectType": "COSOComponent", "subjectIdField": "cosoComponent" }
+      ]
+    },
+    {
+      "ruleId": "COSO-R-020",
+      "name": "Log material weaknesses",
+      "description": "A material weakness means a reasonable possibility of material misstatement — always logged and routed, never averaged away.",
+      "triggerEvent": "RecordReceived",
+      "priority": 52,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "ControlAssessment" },
+        { "field": "deficiencySeverity", "operator": "Equals", "value": "MaterialWeakness" }
+      ],
+      "outcomeOnMatch": "ControlDeficiencyLogged",
+      "reasonTemplate": "Material weakness in control {controlId} ({cosoComponent}): effectiveness {effectivenessRating}. Requires remediation plan and audit committee visibility."
+    },
+    {
+      "ruleId": "COSO-R-025",
+      "name": "Log significant deficiencies",
+      "description": "Less severe than a material weakness but important enough to merit governance attention.",
+      "triggerEvent": "RecordReceived",
+      "priority": 54,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "ControlAssessment" },
+        { "field": "deficiencySeverity", "operator": "Equals", "value": "SignificantDeficiency" }
+      ],
+      "outcomeOnMatch": "ControlDeficiencyLogged",
+      "reasonTemplate": "Significant deficiency in control {controlId} ({cosoComponent}): effectiveness {effectivenessRating}. Remediation owner to be assigned."
+    },
+    {
+      "ruleId": "COSO-R-030",
+      "name": "Log low-effectiveness controls",
+      "description": "Even without a formal severity classification, a control operating below 0.6 effectiveness is a deficiency.",
+      "triggerEvent": "RecordReceived",
+      "priority": 56,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "ControlAssessment" },
+        { "field": "effectivenessRating", "operator": "LessThan", "value": "0.6" }
+      ],
+      "outcomeOnMatch": "ControlDeficiencyLogged",
+      "reasonTemplate": "Control {controlId} ({cosoComponent}) operated at {effectivenessRating} effectiveness — below the 0.6 tolerance; deficiency logged."
+    },
+    {
+      "ruleId": "COSO-R-040",
+      "name": "Accept effective controls",
+      "description": "Controls operating at or above tolerance close their assessment cycle cleanly.",
+      "triggerEvent": "RecordReceived",
+      "priority": 58,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "ControlAssessment" }
+      ],
+      "outcomeOnMatch": "Approved",
+      "reasonTemplate": "Control {controlId} ({cosoComponent}) operating effectively at {effectivenessRating}; no deficiency."
+    }
+  ],
+
+  "capabilities": [
+    {
+      "capabilityId": "InternalControlAssessment",
+      "name": "Internal Control Assessment",
+      "description": "COSO-based control testing cycle: assess, score, log deficiencies, remediate."
+    }
+  ],
+
+  "performanceFrameworks": [
+    {
+      "frameworkId": "coso-maturity-v1",
+      "name": "COSO Component Maturity v1",
+      "industry": "Governance",
+      "description": "Tracks control effectiveness per COSO component (Control Environment, Risk Assessment, Control Activities, Information & Communication, Monitoring) against the 0.8 maturity target.",
+      "kpis": [
+        { "kpiId": "component-effectiveness", "name": "Component control effectiveness", "formula": "effectivenessRating", "triggerRecordType": "ControlAssessment", "subjectField": "cosoComponent", "unit": "ratio", "targetValue": 0.8, "direction": "higher" }
+      ],
+      "okrs": [
+        {
+          "okrId": "coso-maturity",
+          "objective": "All five COSO components operating at maturity",
+          "keyResults": [
+            { "krId": "kr-effectiveness", "kpiId": "component-effectiveness", "targetValue": 0.8 }
+          ]
+        }
+      ]
+    }
+  ],
+
+  "workflows": [
+    {
+      "workflowId": "COSO-WF-001",
+      "name": "Deficiency remediation routing",
+      "description": "Every logged deficiency notifies the auditor and opens a remediation task for compliance.",
+      "triggerEvent": "ControlDeficiencyLogged",
+      "conditions": [],
+      "steps": [
+        { "type": "notify", "target": "Auditor", "template": "Control deficiency: {reason}", "severity": "Warning" },
+        { "type": "createTask", "target": "RiskComplianceOfficer", "template": "Remediate control {controlId} ({cosoComponent}) — effectiveness {effectivenessRating}", "severity": "Warning" }
+      ]
+    }
+  ]
+}

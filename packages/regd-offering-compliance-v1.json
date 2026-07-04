@@ -1,0 +1,124 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "Regulation D Offering Compliance",
+  "version": "1",
+  "status": "Published",
+  "owner": "ECARMF Standards Committee",
+  "description": "SEC Regulation D private-placement compliance for investor subscriptions: 506(c) offerings require verified accreditation, 506(b) offerings prohibit general solicitation, pending verifications are routed to compliance, and every clean subscription carries an accreditation score.",
+
+  "packageId": "ecarmf.regd-offering-compliance",
+  "name": "Regulation D Offering Compliance",
+  "packageVersion": "1.0.0",
+  "publisher": "ECARMF",
+  "dependencies": [
+    { "packageId": "ecarmf.treasury-controls", "minimumVersion": "1.0.0" }
+  ],
+
+  "entities": [
+    {
+      "entityTypeName": "InvestorSubscription",
+      "description": "An investor's subscription to a private offering under a Reg D exemption.",
+      "attributes": [
+        { "name": "investorId", "dataType": "string", "required": true },
+        { "name": "offeringId", "dataType": "string", "required": true },
+        { "name": "exemptionRule", "dataType": "string", "required": true },
+        { "name": "accreditationStatus", "dataType": "string", "required": true },
+        { "name": "verificationMethod", "dataType": "string", "required": false },
+        { "name": "amount", "dataType": "number", "required": true },
+        { "name": "generalSolicitation", "dataType": "boolean", "required": false }
+      ]
+    }
+  ],
+
+  "events": [
+    {
+      "eventName": "AccreditationReviewRequired",
+      "description": "The subscription cannot proceed until compliance completes accreditation verification.",
+      "payloadFields": [
+        { "name": "outcome", "dataType": "string", "required": true },
+        { "name": "reason", "dataType": "string", "required": true }
+      ]
+    }
+  ],
+
+  "rules": [
+    {
+      "ruleId": "REGD-R-010",
+      "name": "506(c) requires verified accreditation",
+      "description": "Rule 506(c) permits general solicitation only when every purchaser's accredited status is verified through reasonable steps — self-certification is not sufficient.",
+      "triggerEvent": "RecordReceived",
+      "priority": 60,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "InvestorSubscription" },
+        { "field": "exemptionRule", "operator": "Equals", "value": "506c" },
+        { "field": "accreditationStatus", "operator": "Equals", "value": "SelfCertified" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "Subscription of {amount} by investor {investorId} to offering {offeringId} rejected: Rule 506(c) requires verified accreditation; '{accreditationStatus}' via '{verificationMethod}' does not satisfy the reasonable-steps standard."
+    },
+    {
+      "ruleId": "REGD-R-015",
+      "name": "506(b) prohibits general solicitation",
+      "description": "An offering relying on Rule 506(b) loses its exemption if investors were reached through general solicitation or advertising.",
+      "triggerEvent": "RecordReceived",
+      "priority": 62,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "InvestorSubscription" },
+        { "field": "exemptionRule", "operator": "Equals", "value": "506b" },
+        { "field": "generalSolicitation", "operator": "Equals", "value": "true" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "Subscription by investor {investorId} to 506(b) offering {offeringId} rejected: the investor was reached via general solicitation, which is prohibited under Rule 506(b)."
+    },
+    {
+      "ruleId": "REGD-R-020",
+      "name": "Route pending accreditations to compliance",
+      "description": "A subscription whose accreditation is still pending waits for compliance — it is neither accepted nor rejected automatically.",
+      "triggerEvent": "RecordReceived",
+      "priority": 64,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "InvestorSubscription" },
+        { "field": "accreditationStatus", "operator": "Equals", "value": "Pending" }
+      ],
+      "outcomeOnMatch": "AccreditationReviewRequired",
+      "reasonTemplate": "Accreditation of investor {investorId} for offering {offeringId} ({amount}) is pending verification via '{verificationMethod}'; compliance review required before acceptance."
+    },
+    {
+      "ruleId": "REGD-R-030",
+      "name": "Accept verified subscriptions",
+      "description": "Verified accredited investors subscribe cleanly; the accreditation enters the score fabric per offering.",
+      "triggerEvent": "RecordReceived",
+      "priority": 68,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "InvestorSubscription" },
+        { "field": "accreditationStatus", "operator": "Equals", "value": "Verified" }
+      ],
+      "outcomeOnMatch": "Approved",
+      "reasonTemplate": "Subscription of {amount} by verified accredited investor {investorId} to offering {offeringId} accepted under {exemptionRule} (verification: {verificationMethod}).",
+      "emitScores": [
+        { "scoreType": "InvestorAccreditation", "value": "1", "subjectType": "Offering", "subjectIdField": "offeringId" }
+      ]
+    }
+  ],
+
+  "capabilities": [
+    {
+      "capabilityId": "OfferingCompliance",
+      "name": "Private Offering Compliance",
+      "description": "Reg D exemption enforcement across investor subscriptions."
+    }
+  ],
+
+  "workflows": [
+    {
+      "workflowId": "REGD-WF-001",
+      "name": "Accreditation verification queue",
+      "description": "Pending accreditations become compliance tasks so no subscription waits silently.",
+      "triggerEvent": "AccreditationReviewRequired",
+      "conditions": [],
+      "steps": [
+        { "type": "createTask", "target": "RiskComplianceOfficer", "template": "Verify accreditation of investor {investorId} for offering {offeringId} ({amount})", "severity": "Warning" }
+      ]
+    }
+  ]
+}

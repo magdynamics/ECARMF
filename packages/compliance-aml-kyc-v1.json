@@ -1,0 +1,121 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "AML / KYC Screening Controls",
+  "version": "1",
+  "status": "Published",
+  "owner": "ECARMF Standards Committee",
+  "description": "Anti-money-laundering and know-your-customer screening over the treasury record stream: sanctions hits are rejected outright, unverified counterparties above the CDD threshold and politically exposed persons are escalated to compliance, and AML risk enters the score fabric. Screening runs before the generic dual-approval control (priorities 3-8 vs 100).",
+
+  "packageId": "ecarmf.compliance-aml-kyc",
+  "name": "AML / KYC Screening Controls",
+  "packageVersion": "1.0.0",
+  "publisher": "ECARMF",
+  "dependencies": [
+    { "packageId": "ecarmf.treasury-controls", "minimumVersion": "1.0.0" }
+  ],
+
+  "entities": [
+    {
+      "entityTypeName": "CounterpartyProfile",
+      "description": "KYC profile of a transaction counterparty: identity verification state, jurisdiction, and screening flags.",
+      "attributes": [
+        { "name": "counterpartyId", "dataType": "string", "required": true },
+        { "name": "counterpartyName", "dataType": "string", "required": true },
+        { "name": "counterpartyJurisdiction", "dataType": "string", "required": false },
+        { "name": "kycStatus", "dataType": "string", "required": true },
+        { "name": "pepStatus", "dataType": "string", "required": false },
+        { "name": "sanctionsHit", "dataType": "boolean", "required": false },
+        { "name": "amlRiskRating", "dataType": "number", "required": false }
+      ]
+    }
+  ],
+
+  "events": [
+    {
+      "eventName": "AMLEscalated",
+      "description": "The transaction requires compliance review before it may proceed: unverified counterparty above the CDD threshold, PEP involvement, or elevated AML risk.",
+      "payloadFields": [
+        { "name": "outcome", "dataType": "string", "required": true },
+        { "name": "reason", "dataType": "string", "required": true }
+      ]
+    }
+  ],
+
+  "rules": [
+    {
+      "ruleId": "AML-R-010",
+      "name": "Reject sanctioned counterparties",
+      "description": "A positive sanctions-list screening (OFAC SDN / UN / EU consolidated) rejects the transaction outright. No approval path can override a sanctions hit.",
+      "triggerEvent": "RecordReceived",
+      "priority": 3,
+      "conditions": [
+        { "field": "sanctionsHit", "operator": "Equals", "value": "true" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "Sanctions screening hit for counterparty '{counterpartyName}' ({counterpartyJurisdiction}): transaction of {amount} rejected. Sanctioned parties cannot be approved at any authority level."
+    },
+    {
+      "ruleId": "AML-R-015",
+      "name": "Escalate unverified counterparties above the CDD threshold",
+      "description": "Customer due diligence: transactions above 10,000 with a counterparty whose KYC is not Verified go to compliance before processing (BSA/31 CFR 1010 currency-threshold analogue).",
+      "triggerEvent": "RecordReceived",
+      "priority": 4,
+      "conditions": [
+        { "field": "kycStatus", "operator": "NotEquals", "value": "Verified" },
+        { "field": "amount", "operator": "GreaterThan", "value": "10000" }
+      ],
+      "outcomeOnMatch": "AMLEscalated",
+      "reasonTemplate": "Counterparty '{counterpartyName}' KYC status is '{kycStatus}' and the amount {amount} exceeds the 10000 CDD threshold; compliance review required before processing."
+    },
+    {
+      "ruleId": "AML-R-020",
+      "name": "Enhanced due diligence for politically exposed persons",
+      "description": "PEP involvement above 50,000 requires enhanced due diligence regardless of KYC state.",
+      "triggerEvent": "RecordReceived",
+      "priority": 6,
+      "conditions": [
+        { "field": "pepStatus", "operator": "Equals", "value": "PEP" },
+        { "field": "amount", "operator": "GreaterThan", "value": "50000" }
+      ],
+      "outcomeOnMatch": "AMLEscalated",
+      "reasonTemplate": "Counterparty '{counterpartyName}' is a politically exposed person and the amount {amount} exceeds the 50000 EDD threshold; enhanced due diligence required."
+    },
+    {
+      "ruleId": "AML-R-030",
+      "name": "Record counterparty AML risk",
+      "description": "Scoring-only rule, deliberately ordered before the deciders: the screening provider's AML risk rating enters the score fabric even when the transaction is subsequently rejected or escalated.",
+      "triggerEvent": "RecordReceived",
+      "priority": 2,
+      "conditions": [
+        { "field": "amlRiskRating", "operator": "GreaterOrEqual", "value": "0" }
+      ],
+      "outcomeOnMatch": "",
+      "reasonTemplate": "",
+      "emitScores": [
+        { "scoreType": "AMLRisk", "value": "{amlRiskRating}", "subjectType": "Counterparty", "subjectIdField": "counterpartyId" }
+      ]
+    }
+  ],
+
+  "capabilities": [
+    {
+      "capabilityId": "EnhancedDueDiligence",
+      "name": "Enhanced Due Diligence",
+      "description": "Holds an AML-escalated transaction until a compliance officer completes enhanced due diligence."
+    }
+  ],
+
+  "workflows": [
+    {
+      "workflowId": "AML-WF-001",
+      "name": "AML escalation review",
+      "description": "Every AML escalation notifies compliance and opens a review task; silence is not an option for screening hits.",
+      "triggerEvent": "AMLEscalated",
+      "conditions": [],
+      "steps": [
+        { "type": "notify", "target": "RiskComplianceOfficer", "template": "AML escalation: {reason}", "severity": "Critical" },
+        { "type": "createTask", "target": "RiskComplianceOfficer", "template": "Complete due diligence for counterparty '{counterpartyName}' (amount {amount})", "severity": "Critical" }
+      ]
+    }
+  ]
+}

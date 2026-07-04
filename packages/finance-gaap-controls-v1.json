@@ -1,0 +1,125 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "GAAP Journal-Entry Controls",
+  "version": "1",
+  "status": "Published",
+  "owner": "ECARMF Standards Committee",
+  "description": "GAAP-aligned journal-entry controls: double-entry balance enforcement, closed-period protection, materiality review of manual adjustments, and a compliance score trail. Includes a schema template so accounting systems (or extracted documents) can submit entries through a connector.",
+
+  "packageId": "ecarmf.finance-gaap-controls",
+  "name": "GAAP Journal-Entry Controls",
+  "packageVersion": "1.0.0",
+  "publisher": "ECARMF",
+  "dependencies": [
+    { "packageId": "ecarmf.treasury-controls", "minimumVersion": "1.0.0" }
+  ],
+
+  "entities": [
+    {
+      "entityTypeName": "JournalEntry",
+      "description": "A general-ledger journal entry submitted for posting.",
+      "attributes": [
+        { "name": "entryId", "dataType": "string", "required": true },
+        { "name": "description", "dataType": "string", "required": false },
+        { "name": "debitTotal", "dataType": "number", "required": true },
+        { "name": "creditTotal", "dataType": "number", "required": true },
+        { "name": "balanced", "dataType": "boolean", "required": true },
+        { "name": "amount", "dataType": "number", "required": false },
+        { "name": "manualAdjustment", "dataType": "boolean", "required": false },
+        { "name": "periodStatus", "dataType": "string", "required": false },
+        { "name": "preparedBy", "dataType": "string", "required": false }
+      ]
+    }
+  ],
+
+  "events": [
+    {
+      "eventName": "JournalHeld",
+      "description": "The journal entry violates a posting control (unbalanced, or targets a closed period) and is held for correction.",
+      "payloadFields": [
+        { "name": "outcome", "dataType": "string", "required": true },
+        { "name": "reason", "dataType": "string", "required": true }
+      ]
+    }
+  ],
+
+  "rules": [
+    {
+      "ruleId": "GAAP-R-010",
+      "name": "Hold unbalanced journal entries",
+      "description": "Double-entry accounting: total debits must equal total credits. An unbalanced entry is held, never silently corrected.",
+      "triggerEvent": "RecordReceived",
+      "priority": 40,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "JournalEntry" },
+        { "field": "balanced", "operator": "Equals", "value": "false" }
+      ],
+      "outcomeOnMatch": "JournalHeld",
+      "reasonTemplate": "Journal entry {entryId} is unbalanced: debits {debitTotal} vs credits {creditTotal}. GAAP double-entry requires equality; correct and resubmit."
+    },
+    {
+      "ruleId": "GAAP-R-015",
+      "name": "Hold postings to closed periods",
+      "description": "Once a period is closed, adjustments belong in the current period (or a formally reopened one) — retroactive edits break the audit trail.",
+      "triggerEvent": "RecordReceived",
+      "priority": 42,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "JournalEntry" },
+        { "field": "periodStatus", "operator": "Equals", "value": "Closed" }
+      ],
+      "outcomeOnMatch": "JournalHeld",
+      "reasonTemplate": "Journal entry {entryId} targets a closed accounting period; post to the open period or reopen formally with approval."
+    },
+    {
+      "ruleId": "GAAP-R-020",
+      "name": "Flag material manual adjustments",
+      "description": "Manual (non-system) adjustments above the 100,000 materiality threshold require dual approval — the classic management-override risk.",
+      "triggerEvent": "RecordReceived",
+      "priority": 44,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "JournalEntry" },
+        { "field": "manualAdjustment", "operator": "Equals", "value": "true" },
+        { "field": "amount", "operator": "GreaterThan", "value": "100000" }
+      ],
+      "outcomeOnMatch": "Flagged",
+      "reasonTemplate": "Manual journal adjustment {entryId} of {amount} exceeds the 100000 materiality threshold (prepared by {preparedBy}); dual approval required before posting."
+    },
+    {
+      "ruleId": "GAAP-R-030",
+      "name": "Approve clean journal entries",
+      "description": "Balanced, in-period, non-material entries post automatically with a compliance score.",
+      "triggerEvent": "RecordReceived",
+      "priority": 48,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "JournalEntry" }
+      ],
+      "outcomeOnMatch": "Approved",
+      "reasonTemplate": "Journal entry {entryId} passed posting controls: balanced ({debitTotal}={creditTotal}), open period, within materiality.",
+      "emitScores": [
+        { "scoreType": "ControlCompliance", "value": "1", "subjectType": "JournalEntry", "subjectIdField": "entryId" }
+      ]
+    }
+  ],
+
+  "capabilities": [],
+
+  "schemaTemplates": [
+    {
+      "templateId": "gaap-journal-json",
+      "name": "General-ledger journal entry (JSON)",
+      "sourceFormat": "json",
+      "targetEntityType": "JournalEntry",
+      "fieldMappings": [
+        { "rawField": "entryId", "targetField": "entryId", "transform": "none", "required": true },
+        { "rawField": "description", "targetField": "description", "transform": "none", "required": false },
+        { "rawField": "debitTotal", "targetField": "debitTotal", "transform": "none", "required": true },
+        { "rawField": "creditTotal", "targetField": "creditTotal", "transform": "none", "required": true },
+        { "rawField": "balanced", "targetField": "balanced", "transform": "none", "required": true },
+        { "rawField": "amount", "targetField": "amount", "transform": "absoluteValue", "required": false },
+        { "rawField": "manualAdjustment", "targetField": "manualAdjustment", "transform": "none", "required": false },
+        { "rawField": "periodStatus", "targetField": "periodStatus", "transform": "none", "required": false },
+        { "rawField": "preparedBy", "targetField": "preparedBy", "transform": "none", "required": false }
+      ]
+    }
+  ]
+}

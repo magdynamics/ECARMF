@@ -154,9 +154,16 @@ public class EventProcessor : IEventProcessor
 
         // An outcome is recorded whenever a rule fires, and always for the
         // intake event (where the default-approve policy applies). Follow-up
-        // events with no matching rules produce no outcome noise.
+        // events with no matching rules produce no outcome noise — but
+        // workflows subscribed to them still execute: the event itself is
+        // already a recorded, audited fact from the intake pass.
         if (fired is null && !isIntakeEvent)
         {
+            if (_workflows is not null)
+            {
+                await _workflows.ExecuteAsync(kernelEvent, ct);
+            }
+
             return new ProcessingResult(kernelEvent.EventName, kernelEvent.CorrelationId, evaluations, null);
         }
 
