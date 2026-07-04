@@ -27,8 +27,27 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<AllocationRecord> Allocations => Set<AllocationRecord>();
 
+    public DbSet<DeviationRecord> Deviations => Set<DeviationRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<DeviationRecord>(entity =>
+        {
+            entity.ToTable("Deviations");
+            entity.HasKey(d => d.Id);
+            entity.Property(d => d.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(d => d.EntityReference).HasMaxLength(400).IsRequired();
+            entity.Property(d => d.MetricType).HasMaxLength(100).IsRequired();
+            entity.Property(d => d.ExpectedValueSource).HasMaxLength(50).IsRequired();
+            entity.Property(d => d.Severity).HasMaxLength(50).IsRequired();
+            entity.Property(d => d.ActualValue).HasPrecision(18, 6);
+            entity.Property(d => d.ExpectedValue).HasPrecision(18, 6);
+            entity.Property(d => d.VarianceMagnitude).HasPrecision(18, 6);
+            entity.Property(d => d.ThresholdBreached).HasPrecision(18, 6);
+            entity.Property(d => d.AcknowledgedBy).HasMaxLength(400);
+            entity.HasIndex(d => new { d.TenantId, d.DetectedAt });
+        });
+
         modelBuilder.Entity<AllocationRecord>(entity =>
         {
             entity.ToTable("Allocations");

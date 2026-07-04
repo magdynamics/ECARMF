@@ -32,13 +32,16 @@ public class PerformanceEvaluationService : IPerformanceEvaluator, IFrameworkRec
     private readonly ITenantRegistryProvider _registries;
     private readonly IScoreStore _scores;
     private readonly IAuditLog _audit;
+    private readonly Analytics.IDeviationMonitor? _deviations;
 
     public PerformanceEvaluationService(
-        ITenantRegistryProvider registries, IScoreStore scores, IAuditLog audit)
+        ITenantRegistryProvider registries, IScoreStore scores, IAuditLog audit,
+        Analytics.IDeviationMonitor? deviations = null)
     {
         _registries = registries;
         _scores = scores;
         _audit = audit;
+        _deviations = deviations;
     }
 
     public IReadOnlyList<Registered<PerformanceFrameworkDeclaration>> Recommend(string tenantId, string industry)
@@ -80,7 +83,14 @@ public class PerformanceEvaluationService : IPerformanceEvaluator, IFrameworkRec
                 actuals[kpi.KpiId] = value;
                 var subject = ResolveSubject(kernelEvent, kpi.SubjectField);
 
-                await EmitAsync(kernelEvent, framework, "KPIActual", $"{kpi.KpiId}@{subject}", value, ct);
+                var actualScore = await EmitAsync(kernelEvent, framework, "KPIActual", $"{kpi.KpiId}@{subject}", value, ct);
+
+                // Deviation monitoring runs in the same pass: actual vs the
+                // KPI target (or the latest forecast when no target exists).
+                if (_deviations is not null)
+                {
+                    await _deviations.CheckAsync(kernelEvent.TenantId, actualScore, kpi.TargetValue, kernelEvent.CorrelationId, ct);
+                }
 
                 if (kpi.TargetValue is { } target && target != 0)
                 {
@@ -139,7 +149,7 @@ public class PerformanceEvaluationService : IPerformanceEvaluator, IFrameworkRec
         return kernelEvent.CorrelationId.ToString();
     }
 
-    private async Task EmitAsync(
+    private async Task<ScoreRecord> EmitAsync(
         KernelEvent kernelEvent,
         Registered<PerformanceFrameworkDeclaration> framework,
         string scoreType,
@@ -180,5 +190,7 @@ public class PerformanceEvaluationService : IPerformanceEvaluator, IFrameworkRec
                 ["packageVersion"] = framework.PackageVersion
             }
         }, ct);
+
+        return score;
     }
 }

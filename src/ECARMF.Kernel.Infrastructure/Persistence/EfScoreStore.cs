@@ -28,7 +28,8 @@ public class EfScoreStore : IScoreStore
             PackageVersion = score.PackageVersion,
             Provenance = score.Provenance,
             CorrelationId = score.CorrelationId,
-            ComputedAt = score.ComputedAt
+            ComputedAt = score.ComputedAt,
+            MetadataJson = System.Text.Json.JsonSerializer.Serialize(score.Metadata)
         });
 
         await _db.SaveChangesAsync(ct);
@@ -73,6 +74,7 @@ public class EfScoreStore : IScoreStore
         PackageVersion = entry.PackageVersion,
         Provenance = entry.Provenance,
         CorrelationId = entry.CorrelationId,
-        ComputedAt = entry.ComputedAt
+        ComputedAt = entry.ComputedAt,
+        Metadata = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(entry.MetadataJson) ?? []
     };
 }

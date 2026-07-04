@@ -26,4 +26,6 @@ public class ScoreEntry
     public Guid CorrelationId { get; set; }
 
     public DateTimeOffset ComputedAt { get; set; }
+
+    public string MetadataJson { get; set; } = "{}";
 }

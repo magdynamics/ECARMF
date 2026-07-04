@@ -40,4 +40,8 @@ public class ScoreRecord
     public Guid CorrelationId { get; set; }
 
     public DateTimeOffset ComputedAt { get; set; } = DateTimeOffset.UtcNow;
+
+    /// <summary>Structured context (e.g. forecast methodology, horizon,
+    /// confidence interval — stored as-is, never collapsed to one number).</summary>
+    public Dictionary<string, string> Metadata { get; set; } = [];
 }

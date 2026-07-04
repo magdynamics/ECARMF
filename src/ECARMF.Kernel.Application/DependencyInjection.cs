@@ -23,6 +23,8 @@ public static class DependencyInjection
         services.AddScoped<Performance.PerformanceEvaluationService>();
         services.AddScoped<Performance.IPerformanceEvaluator>(sp => sp.GetRequiredService<Performance.PerformanceEvaluationService>());
         services.AddScoped<Performance.IFrameworkRecommender>(sp => sp.GetRequiredService<Performance.PerformanceEvaluationService>());
+        services.AddScoped<Analytics.IForecastingEngine, Analytics.ForecastingEngine>();
+        services.AddScoped<Analytics.IDeviationMonitor, Analytics.DeviationMonitoringService>();
 
         return services;
     }
