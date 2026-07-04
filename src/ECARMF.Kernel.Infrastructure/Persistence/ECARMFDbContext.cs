@@ -11,8 +11,20 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<KnowledgePackageRecord> KnowledgePackages => Set<KnowledgePackageRecord>();
 
+    public DbSet<TransactionRecord> Transactions => Set<TransactionRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<TransactionRecord>(entity =>
+        {
+            entity.ToTable("Transactions");
+            entity.HasKey(t => t.Id);
+            entity.Property(t => t.TransactionType).HasMaxLength(200).IsRequired();
+            entity.Property(t => t.SubmittedBy).HasMaxLength(400).IsRequired();
+            entity.Property(t => t.PayloadJson).IsRequired();
+            entity.HasIndex(t => t.ReceivedAt);
+        });
+
         modelBuilder.Entity<KnowledgePackageRecord>(entity =>
         {
             entity.ToTable("KnowledgePackages");

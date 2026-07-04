@@ -1,3 +1,4 @@
+using ECARMF.Kernel.Api.Endpoints;
 using ECARMF.Kernel.Application;
 using ECARMF.Kernel.Application.Packages;
 using ECARMF.Kernel.Infrastructure;
@@ -13,6 +14,8 @@ builder.Services.AddECARMFApplication();
 builder.Services.AddECARMFInfrastructure(connectionString);
 
 var app = builder.Build();
+
+app.MapTransactionEndpoints();
 
 using (var scope = app.Services.CreateScope())
 {

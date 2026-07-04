@@ -1,5 +1,7 @@
+using ECARMF.Kernel.Application.Events;
 using ECARMF.Kernel.Application.Packages;
 using ECARMF.Kernel.Application.Registries;
+using ECARMF.Kernel.Application.Transactions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ECARMF.Kernel.Application;
@@ -13,7 +15,9 @@ public static class DependencyInjection
         services.AddSingleton<IEventRegistry, EventRegistry>();
         services.AddSingleton<ICapabilityRegistry, CapabilityRegistry>();
 
+        services.AddSingleton<IKernelEventBus, InProcessKernelEventBus>();
         services.AddScoped<IPackageLoader, PackageLoader>();
+        services.AddScoped<ITransactionIntakeService, TransactionIntakeService>();
 
         return services;
     }
