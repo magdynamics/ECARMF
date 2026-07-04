@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using ECARMF.Kernel.Api.Endpoints;
 using ECARMF.Kernel.Api.Hosting;
 using ECARMF.Kernel.Application;
@@ -15,10 +16,33 @@ builder.Services.AddECARMFApplication();
 builder.Services.AddECARMFInfrastructure(connectionString);
 builder.Services.AddHostedService<EventProcessingHostedService>();
 
+// Manifests declare operators and outcomes by name (e.g. "GreaterThan").
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new()
+    {
+        Title = "ECARMF Platform Kernel API",
+        Version = "v1",
+        Description = "Knowledge-driven runtime: packages contribute entities, events, rules, and capabilities; the kernel executes them as metadata."
+    });
+});
+
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.MapTransactionEndpoints();
 app.MapAuditEndpoints();
+app.MapPackageEndpoints();
+app.MapRegistryEndpoints();
 
 using (var scope = app.Services.CreateScope())
 {
