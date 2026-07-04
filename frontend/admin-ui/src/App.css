@@ -288,7 +288,83 @@ button.secondary {
   color: #ffd36e;
 }
 
-.state-escalate {
+.state-escalate,
+.state-escalated {
   background: #3d1a3a;
   color: #e58bd8;
+}
+
+.state-recommendonly,
+.state-autonomous,
+.state-autoexecuted,
+.state-modified {
+  background: #2c3345;
+  color: #9db4e8;
+}
+
+.tab-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.tab-group {
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  color: #8fa1b3;
+  text-transform: uppercase;
+}
+
+.step {
+  background: #1d232b;
+  border: 1px solid #2c343f;
+  border-left: 4px solid #4fc3f7;
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 0.8rem;
+}
+
+.step-done {
+  border-left-color: #6fdb8f;
+  opacity: 0.9;
+}
+
+.step-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+
+.step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: #4fc3f7;
+  color: #10222d;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.step-done .step-number {
+  background: #6fdb8f;
+}
+
+.step-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+select {
+  background: #12161b;
+  color: inherit;
+  border: 1px solid #2c343f;
+  border-radius: 6px;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.85rem;
 }
