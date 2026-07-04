@@ -39,7 +39,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapTransactionEndpoints();
+app.MapRecordEndpoints();
 app.MapAuditEndpoints();
 app.MapPackageEndpoints();
 app.MapRegistryEndpoints();

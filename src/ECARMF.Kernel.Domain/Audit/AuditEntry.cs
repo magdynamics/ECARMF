@@ -25,10 +25,11 @@ public class AuditEntry
 /// <summary>Well-known audit categories written by the kernel.</summary>
 public static class AuditCategories
 {
-    public const string TransactionReceived = "TransactionReceived";
+    public const string RecordReceived = "RecordReceived";
     public const string EventPublished = "EventPublished";
     public const string RuleEvaluated = "RuleEvaluated";
     public const string OutcomeRecorded = "OutcomeRecorded";
+    public const string ApprovalRecorded = "ApprovalRecorded";
     public const string PackageLoaded = "PackageLoaded";
     public const string PackageActivated = "PackageActivated";
     public const string PackageDeactivated = "PackageDeactivated";

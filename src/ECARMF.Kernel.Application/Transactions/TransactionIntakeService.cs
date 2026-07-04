@@ -76,27 +76,29 @@ public class TransactionIntakeService : ITransactionIntakeService
         {
             TenantId = submission.TenantId,
             CorrelationId = transaction.TransactionId,
-            Category = AuditCategories.TransactionReceived,
-            Summary = $"Transaction '{transaction.TransactionType}' received from '{transaction.SubmittedBy}'.",
+            Category = AuditCategories.RecordReceived,
+            Summary = $"Record '{transaction.TransactionType}' received from '{transaction.SubmittedBy}'.",
             Detail = receivedDetail,
             OccurredAt = transaction.ReceivedAt
         }, ct);
 
         var events = _registries.GetFor(submission.TenantId).Events;
-        if (!events.IsDeclared(KernelEventNames.TransactionReceived))
+        if (!events.IsDeclared(KernelEventNames.RecordReceived))
         {
             return new TransactionReceipt(transaction.TransactionId, transaction.ReceivedAt, false,
-                $"Transaction persisted, but no active Knowledge Package of this tenant declares '{KernelEventNames.TransactionReceived}'; no processing will occur.");
+                $"Record persisted, but no active Knowledge Package of this tenant declares '{KernelEventNames.RecordReceived}'; no processing will occur.");
         }
 
-        // Rules see the payload fields plus the intake facts.
+        // Rules see the payload fields plus the intake facts. recordType is
+        // the canonical key; transactionType is kept as a legacy alias.
         var eventPayload = new Dictionary<string, string>(transaction.Payload, StringComparer.OrdinalIgnoreCase);
+        eventPayload.TryAdd("recordType", transaction.TransactionType);
         eventPayload.TryAdd("transactionType", transaction.TransactionType);
         eventPayload.TryAdd("submittedBy", transaction.SubmittedBy);
 
         await _bus.PublishAsync(new KernelEvent(
             submission.TenantId,
-            KernelEventNames.TransactionReceived,
+            KernelEventNames.RecordReceived,
             transaction.TransactionId,
             eventPayload,
             DateTimeOffset.UtcNow), ct);
@@ -106,8 +108,8 @@ public class TransactionIntakeService : ITransactionIntakeService
             TenantId = submission.TenantId,
             CorrelationId = transaction.TransactionId,
             Category = AuditCategories.EventPublished,
-            Summary = $"Event '{KernelEventNames.TransactionReceived}' published.",
-            Detail = new Dictionary<string, string> { ["eventName"] = KernelEventNames.TransactionReceived }
+            Summary = $"Event '{KernelEventNames.RecordReceived}' published.",
+            Detail = new Dictionary<string, string> { ["eventName"] = KernelEventNames.RecordReceived }
         }, ct);
 
         return new TransactionReceipt(transaction.TransactionId, transaction.ReceivedAt, true, null);

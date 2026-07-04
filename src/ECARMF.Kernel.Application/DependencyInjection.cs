@@ -16,6 +16,7 @@ public static class DependencyInjection
         services.AddScoped<IPackageLoader, PackageLoader>();
         services.AddScoped<ITransactionIntakeService, TransactionIntakeService>();
         services.AddScoped<IEventProcessor, EventProcessor>();
+        services.AddScoped<IApprovalService, ApprovalService>();
 
         return services;
     }

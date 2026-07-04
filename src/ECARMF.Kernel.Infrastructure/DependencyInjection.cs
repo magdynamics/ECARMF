@@ -19,6 +19,7 @@ public static class DependencyInjection
         services.AddScoped<ITransactionStore, EfTransactionStore>();
         services.AddScoped<IOutcomeStore, EfOutcomeStore>();
         services.AddScoped<IAuditLog, EfAuditLog>();
+        services.AddScoped<IApprovalStore, EfApprovalStore>();
 
         return services;
     }

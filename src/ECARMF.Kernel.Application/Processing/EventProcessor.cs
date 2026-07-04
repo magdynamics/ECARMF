@@ -96,7 +96,7 @@ public class EventProcessor : IEventProcessor
         await _audit.AppendManyAsync(evaluationEntries, ct);
 
         var isIntakeEvent = string.Equals(
-            kernelEvent.EventName, KernelEventNames.TransactionReceived, StringComparison.OrdinalIgnoreCase);
+            kernelEvent.EventName, KernelEventNames.RecordReceived, StringComparison.OrdinalIgnoreCase);
 
         // An outcome is recorded whenever a rule fires, and always for the
         // intake event (where the default-approve policy applies). Follow-up
@@ -111,7 +111,7 @@ public class EventProcessor : IEventProcessor
             TenantId = kernelEvent.TenantId,
             TransactionId = kernelEvent.CorrelationId,
             EventName = kernelEvent.EventName,
-            Outcome = fired?.Declaration.OutcomeOnMatch ?? RuleOutcome.Approved,
+            Outcome = fired?.Declaration.OutcomeOnMatch ?? KernelOutcomes.Approved,
             Reason = fired is not null
                 ? ReasonRenderer.Render(fired.Declaration.ReasonTemplate, kernelEvent.Payload)
                 : "No active rule objected; approved by default kernel policy.",
@@ -131,7 +131,7 @@ public class EventProcessor : IEventProcessor
             Summary = $"Outcome '{outcome.Outcome}' recorded for event '{kernelEvent.EventName}': {outcome.Reason}",
             Detail = new Dictionary<string, string>
             {
-                ["outcome"] = outcome.Outcome.ToString(),
+                ["outcome"] = outcome.Outcome,
                 ["reason"] = outcome.Reason,
                 ["ruleId"] = outcome.RuleId ?? string.Empty,
                 ["packageId"] = outcome.PackageId ?? string.Empty,
@@ -140,16 +140,17 @@ public class EventProcessor : IEventProcessor
             }
         }, ct);
 
-        // Only intake processing emits outcome events, so rules reacting to
-        // TransactionApproved/Rejected/Flagged can never re-trigger a cycle.
+        // The follow-up event name IS the outcome string (Approved, Flagged,
+        // Hold, Escalate, …) — packages define both. Only intake processing
+        // emits outcome events, so rules reacting to them can never cycle.
         if (isIntakeEvent)
         {
-            var followUpEvent = $"Transaction{outcome.Outcome}";
+            var followUpEvent = outcome.Outcome;
             if (registries.Events.IsDeclared(followUpEvent))
             {
                 var payload = new Dictionary<string, string>(kernelEvent.Payload, StringComparer.OrdinalIgnoreCase)
                 {
-                    ["outcome"] = outcome.Outcome.ToString(),
+                    ["outcome"] = outcome.Outcome,
                     ["reason"] = outcome.Reason
                 };
 

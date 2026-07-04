@@ -59,8 +59,8 @@ public static class ManifestValidator
                 errors.Add($"Rule '{label}' triggers on event '{rule.TriggerEvent}', which is not declared by this package or any active package.");
             }
 
-            if (!Enum.IsDefined(rule.OutcomeOnMatch))
-                errors.Add($"Rule '{label}' has an invalid OutcomeOnMatch value.");
+            if (string.IsNullOrWhiteSpace(rule.OutcomeOnMatch))
+                errors.Add($"Rule '{label}' has no OutcomeOnMatch. Outcome types are package-defined strings (e.g. Approved, Flagged, Hold).");
 
             foreach (var condition in rule.Conditions)
             {

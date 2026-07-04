@@ -74,6 +74,30 @@ public class InMemoryTransactionStore : ITransactionStore
                 .OrderByDescending(t => t.ReceivedAt)
                 .Take(limit)
                 .ToList());
+
+    public Task<Transaction?> GetByIdAsync(string tenantId, Guid transactionId, CancellationToken ct = default) =>
+        Task.FromResult(Items.FirstOrDefault(t =>
+            string.Equals(t.TenantId, tenantId, StringComparison.OrdinalIgnoreCase)
+            && t.TransactionId == transactionId));
+}
+
+public class InMemoryApprovalStore : IApprovalStore
+{
+    public List<ApprovalDecision> Items { get; } = [];
+
+    public Task AppendAsync(ApprovalDecision decision, CancellationToken ct = default)
+    {
+        Items.Add(decision);
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<ApprovalDecision>> GetForTransactionAsync(
+        string tenantId, Guid transactionId, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<ApprovalDecision>>(
+            Items.Where(a => string.Equals(a.TenantId, tenantId, StringComparison.OrdinalIgnoreCase)
+                          && a.TransactionId == transactionId)
+                .OrderBy(a => a.DecidedAt)
+                .ToList());
 }
 
 public class InMemoryOutcomeStore : IOutcomeStore

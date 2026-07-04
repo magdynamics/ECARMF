@@ -23,7 +23,9 @@ public class RuleDeclaration
     /// <summary>All conditions must hold for the rule to match (logical AND).</summary>
     public List<RuleCondition> Conditions { get; set; } = [];
 
-    public RuleOutcome OutcomeOnMatch { get; set; }
+    /// <summary>Package-defined outcome produced when the rule fires
+    /// (e.g. Approved, Rejected, Flagged, Hold, Escalate, Accept).</summary>
+    public string OutcomeOnMatch { get; set; } = string.Empty;
 
     /// <summary>Human-readable explanation template recorded with the outcome,
     /// e.g. "Withdrawal of {amount} exceeds {threshold} and requires dual approval".</summary>

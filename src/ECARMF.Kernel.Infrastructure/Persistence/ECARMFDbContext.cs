@@ -17,8 +17,22 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<AuditRecord> AuditEntries => Set<AuditRecord>();
 
+    public DbSet<ApprovalRecord> Approvals => Set<ApprovalRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<ApprovalRecord>(entity =>
+        {
+            entity.ToTable("Approvals");
+            entity.HasKey(a => a.Id);
+            entity.Property(a => a.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(a => a.Approver).HasMaxLength(400).IsRequired();
+            entity.Property(a => a.Verdict).HasMaxLength(50).IsRequired();
+            entity.Property(a => a.Comment).HasMaxLength(2000);
+            // One decision per record: dual approval is not re-votable.
+            entity.HasIndex(a => new { a.TenantId, a.TransactionId }).IsUnique();
+        });
+
         modelBuilder.Entity<AuditRecord>(entity =>
         {
             entity.ToTable("AuditEntries");

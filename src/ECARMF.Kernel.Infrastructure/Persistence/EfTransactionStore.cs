@@ -29,6 +29,24 @@ public class EfTransactionStore : ITransactionStore
         await _db.SaveChangesAsync(ct);
     }
 
+    public async Task<Transaction?> GetByIdAsync(string tenantId, Guid transactionId, CancellationToken ct = default)
+    {
+        var record = await _db.Transactions.AsNoTracking()
+            .FirstOrDefaultAsync(t => t.TenantId == tenantId && t.Id == transactionId, ct);
+
+        return record is null ? null : new Transaction
+        {
+            EntityId = record.Id,
+            TenantId = record.TenantId,
+            EntityType = nameof(Transaction),
+            EntityName = record.TransactionType,
+            TransactionType = record.TransactionType,
+            SubmittedBy = record.SubmittedBy,
+            Payload = JsonSerializer.Deserialize<Dictionary<string, string>>(record.PayloadJson) ?? [],
+            ReceivedAt = record.ReceivedAt
+        };
+    }
+
     public async Task<IReadOnlyList<Transaction>> GetRecentAsync(string tenantId, int limit, CancellationToken ct = default)
     {
         var records = await _db.Transactions.AsNoTracking()
