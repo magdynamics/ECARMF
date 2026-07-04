@@ -1,4 +1,5 @@
 using ECARMF.Kernel.Application;
+using ECARMF.Kernel.Application.Packages;
 using ECARMF.Kernel.Infrastructure;
 using ECARMF.Kernel.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -13,10 +14,15 @@ builder.Services.AddECARMFInfrastructure(connectionString);
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+using (var scope = app.Services.CreateScope())
 {
-    using var scope = app.Services.CreateScope();
-    scope.ServiceProvider.GetRequiredService<ECARMFDbContext>().Database.Migrate();
+    if (app.Environment.IsDevelopment())
+    {
+        scope.ServiceProvider.GetRequiredService<ECARMFDbContext>().Database.Migrate();
+    }
+
+    // Registries are in-memory; rebuild them from persisted Active packages.
+    await scope.ServiceProvider.GetRequiredService<IPackageLoader>().RehydrateActiveAsync();
 }
 
 app.Run();

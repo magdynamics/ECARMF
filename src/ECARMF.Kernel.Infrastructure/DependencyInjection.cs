@@ -1,3 +1,4 @@
+using ECARMF.Kernel.Application.Packages;
 using ECARMF.Kernel.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,6 +12,8 @@ public static class DependencyInjection
     {
         services.AddDbContext<ECARMFDbContext>(options =>
             options.UseSqlServer(connectionString));
+
+        services.AddScoped<IPackageStore, EfPackageStore>();
 
         return services;
     }

@@ -1,3 +1,4 @@
+using ECARMF.Kernel.Application.Packages;
 using ECARMF.Kernel.Application.Registries;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,6 +12,8 @@ public static class DependencyInjection
         services.AddSingleton<IRuleRegistry, RuleRegistry>();
         services.AddSingleton<IEventRegistry, EventRegistry>();
         services.AddSingleton<ICapabilityRegistry, CapabilityRegistry>();
+
+        services.AddScoped<IPackageLoader, PackageLoader>();
 
         return services;
     }

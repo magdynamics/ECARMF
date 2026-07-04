@@ -24,6 +24,10 @@ public class KnowledgePackageRecord
 
     public string Status { get; set; } = string.Empty;
 
+    /// <summary>Why the package is in its current state (validation errors,
+    /// registry conflicts) — keeps failed loads explainable.</summary>
+    public string? StatusDetail { get; set; }
+
     public DateTimeOffset CreatedAt { get; set; }
 
     public DateTimeOffset UpdatedAt { get; set; }
