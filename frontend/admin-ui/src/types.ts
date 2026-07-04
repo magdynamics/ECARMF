@@ -83,12 +83,34 @@ export interface OutcomeInfo {
 }
 
 export interface ActivityItem {
-  transactionId: string
-  transactionType: string
+  recordId: string
+  recordType: string
   submittedBy: string
   receivedAt: string
   payload: Record<string, string>
   outcomes: OutcomeInfo[]
+}
+
+export interface ScoreRecord {
+  id: string
+  subjectType: string
+  subjectId: string
+  scoreType: string
+  value: number
+  ruleId: string | null
+  packageId: string | null
+  packageVersion: string | null
+  correlationId: string
+  computedAt: string
+}
+
+export interface AuditEntryDto {
+  id: string
+  correlationId: string
+  category: string
+  summary: string
+  detail: Record<string, string>
+  occurredAt: string
 }
 
 export interface OperationResult {

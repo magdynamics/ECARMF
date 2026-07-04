@@ -53,9 +53,10 @@ public class TransactionPipelineTests
     private async Task ActivateSamplePackageAsync(string tenantId = Tenant)
     {
         var loader = new PackageLoader(_packageStore, _registries, _audit);
-        var loadResult = await loader.LoadAsync(tenantId, LoadSampleManifest());
+        var manifest = LoadSampleManifest();
+        var loadResult = await loader.LoadAsync(tenantId, manifest);
         Assert.True(loadResult.Success, string.Join("; ", loadResult.Errors));
-        var activateResult = await loader.ActivateAsync(tenantId, "ecarmf.treasury-controls", "1.0.0");
+        var activateResult = await loader.ActivateAsync(tenantId, manifest.PackageId, manifest.PackageVersion);
         Assert.True(activateResult.Success, string.Join("; ", activateResult.Errors));
     }
 
@@ -101,7 +102,7 @@ public class TransactionPipelineTests
         Assert.Equal("Flagged", result.Outcome!.Outcome);
         Assert.Equal("TREASURY-R-001", result.Outcome.RuleId);
         Assert.Equal("ecarmf.treasury-controls", result.Outcome.PackageId);
-        Assert.Equal("1.0.0", result.Outcome.PackageVersion);
+        Assert.Equal("1.1.0", result.Outcome.PackageVersion);
         Assert.Equal(Tenant, result.Outcome.TenantId);
         Assert.Contains("60000", result.Outcome.Reason);
         Assert.Contains("V-001", result.Outcome.Reason);

@@ -253,3 +253,42 @@ button.secondary {
 .form-row .grow input {
   width: 100%;
 }
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.kpi {
+  margin-bottom: 0;
+  text-align: center;
+}
+
+.kpi-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #4fc3f7;
+}
+
+.approval-actions {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.state-accept {
+  background: #14351f;
+  color: #6fdb8f;
+}
+
+.state-hold,
+.state-auditfurther {
+  background: #3d3113;
+  color: #ffd36e;
+}
+
+.state-escalate {
+  background: #3d1a3a;
+  color: #e58bd8;
+}

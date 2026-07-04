@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import './App.css'
 import { getTenant, setTenant } from './api'
+import { Dashboard } from './components/Dashboard'
 import { PackageInspector } from './components/PackageInspector'
-import { TransactionActivity } from './components/TransactionActivity'
+import { RecordActivity } from './components/RecordActivity'
 
-type Tab = 'packages' | 'activity'
+type Tab = 'dashboard' | 'packages' | 'activity'
 
 function App() {
   const [tenant, setTenantState] = useState(getTenant())
@@ -55,17 +56,22 @@ function App() {
       ) : (
         <>
           <nav className="tabs">
+            <button className={tab === 'dashboard' ? 'active' : ''} onClick={() => setTab('dashboard')}>
+              Dashboard
+            </button>
             <button className={tab === 'packages' ? 'active' : ''} onClick={() => setTab('packages')}>
               Package Inspector
             </button>
             <button className={tab === 'activity' ? 'active' : ''} onClick={() => setTab('activity')}>
-              Transaction Activity
+              Record Activity
             </button>
           </nav>
-          {tab === 'packages' ? (
+          {tab === 'dashboard' ? (
+            <Dashboard tenant={tenant} />
+          ) : tab === 'packages' ? (
             <PackageInspector tenant={tenant} />
           ) : (
-            <TransactionActivity tenant={tenant} />
+            <RecordActivity tenant={tenant} />
           )}
         </>
       )}
