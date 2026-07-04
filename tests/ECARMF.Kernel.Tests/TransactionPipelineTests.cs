@@ -103,7 +103,7 @@ public class TransactionPipelineTests
         Assert.Equal("Flagged", result.Outcome!.Outcome);
         Assert.Equal("TREASURY-R-001", result.Outcome.RuleId);
         Assert.Equal("ecarmf.treasury-controls", result.Outcome.PackageId);
-        Assert.Equal("1.1.0", result.Outcome.PackageVersion);
+        Assert.Equal("1.2.0", result.Outcome.PackageVersion);
         Assert.Equal(Tenant, result.Outcome.TenantId);
         Assert.Contains("60000", result.Outcome.Reason);
         Assert.Contains("V-001", result.Outcome.Reason);

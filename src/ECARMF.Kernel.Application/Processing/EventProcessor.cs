@@ -45,6 +45,7 @@ public class EventProcessor : IEventProcessor
     private readonly IKernelEventBus _bus;
     private readonly IAuditLog _audit;
     private readonly Performance.IPerformanceEvaluator _performance;
+    private readonly Workflow.IWorkflowEngine? _workflows;
 
     public EventProcessor(
         ITenantRegistryProvider registries,
@@ -52,7 +53,8 @@ public class EventProcessor : IEventProcessor
         IScoreStore scores,
         IKernelEventBus bus,
         IAuditLog audit,
-        Performance.IPerformanceEvaluator performance)
+        Performance.IPerformanceEvaluator performance,
+        Workflow.IWorkflowEngine? workflows = null)
     {
         _registries = registries;
         _outcomes = outcomes;
@@ -60,6 +62,7 @@ public class EventProcessor : IEventProcessor
         _bus = bus;
         _audit = audit;
         _performance = performance;
+        _workflows = workflows;
     }
 
     public async Task<ProcessingResult> ProcessAsync(KernelEvent kernelEvent, CancellationToken ct = default)
@@ -209,6 +212,13 @@ public class EventProcessor : IEventProcessor
                 await _bus.PublishAsync(new KernelEvent(
                     kernelEvent.TenantId, followUpEvent, kernelEvent.CorrelationId, payload, DateTimeOffset.UtcNow), ct);
             }
+        }
+
+        // Automation workflows run last, after the outcome is durable: the
+        // kernel acts only on recorded, audited facts.
+        if (_workflows is not null)
+        {
+            await _workflows.ExecuteAsync(kernelEvent, ct);
         }
 
         return new ProcessingResult(kernelEvent.EventName, kernelEvent.CorrelationId, evaluations, outcome);

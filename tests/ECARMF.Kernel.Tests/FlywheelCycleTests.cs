@@ -55,7 +55,7 @@ public class FlywheelCycleTests
 
         var treasury = await loader.LoadAsync(Tenant, LoadManifest("treasury-controls-v1.json"));
         Assert.True(treasury.Success, string.Join("; ", treasury.Errors));
-        var treasuryActive = await loader.ActivateAsync(Tenant, "ecarmf.treasury-controls", "1.1.0");
+        var treasuryActive = await loader.ActivateAsync(Tenant, "ecarmf.treasury-controls", "1.2.0");
         Assert.True(treasuryActive.Success, string.Join("; ", treasuryActive.Errors));
 
         var flywheel = await loader.LoadAsync(Tenant, LoadManifest("flywheel-opportunity-evaluation-v1.json"));

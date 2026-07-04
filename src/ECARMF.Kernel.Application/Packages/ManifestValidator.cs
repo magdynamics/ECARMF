@@ -38,6 +38,23 @@ public static class ManifestValidator
         CheckNames(errors, "capability", manifest.Capabilities.Select(c => c.CapabilityId));
         CheckNames(errors, "schema template", manifest.SchemaTemplates.Select(t => t.TemplateId));
         CheckNames(errors, "performance framework", manifest.PerformanceFrameworks.Select(f => f.FrameworkId));
+        CheckNames(errors, "workflow", manifest.Workflows.Select(w => w.WorkflowId));
+
+        foreach (var workflow in manifest.Workflows)
+        {
+            var label = string.IsNullOrWhiteSpace(workflow.WorkflowId) ? "(unnamed workflow)" : workflow.WorkflowId;
+            if (string.IsNullOrWhiteSpace(workflow.TriggerEvent))
+                errors.Add($"Workflow '{label}' has no TriggerEvent.");
+            if (workflow.Steps.Count == 0)
+                errors.Add($"Workflow '{label}' declares no steps.");
+            foreach (var step in workflow.Steps)
+            {
+                if (step.Type.ToLowerInvariant() is not ("notify" or "createtask" or "publishevent"))
+                    errors.Add($"Workflow '{label}' has invalid step type '{step.Type}' (notify|createTask|publishEvent).");
+                if (string.IsNullOrWhiteSpace(step.Target))
+                    errors.Add($"Workflow '{label}' has a step with no Target.");
+            }
+        }
 
         foreach (var framework in manifest.PerformanceFrameworks)
         {

@@ -27,6 +27,8 @@ public static class DependencyInjection
         services.AddScoped<Application.Capital.IAllocationStore, EfAllocationStore>();
         services.AddScoped<Application.Analytics.IDeviationStore, EfDeviationStore>();
         services.AddScoped<IDashboardStore, EfDashboardStore>();
+        services.AddScoped<Application.Workflow.ITaskStore, EfTaskStore>();
+        services.AddScoped<Application.Workflow.INotificationStore, EfNotificationStore>();
 
         return services;
     }

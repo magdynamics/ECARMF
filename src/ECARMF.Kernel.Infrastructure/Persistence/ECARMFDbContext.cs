@@ -31,8 +31,38 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<DashboardRecord> Dashboards => Set<DashboardRecord>();
 
+    public DbSet<TaskRecord> Tasks => Set<TaskRecord>();
+
+    public DbSet<NotificationRecord> Notifications => Set<NotificationRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<TaskRecord>(entity =>
+        {
+            entity.ToTable("Tasks");
+            entity.HasKey(t => t.Id);
+            entity.Property(t => t.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(t => t.WorkflowId).HasMaxLength(200).IsRequired();
+            entity.Property(t => t.Title).HasMaxLength(2000).IsRequired();
+            entity.Property(t => t.Assignee).HasMaxLength(400).IsRequired();
+            entity.Property(t => t.Severity).HasMaxLength(50).IsRequired();
+            entity.Property(t => t.Status).HasMaxLength(50).IsRequired();
+            entity.Property(t => t.CompletedBy).HasMaxLength(400);
+            entity.HasIndex(t => new { t.TenantId, t.Status, t.CreatedAt });
+        });
+
+        modelBuilder.Entity<NotificationRecord>(entity =>
+        {
+            entity.ToTable("Notifications");
+            entity.HasKey(n => n.Id);
+            entity.Property(n => n.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(n => n.WorkflowId).HasMaxLength(200).IsRequired();
+            entity.Property(n => n.Target).HasMaxLength(400).IsRequired();
+            entity.Property(n => n.Message).HasMaxLength(4000).IsRequired();
+            entity.Property(n => n.Severity).HasMaxLength(50).IsRequired();
+            entity.HasIndex(n => new { n.TenantId, n.CreatedAt });
+        });
+
         modelBuilder.Entity<DashboardRecord>(entity =>
         {
             entity.ToTable("Dashboards");

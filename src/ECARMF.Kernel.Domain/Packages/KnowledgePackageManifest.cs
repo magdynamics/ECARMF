@@ -33,4 +33,6 @@ public class KnowledgePackageManifest : UniversalBaseEntity
     public List<SchemaTemplateDeclaration> SchemaTemplates { get; set; } = [];
 
     public List<PerformanceFrameworkDeclaration> PerformanceFrameworks { get; set; } = [];
+
+    public List<WorkflowDeclaration> Workflows { get; set; } = [];
 }

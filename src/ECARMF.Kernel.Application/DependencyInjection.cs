@@ -25,6 +25,7 @@ public static class DependencyInjection
         services.AddScoped<Performance.IFrameworkRecommender>(sp => sp.GetRequiredService<Performance.PerformanceEvaluationService>());
         services.AddScoped<Analytics.IForecastingEngine, Analytics.ForecastingEngine>();
         services.AddScoped<Analytics.IDeviationMonitor, Analytics.DeviationMonitoringService>();
+        services.AddScoped<Workflow.IWorkflowEngine, Workflow.WorkflowEngine>();
 
         return services;
     }

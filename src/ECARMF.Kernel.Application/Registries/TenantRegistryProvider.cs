@@ -9,7 +9,8 @@ public sealed record TenantRegistries(
     IEventRegistry Events,
     ICapabilityRegistry Capabilities,
     ISchemaTemplateRegistry SchemaTemplates,
-    IPerformanceFrameworkRegistry PerformanceFrameworks);
+    IPerformanceFrameworkRegistry PerformanceFrameworks,
+    IWorkflowRegistry Workflows);
 
 /// <summary>
 /// Tenant isolation boundary for the in-memory runtime. Each tenant gets its
@@ -39,6 +40,7 @@ public class TenantRegistryProvider : ITenantRegistryProvider
             new EventRegistry(),
             new CapabilityRegistry(),
             new SchemaTemplateRegistry(),
-            new PerformanceFrameworkRegistry()));
+            new PerformanceFrameworkRegistry(),
+            new WorkflowRegistry()));
     }
 }

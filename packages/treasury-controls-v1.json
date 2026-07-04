@@ -8,7 +8,7 @@
 
   "packageId": "ecarmf.treasury-controls",
   "name": "Treasury Controls",
-  "packageVersion": "1.1.0",
+  "packageVersion": "1.2.0",
   "publisher": "ECARMF",
   "dependencies": [],
 
@@ -75,6 +75,20 @@
       ],
       "outcomeOnMatch": "Flagged",
       "reasonTemplate": "Withdrawal of {amount} from venture {ventureId} exceeds 50000 and requires a second approval (RequireDualApproval)."
+    }
+  ],
+
+  "workflows": [
+    {
+      "workflowId": "TREASURY-WF-001",
+      "name": "Flagged withdrawal review",
+      "description": "When a record is Flagged, notify the treasury officer and open a review task.",
+      "triggerEvent": "Flagged",
+      "conditions": [],
+      "steps": [
+        { "type": "notify", "target": "TreasuryOfficer", "template": "Withdrawal of {amount} from venture {ventureId} was Flagged and needs dual approval.", "severity": "Warning" },
+        { "type": "createTask", "target": "TreasuryOfficer", "template": "Review flagged withdrawal of {amount} from venture {ventureId}", "severity": "Warning" }
+      ]
     }
   ],
 

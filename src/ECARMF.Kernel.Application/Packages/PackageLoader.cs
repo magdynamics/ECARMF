@@ -244,6 +244,8 @@ public class PackageLoader : IPackageLoader
             registries.Capabilities.Register(capability, manifest.PackageId, manifest.PackageVersion);
         foreach (var template in manifest.SchemaTemplates)
             registries.SchemaTemplates.Register(template, manifest.PackageId, manifest.PackageVersion);
+        foreach (var workflow in manifest.Workflows)
+            registries.Workflows.Register(workflow, manifest.PackageId, manifest.PackageVersion);
         foreach (var framework in manifest.PerformanceFrameworks)
             registries.PerformanceFrameworks.Register(framework, manifest.PackageId, manifest.PackageVersion);
         foreach (var rule in manifest.Rules)
@@ -257,6 +259,7 @@ public class PackageLoader : IPackageLoader
         registries.Capabilities.UnregisterPackage(packageId, packageVersion);
         registries.SchemaTemplates.UnregisterPackage(packageId, packageVersion);
         registries.PerformanceFrameworks.UnregisterPackage(packageId, packageVersion);
+        registries.Workflows.UnregisterPackage(packageId, packageVersion);
         registries.Rules.UnregisterPackage(packageId, packageVersion);
     }
 
