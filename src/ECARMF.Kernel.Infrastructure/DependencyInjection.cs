@@ -1,3 +1,4 @@
+using ECARMF.Kernel.Application.Audit;
 using ECARMF.Kernel.Application.Packages;
 using ECARMF.Kernel.Application.Transactions;
 using ECARMF.Kernel.Infrastructure.Persistence;
@@ -17,6 +18,7 @@ public static class DependencyInjection
         services.AddScoped<IPackageStore, EfPackageStore>();
         services.AddScoped<ITransactionStore, EfTransactionStore>();
         services.AddScoped<IOutcomeStore, EfOutcomeStore>();
+        services.AddScoped<IAuditLog, EfAuditLog>();
 
         return services;
     }

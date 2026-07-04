@@ -18,6 +18,7 @@ builder.Services.AddHostedService<EventProcessingHostedService>();
 var app = builder.Build();
 
 app.MapTransactionEndpoints();
+app.MapAuditEndpoints();
 
 using (var scope = app.Services.CreateScope())
 {

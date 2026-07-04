@@ -15,8 +15,21 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<OutcomeRecord> TransactionOutcomes => Set<OutcomeRecord>();
 
+    public DbSet<AuditRecord> AuditEntries => Set<AuditRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<AuditRecord>(entity =>
+        {
+            entity.ToTable("AuditEntries");
+            entity.HasKey(a => a.Id);
+            entity.Property(a => a.Category).HasMaxLength(100).IsRequired();
+            entity.Property(a => a.Summary).IsRequired();
+            entity.Property(a => a.DetailJson).IsRequired();
+            entity.HasIndex(a => a.CorrelationId);
+            entity.HasIndex(a => a.OccurredAt);
+        });
+
         modelBuilder.Entity<OutcomeRecord>(entity =>
         {
             entity.ToTable("TransactionOutcomes");

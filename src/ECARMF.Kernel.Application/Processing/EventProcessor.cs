@@ -1,6 +1,8 @@
+using ECARMF.Kernel.Application.Audit;
 using ECARMF.Kernel.Application.Events;
 using ECARMF.Kernel.Application.Registries;
 using ECARMF.Kernel.Application.Transactions;
+using ECARMF.Kernel.Domain.Audit;
 using ECARMF.Kernel.Domain.Packages;
 using ECARMF.Kernel.Domain.Transactions;
 
@@ -38,17 +40,20 @@ public class EventProcessor : IEventProcessor
     private readonly IEventRegistry _events;
     private readonly IOutcomeStore _outcomes;
     private readonly IKernelEventBus _bus;
+    private readonly IAuditLog _audit;
 
     public EventProcessor(
         IRuleRegistry rules,
         IEventRegistry events,
         IOutcomeStore outcomes,
-        IKernelEventBus bus)
+        IKernelEventBus bus,
+        IAuditLog audit)
     {
         _rules = rules;
         _events = events;
         _outcomes = outcomes;
         _bus = bus;
+        _audit = audit;
     }
 
     public async Task<ProcessingResult> ProcessAsync(KernelEvent kernelEvent, CancellationToken ct = default)
@@ -71,6 +76,25 @@ public class EventProcessor : IEventProcessor
                 break;
             }
         }
+
+        // Every rule evaluation is audited, matched or not, before anything
+        // downstream happens (audit integrity first).
+        var evaluationEntries = evaluations.Select(e => new AuditEntry
+        {
+            CorrelationId = kernelEvent.CorrelationId,
+            Category = AuditCategories.RuleEvaluated,
+            Summary = $"Rule '{e.RuleId}' evaluated for event '{kernelEvent.EventName}': {(e.Matched ? "matched" : "did not match")}.",
+            Detail = new Dictionary<string, string>
+            {
+                ["ruleId"] = e.RuleId,
+                ["packageId"] = e.PackageId,
+                ["packageVersion"] = e.PackageVersion,
+                ["eventName"] = kernelEvent.EventName,
+                ["matched"] = e.Matched.ToString()
+            }
+        }).ToList();
+
+        await _audit.AppendManyAsync(evaluationEntries, ct);
 
         var isIntakeEvent = string.Equals(
             kernelEvent.EventName, KernelEventNames.TransactionReceived, StringComparison.OrdinalIgnoreCase);
@@ -98,6 +122,22 @@ public class EventProcessor : IEventProcessor
         };
 
         await _outcomes.AppendAsync(outcome, ct);
+
+        await _audit.AppendAsync(new AuditEntry
+        {
+            CorrelationId = kernelEvent.CorrelationId,
+            Category = AuditCategories.OutcomeRecorded,
+            Summary = $"Outcome '{outcome.Outcome}' recorded for event '{kernelEvent.EventName}': {outcome.Reason}",
+            Detail = new Dictionary<string, string>
+            {
+                ["outcome"] = outcome.Outcome.ToString(),
+                ["reason"] = outcome.Reason,
+                ["ruleId"] = outcome.RuleId ?? string.Empty,
+                ["packageId"] = outcome.PackageId ?? string.Empty,
+                ["packageVersion"] = outcome.PackageVersion ?? string.Empty,
+                ["eventName"] = kernelEvent.EventName
+            }
+        }, ct);
 
         // Only intake processing emits outcome events, so rules reacting to
         // TransactionApproved/Rejected/Flagged can never re-trigger a cycle.

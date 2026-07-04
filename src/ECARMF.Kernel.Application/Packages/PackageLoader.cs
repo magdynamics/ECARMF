@@ -1,4 +1,6 @@
+using ECARMF.Kernel.Application.Audit;
 using ECARMF.Kernel.Application.Registries;
+using ECARMF.Kernel.Domain.Audit;
 using ECARMF.Kernel.Domain.Packages;
 
 namespace ECARMF.Kernel.Application.Packages;
@@ -10,19 +12,22 @@ public class PackageLoader : IPackageLoader
     private readonly IRuleRegistry _rules;
     private readonly IEventRegistry _events;
     private readonly ICapabilityRegistry _capabilities;
+    private readonly IAuditLog _audit;
 
     public PackageLoader(
         IPackageStore store,
         IEntityRegistry entities,
         IRuleRegistry rules,
         IEventRegistry events,
-        ICapabilityRegistry capabilities)
+        ICapabilityRegistry capabilities,
+        IAuditLog audit)
     {
         _store = store;
         _entities = entities;
         _rules = rules;
         _events = events;
         _capabilities = capabilities;
+        _audit = audit;
     }
 
     public async Task<PackageOperationResult> LoadAsync(KnowledgePackageManifest manifest, CancellationToken ct = default)
@@ -44,12 +49,16 @@ public class PackageLoader : IPackageLoader
             if (!string.IsNullOrWhiteSpace(manifest.PackageId) && !string.IsNullOrWhiteSpace(manifest.PackageVersion))
             {
                 await _store.AddAsync(manifest, PackageLoadState.Failed, string.Join(" ", errors), ct);
+                await AuditLifecycleAsync(manifest, AuditCategories.PackageFailed,
+                    $"Package '{manifest.PackageId}' v{manifest.PackageVersion} failed validation.", string.Join(" ", errors), ct);
             }
 
             return PackageOperationResult.Fail(PackageLoadState.Failed, errors);
         }
 
         await _store.AddAsync(manifest, PackageLoadState.Staged, null, ct);
+        await AuditLifecycleAsync(manifest, AuditCategories.PackageLoaded,
+            $"Package '{manifest.PackageId}' v{manifest.PackageVersion} staged.", null, ct);
         return PackageOperationResult.Ok(PackageLoadState.Staged);
     }
 
@@ -82,10 +91,14 @@ public class PackageLoader : IPackageLoader
         {
             UnregisterAll(packageId, packageVersion);
             await _store.UpdateStateAsync(packageId, packageVersion, PackageLoadState.Failed, ex.Message, ct);
+            await AuditLifecycleAsync(stored.Manifest, AuditCategories.PackageFailed,
+                $"Package '{packageId}' v{packageVersion} activation failed.", ex.Message, ct);
             return PackageOperationResult.Fail(PackageLoadState.Failed, ex.Message);
         }
 
         await _store.UpdateStateAsync(packageId, packageVersion, PackageLoadState.Active, null, ct);
+        await AuditLifecycleAsync(stored.Manifest, AuditCategories.PackageActivated,
+            $"Package '{packageId}' v{packageVersion} activated.", null, ct);
         return PackageOperationResult.Ok(PackageLoadState.Active);
     }
 
@@ -118,6 +131,8 @@ public class PackageLoader : IPackageLoader
 
         UnregisterAll(packageId, packageVersion);
         await _store.UpdateStateAsync(packageId, packageVersion, PackageLoadState.Deactivated, null, ct);
+        await AuditLifecycleAsync(stored.Manifest, AuditCategories.PackageDeactivated,
+            $"Package '{packageId}' v{packageVersion} deactivated.", null, ct);
         return PackageOperationResult.Ok(PackageLoadState.Deactivated);
     }
 
@@ -224,5 +239,28 @@ public class PackageLoader : IPackageLoader
         _events.UnregisterPackage(packageId, packageVersion);
         _capabilities.UnregisterPackage(packageId, packageVersion);
         _rules.UnregisterPackage(packageId, packageVersion);
+    }
+
+    private Task AuditLifecycleAsync(
+        KnowledgePackageManifest manifest, string category, string summary, string? detail, CancellationToken ct)
+    {
+        var entry = new AuditEntry
+        {
+            CorrelationId = manifest.EntityId,
+            Category = category,
+            Summary = summary,
+            Detail = new Dictionary<string, string>
+            {
+                ["packageId"] = manifest.PackageId,
+                ["packageVersion"] = manifest.PackageVersion
+            }
+        };
+
+        if (!string.IsNullOrWhiteSpace(detail))
+        {
+            entry.Detail["detail"] = detail;
+        }
+
+        return _audit.AppendAsync(entry, ct);
     }
 }
