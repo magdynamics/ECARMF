@@ -16,10 +16,12 @@ public interface IUserStore
     Task EnsureSeedUsersAsync(string tenantId, CancellationToken ct = default);
 }
 
-/// <summary>Well-known seed identities.</summary>
+/// <summary>Well-known seed identities. Each AI agent acts under its own
+/// identity so its outputs are individually attributable and trust-tracked.</summary>
 public static class SeedUsers
 {
     public const string Admin = "admin@platform";
     public const string Owner = "owner@platform";
     public const string SystemActor = "system:flywheel";
+    public const string AdvisorActor = "system:advisor";
 }

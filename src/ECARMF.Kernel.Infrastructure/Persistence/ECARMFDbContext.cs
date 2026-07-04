@@ -35,8 +35,25 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<NotificationRecord> Notifications => Set<NotificationRecord>();
 
+    public DbSet<AdvisorBriefRecord> AdvisorBriefs => Set<AdvisorBriefRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<AdvisorBriefRecord>(entity =>
+        {
+            entity.ToTable("AdvisorBriefs");
+            entity.HasKey(b => b.Id);
+            entity.Property(b => b.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(b => b.Title).HasMaxLength(400).IsRequired();
+            entity.Property(b => b.ExecutiveSummary).IsRequired();
+            entity.Property(b => b.RecommendationsJson).IsRequired();
+            entity.Property(b => b.ModelReference).HasMaxLength(200).IsRequired();
+            entity.Property(b => b.Provenance).HasMaxLength(50).IsRequired();
+            entity.Property(b => b.RequestedBy).HasMaxLength(400).IsRequired();
+            entity.Property(b => b.FeedbackBy).HasMaxLength(400);
+            entity.HasIndex(b => new { b.TenantId, b.CreatedAt });
+        });
+
         modelBuilder.Entity<TaskRecord>(entity =>
         {
             entity.ToTable("Tasks");

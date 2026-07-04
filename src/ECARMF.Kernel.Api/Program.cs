@@ -50,6 +50,7 @@ app.MapAllocationEndpoints();
 app.MapAnalyticsEndpoints();
 app.MapDashboardEndpoints();
 app.MapTaskEndpoints();
+app.MapAdvisorEndpoints();
 
 using (var scope = app.Services.CreateScope())
 {

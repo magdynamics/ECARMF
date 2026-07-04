@@ -32,17 +32,33 @@ public class EfUserStore : IUserStore
 
     public async Task EnsureSeedUsersAsync(string tenantId, CancellationToken ct = default)
     {
-        if (await _db.Users.AnyAsync(u => u.TenantId == tenantId, ct))
+        // Per-identifier idempotency: tenants seeded before a new well-known
+        // actor existed pick it up on their next request.
+        var existing = await _db.Users
+            .Where(u => u.TenantId == tenantId)
+            .Select(u => u.Identifier)
+            .ToListAsync(ct);
+
+        var missing = new List<UserRecord>();
+
+        void AddIfMissing(string identifier, string displayName, bool isSystemActor, string[] roles)
         {
-            return;
+            if (!existing.Contains(identifier, StringComparer.OrdinalIgnoreCase))
+            {
+                missing.Add(NewRecord(tenantId, identifier, displayName, isSystemActor, roles));
+            }
         }
 
-        _db.Users.AddRange(
-            NewRecord(tenantId, SeedUsers.Admin, "Platform Administrator", false, [RoleCatalog.PlatformAdministrator]),
-            NewRecord(tenantId, SeedUsers.Owner, "Executive / Owner", false, [RoleCatalog.ExecutiveOwner]),
-            NewRecord(tenantId, SeedUsers.SystemActor, "Flywheel AI System Actor", true, [RoleCatalog.AISystemActor]));
+        AddIfMissing(SeedUsers.Admin, "Platform Administrator", false, [RoleCatalog.PlatformAdministrator]);
+        AddIfMissing(SeedUsers.Owner, "Executive / Owner", false, [RoleCatalog.ExecutiveOwner]);
+        AddIfMissing(SeedUsers.SystemActor, "Flywheel AI System Actor", true, [RoleCatalog.AISystemActor]);
+        AddIfMissing(SeedUsers.AdvisorActor, "Executive Advisor AI Agent", true, [RoleCatalog.AISystemActor]);
 
-        await _db.SaveChangesAsync(ct);
+        if (missing.Count > 0)
+        {
+            _db.Users.AddRange(missing);
+            await _db.SaveChangesAsync(ct);
+        }
     }
 
     private static UserRecord NewRecord(

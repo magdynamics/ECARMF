@@ -39,6 +39,8 @@ public static class AuditCategories
     public const string AllocationDecided = "AllocationDecided";
     public const string DeviationDetected = "DeviationDetected";
     public const string WorkflowExecuted = "WorkflowExecuted";
+    public const string AdvisorBriefGenerated = "AdvisorBriefGenerated";
+    public const string AdvisorFeedbackRecorded = "AdvisorFeedbackRecorded";
     public const string PackageLoaded = "PackageLoaded";
     public const string PackageActivated = "PackageActivated";
     public const string PackageDeactivated = "PackageDeactivated";

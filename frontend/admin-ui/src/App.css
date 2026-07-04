@@ -173,6 +173,45 @@ tr.selected {
   color: #ffd36e;
 }
 
+.state-high {
+  background: #3d1a1e;
+  color: #f28b90;
+}
+
+.state-medium {
+  background: #3d3113;
+  color: #ffd36e;
+}
+
+.state-low {
+  background: #2c3345;
+  color: #9db4e8;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.3rem;
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.recommendation {
+  border-top: 1px solid #2c343f;
+  padding: 0.4rem 0;
+}
+
+.error {
+  color: #f28b90;
+}
+
 .banner {
   border-radius: 6px;
   padding: 0.5rem 0.8rem;

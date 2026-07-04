@@ -26,6 +26,7 @@ public static class DependencyInjection
         services.AddScoped<Analytics.IForecastingEngine, Analytics.ForecastingEngine>();
         services.AddScoped<Analytics.IDeviationMonitor, Analytics.DeviationMonitoringService>();
         services.AddScoped<Workflow.IWorkflowEngine, Workflow.WorkflowEngine>();
+        services.AddScoped<Advisor.IExecutiveAdvisor, Advisor.ExecutiveAdvisorService>();
 
         return services;
     }

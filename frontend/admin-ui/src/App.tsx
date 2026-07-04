@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import './App.css'
 import { getTenant, getUser, setTenant, setUser } from './api'
+import { Advisor } from './components/Advisor'
 import { Allocations } from './components/Allocations'
 import { Dashboard } from './components/Dashboard'
 import { DataEntry } from './components/DataEntry'
@@ -22,6 +23,7 @@ const NAV: { tab: string; label: string; group: string }[] = [
   { tab: 'activity', label: 'Record Activity', group: 'Output' },
   { tab: 'dashboard', label: 'Dashboard', group: 'Output' },
   { tab: 'allocations', label: 'Allocations', group: 'Output' },
+  { tab: 'advisor', label: 'AI Advisor', group: 'Output' },
 ]
 
 function App() {
@@ -105,8 +107,10 @@ function App() {
             <RecordActivity tenant={tenant} user={user} />
           ) : tab === 'dashboard' ? (
             <Dashboard tenant={tenant} user={user} />
-          ) : (
+          ) : tab === 'allocations' ? (
             <Allocations tenant={tenant} user={user} />
+          ) : (
+            <Advisor tenant={tenant} user={user} />
           )}
         </>
       )}

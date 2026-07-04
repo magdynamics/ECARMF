@@ -29,6 +29,8 @@ public static class DependencyInjection
         services.AddScoped<IDashboardStore, EfDashboardStore>();
         services.AddScoped<Application.Workflow.ITaskStore, EfTaskStore>();
         services.AddScoped<Application.Workflow.INotificationStore, EfNotificationStore>();
+        services.AddScoped<Application.Advisor.IAdvisorStore, EfAdvisorStore>();
+        services.AddSingleton<Application.Advisor.ILanguageModelClient, Ai.AnthropicLanguageModelClient>();
 
         return services;
     }
