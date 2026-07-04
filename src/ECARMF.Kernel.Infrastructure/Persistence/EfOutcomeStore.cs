@@ -1,5 +1,7 @@
 using ECARMF.Kernel.Application.Transactions;
+using ECARMF.Kernel.Domain.Packages;
 using ECARMF.Kernel.Domain.Transactions;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECARMF.Kernel.Infrastructure.Persistence;
 
@@ -29,5 +31,28 @@ public class EfOutcomeStore : IOutcomeStore
         });
 
         await _db.SaveChangesAsync(ct);
+    }
+
+    public async Task<IReadOnlyList<TransactionOutcome>> GetForTransactionsAsync(
+        string tenantId, IReadOnlyCollection<Guid> transactionIds, CancellationToken ct = default)
+    {
+        var records = await _db.TransactionOutcomes.AsNoTracking()
+            .Where(o => o.TenantId == tenantId && transactionIds.Contains(o.TransactionId))
+            .OrderBy(o => o.ProcessedAt)
+            .ToListAsync(ct);
+
+        return records.Select(r => new TransactionOutcome
+        {
+            Id = r.Id,
+            TenantId = r.TenantId,
+            TransactionId = r.TransactionId,
+            EventName = r.EventName,
+            Outcome = Enum.Parse<RuleOutcome>(r.Outcome),
+            Reason = r.Reason,
+            RuleId = r.RuleId,
+            PackageId = r.PackageId,
+            PackageVersion = r.PackageVersion,
+            ProcessedAt = r.ProcessedAt
+        }).ToList();
     }
 }

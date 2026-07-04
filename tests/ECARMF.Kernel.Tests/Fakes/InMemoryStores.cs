@@ -67,6 +67,13 @@ public class InMemoryTransactionStore : ITransactionStore
         Items.Add(transaction);
         return Task.CompletedTask;
     }
+
+    public Task<IReadOnlyList<Transaction>> GetRecentAsync(string tenantId, int limit, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<Transaction>>(
+            Items.Where(t => string.Equals(t.TenantId, tenantId, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(t => t.ReceivedAt)
+                .Take(limit)
+                .ToList());
 }
 
 public class InMemoryOutcomeStore : IOutcomeStore
@@ -78,6 +85,14 @@ public class InMemoryOutcomeStore : IOutcomeStore
         Items.Add(outcome);
         return Task.CompletedTask;
     }
+
+    public Task<IReadOnlyList<TransactionOutcome>> GetForTransactionsAsync(
+        string tenantId, IReadOnlyCollection<Guid> transactionIds, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<TransactionOutcome>>(
+            Items.Where(o => string.Equals(o.TenantId, tenantId, StringComparison.OrdinalIgnoreCase)
+                          && transactionIds.Contains(o.TransactionId))
+                .OrderBy(o => o.ProcessedAt)
+                .ToList());
 }
 
 public class InMemoryAuditLog : IAuditLog
