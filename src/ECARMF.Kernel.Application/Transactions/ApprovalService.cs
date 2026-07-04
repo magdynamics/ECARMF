@@ -111,6 +111,7 @@ public class ApprovalService : IApprovalService
             TenantId = submission.TenantId,
             CorrelationId = submission.TransactionId,
             Category = AuditCategories.ApprovalRecorded,
+            Actor = decision.Approver,
             Summary = $"Dual-approval decision '{decision.Verdict}' by '{decision.Approver}'.",
             Detail = new Dictionary<string, string>
             {
@@ -145,6 +146,7 @@ public class ApprovalService : IApprovalService
             TenantId = submission.TenantId,
             CorrelationId = submission.TransactionId,
             Category = AuditCategories.OutcomeRecorded,
+            Actor = decision.Approver,
             Summary = $"Outcome '{outcome.Outcome}' recorded via dual approval: {outcome.Reason}",
             Detail = new Dictionary<string, string>
             {

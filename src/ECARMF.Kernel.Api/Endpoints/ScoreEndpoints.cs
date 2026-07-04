@@ -6,7 +6,8 @@ public static class ScoreEndpoints
 {
     public static IEndpointRouteBuilder MapScoreEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/scores");
+        var group = app.MapGroup("/api/scores")
+            .RequirePermission(Domain.Identity.Permissions.ScoreRead);
 
         // Score history for one subject entity (trust, readiness, confidence,
         // control-effectiveness, treasury-efficiency — all ScoreRecords).

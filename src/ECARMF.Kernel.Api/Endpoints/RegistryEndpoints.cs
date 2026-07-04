@@ -6,7 +6,8 @@ public static class RegistryEndpoints
 {
     public static IEndpointRouteBuilder MapRegistryEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/registries");
+        var group = app.MapGroup("/api/registries")
+            .RequirePermission(Domain.Identity.Permissions.RegistryRead);
 
         group.MapGet("/entities", (HttpContext context, ITenantRegistryProvider registries) =>
             TenantResolution.TryGetTenant(context, out var tenantId)

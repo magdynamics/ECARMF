@@ -11,6 +11,8 @@ public class AuditRecord
 
     public string Category { get; set; } = string.Empty;
 
+    public string Actor { get; set; } = string.Empty;
+
     public string Summary { get; set; } = string.Empty;
 
     public string DetailJson { get; set; } = string.Empty;

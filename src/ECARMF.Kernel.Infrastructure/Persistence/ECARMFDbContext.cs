@@ -21,8 +21,22 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<ScoreEntry> Scores => Set<ScoreEntry>();
 
+    public DbSet<UserRecord> Users => Set<UserRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<UserRecord>(entity =>
+        {
+            entity.ToTable("Users");
+            entity.HasKey(u => u.Id);
+            entity.Property(u => u.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(u => u.Identifier).HasMaxLength(400).IsRequired();
+            entity.Property(u => u.DisplayName).HasMaxLength(400).IsRequired();
+            entity.Property(u => u.Status).HasMaxLength(50).IsRequired();
+            entity.Property(u => u.RolesJson).IsRequired();
+            entity.HasIndex(u => new { u.TenantId, u.Identifier }).IsUnique();
+        });
+
         modelBuilder.Entity<ScoreEntry>(entity =>
         {
             entity.ToTable("Scores");

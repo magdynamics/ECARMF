@@ -77,6 +77,7 @@ public class TransactionIntakeService : ITransactionIntakeService
             TenantId = submission.TenantId,
             CorrelationId = transaction.TransactionId,
             Category = AuditCategories.RecordReceived,
+            Actor = transaction.SubmittedBy,
             Summary = $"Record '{transaction.TransactionType}' received from '{transaction.SubmittedBy}'.",
             Detail = receivedDetail,
             OccurredAt = transaction.ReceivedAt
@@ -108,6 +109,7 @@ public class TransactionIntakeService : ITransactionIntakeService
             TenantId = submission.TenantId,
             CorrelationId = transaction.TransactionId,
             Category = AuditCategories.EventPublished,
+            Actor = transaction.SubmittedBy,
             Summary = $"Event '{KernelEventNames.RecordReceived}' published.",
             Detail = new Dictionary<string, string> { ["eventName"] = KernelEventNames.RecordReceived }
         }, ct);

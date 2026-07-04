@@ -53,6 +53,7 @@ public class EfAuditLog : IAuditLog
     {
         Id = entry.Id,
         TenantId = entry.TenantId,
+        Actor = entry.Actor,
         CorrelationId = entry.CorrelationId,
         Category = entry.Category,
         Summary = entry.Summary,
@@ -64,6 +65,7 @@ public class EfAuditLog : IAuditLog
     {
         Id = record.Id,
         TenantId = record.TenantId,
+        Actor = record.Actor,
         CorrelationId = record.CorrelationId,
         Category = record.Category,
         Summary = record.Summary,

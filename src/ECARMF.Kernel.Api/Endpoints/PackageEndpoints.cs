@@ -7,7 +7,9 @@ public static class PackageEndpoints
 {
     public static IEndpointRouteBuilder MapPackageEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/packages");
+        // Package lifecycle is Platform Administrator territory.
+        var group = app.MapGroup("/api/packages")
+            .RequirePermission(Domain.Identity.Permissions.PackageManage);
 
         // Upload (stage) a Knowledge Package manifest for the calling tenant.
         group.MapPost("/", async (

@@ -15,6 +15,10 @@ public class AuditEntry
 
     public string Category { get; set; } = string.Empty;
 
+    /// <summary>The responsible identity — a real User identifier (human or
+    /// AI/system actor), never a placeholder.</summary>
+    public string Actor { get; set; } = string.Empty;
+
     public string Summary { get; set; } = string.Empty;
 
     public Dictionary<string, string> Detail { get; set; } = [];

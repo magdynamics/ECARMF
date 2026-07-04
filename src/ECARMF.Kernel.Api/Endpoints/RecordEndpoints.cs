@@ -1,5 +1,7 @@
 using System.Text.Json;
+using ECARMF.Kernel.Application.Identity;
 using ECARMF.Kernel.Application.Transactions;
+using ECARMF.Kernel.Domain.Identity;
 using ECARMF.Kernel.Domain.Transactions;
 
 namespace ECARMF.Kernel.Api.Endpoints;
@@ -29,21 +31,27 @@ public static class RecordEndpoints
             SubmitRecordRequest request,
             HttpContext context,
             ITransactionIntakeService intake,
+            IUserStore users,
             CancellationToken ct) =>
         {
             if (!TenantResolution.TryGetTenant(context, out var tenantId))
                 return TenantResolution.MissingTenantResult();
+
+            var (error, user) = await AccessGuard.RequireAsync(
+                context, users, tenantId, Permissions.RecordSubmit, ct);
+            if (error is not null) return error;
+
             if (string.IsNullOrWhiteSpace(request.RecordType))
                 return Results.BadRequest(new { error = "recordType is required." });
-            if (string.IsNullOrWhiteSpace(request.SubmittedBy))
-                return Results.BadRequest(new { error = "submittedBy is required." });
 
             var payload = (request.Payload ?? []).ToDictionary(
                 kv => kv.Key,
                 kv => JsonValueToString(kv.Value));
 
+            // The submitter is the authenticated identity, not a free-text
+            // claim — segregation of duties depends on this being real.
             var receipt = await intake.ReceiveAsync(
-                new TransactionSubmission(tenantId, request.RecordType, request.SubmittedBy, payload), ct);
+                new TransactionSubmission(tenantId, request.RecordType, user!.Identifier, payload), ct);
 
             return Results.Accepted($"/api/records/{receipt.TransactionId}", receipt);
         });
@@ -54,10 +62,15 @@ public static class RecordEndpoints
             HttpContext context,
             ITransactionStore records,
             IOutcomeStore outcomes,
+            IUserStore users,
             CancellationToken ct) =>
         {
             if (!TenantResolution.TryGetTenant(context, out var tenantId))
                 return TenantResolution.MissingTenantResult();
+
+            var (error, _) = await AccessGuard.RequireAsync(
+                context, users, tenantId, Permissions.RecordRead, ct);
+            if (error is not null) return error;
 
             var take = Math.Clamp(limit ?? 50, 1, 200);
             var recent = await records.GetRecentAsync(tenantId, take, ct);
@@ -96,15 +109,26 @@ public static class RecordEndpoints
             ApprovalRequestBody body,
             HttpContext context,
             IApprovalService approvals,
+            IUserStore users,
             CancellationToken ct) =>
         {
             if (!TenantResolution.TryGetTenant(context, out var tenantId))
                 return TenantResolution.MissingTenantResult();
+
+            // Capability-scoped permission: the same enforcement point every
+            // capability uses. AI system actors do not hold this permission,
+            // so an AI can never self-approve an escalated/flagged outcome.
+            var (error, user) = await AccessGuard.RequireAsync(
+                context, users, tenantId, Permissions.DualApprove, ct);
+            if (error is not null) return error;
+
             if (!Enum.TryParse<ApprovalVerdict>(body.Verdict, ignoreCase: true, out var verdict))
                 return Results.BadRequest(new { error = "verdict must be 'Approve' or 'Reject'." });
 
+            // The approver is the authenticated identity; ApprovalService
+            // enforces segregation of duties (approver != submitter).
             var result = await approvals.DecideAsync(
-                new ApprovalSubmission(tenantId, recordId, body.Approver, verdict, body.Comment), ct);
+                new ApprovalSubmission(tenantId, recordId, user!.Identifier, verdict, body.Comment), ct);
 
             return result.Success ? Results.Ok(result) : Results.BadRequest(result);
         });

@@ -100,6 +100,7 @@ public class EventProcessor : IEventProcessor
                 TenantId = kernelEvent.TenantId,
                 CorrelationId = kernelEvent.CorrelationId,
                 Category = AuditCategories.ScoreComputed,
+                Actor = "system:flywheel",
                 Summary = $"Score '{score.ScoreType}' = {score.Value} computed for {score.SubjectType} '{score.SubjectId}' by rule '{score.RuleId}'.",
                 Detail = new Dictionary<string, string>
                 {
@@ -121,6 +122,7 @@ public class EventProcessor : IEventProcessor
             TenantId = kernelEvent.TenantId,
             CorrelationId = kernelEvent.CorrelationId,
             Category = AuditCategories.RuleEvaluated,
+            Actor = "system:flywheel",
             Summary = $"Rule '{e.RuleId}' evaluated for event '{kernelEvent.EventName}': {(e.Matched ? "matched" : "did not match")}.",
             Detail = new Dictionary<string, string>
             {
@@ -167,6 +169,7 @@ public class EventProcessor : IEventProcessor
             TenantId = kernelEvent.TenantId,
             CorrelationId = kernelEvent.CorrelationId,
             Category = AuditCategories.OutcomeRecorded,
+            Actor = "system:flywheel",
             Summary = $"Outcome '{outcome.Outcome}' recorded for event '{kernelEvent.EventName}': {outcome.Reason}",
             Detail = new Dictionary<string, string>
             {
