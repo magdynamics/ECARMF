@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ECARMF Relationship Entity",
+  "type": "object",
+  "required": [
+    "relationshipId",
+    "relationshipType",
+    "sourceEntityId",
+    "targetEntityId",
+    "direction",
+    "cardinality",
+    "effectiveDate"
+  ],
+  "properties": {
+    "relationshipId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "relationshipType": {
+      "type": "string"
+    },
+    "sourceEntityId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "targetEntityId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "direction": {
+      "type": "string"
+    },
+    "cardinality": {
+      "type": "string"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "effectiveDate": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expirationDate": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "evidenceReferences": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

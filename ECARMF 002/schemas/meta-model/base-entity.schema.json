@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ECARMF Universal Base Entity",
+  "type": "object",
+  "required": [
+    "entityId",
+    "entityType",
+    "entityName",
+    "version",
+    "status",
+    "owner",
+    "createdAt",
+    "updatedAt"
+  ],
+  "properties": {
+    "entityId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "entityType": {
+      "type": "string"
+    },
+    "entityName": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidenceReferences": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "metadata": {
+      "type": "object"
+    }
+  }
+}

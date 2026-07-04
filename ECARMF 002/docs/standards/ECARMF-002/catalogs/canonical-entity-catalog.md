@@ -1,0 +1,14 @@
+# Canonical Entity Catalog
+
+| Entity ID | Name | Domain | Definition |
+|---|---|---|---|
+| BUS-EDA | Economic Digital Asset | Business | Managed economic asset composed of EDCs |
+| BUS-EDC | Economic Digital Cell | Business | Atomic unit of economic value |
+| BUS-PORT | Portfolio | Business | Governed collection of EDAs |
+| FIN-CAP | Capital | Financial | Financial resource supporting economic value |
+| RSK-RISK | Risk | Risk | Uncertainty affecting value |
+| ANA-THR | Threshold | Analytical | Governed measurement boundary |
+| ANA-DEC | Decision | Analytical | Approved action or recommendation |
+| GOV-EVD | Evidence | Governance | Verifiable support for assertions |
+| TEC-KG | Knowledge Graph | Technical | Graph representation of entities and relationships |
+| TEC-DT | Digital Twin | Technical | Digital representation of entity state |
