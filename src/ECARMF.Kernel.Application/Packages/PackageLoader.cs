@@ -242,6 +242,8 @@ public class PackageLoader : IPackageLoader
             registries.Events.Register(@event, manifest.PackageId, manifest.PackageVersion);
         foreach (var capability in manifest.Capabilities)
             registries.Capabilities.Register(capability, manifest.PackageId, manifest.PackageVersion);
+        foreach (var template in manifest.SchemaTemplates)
+            registries.SchemaTemplates.Register(template, manifest.PackageId, manifest.PackageVersion);
         foreach (var rule in manifest.Rules)
             registries.Rules.Register(rule, manifest.PackageId, manifest.PackageVersion);
     }
@@ -251,6 +253,7 @@ public class PackageLoader : IPackageLoader
         registries.Entities.UnregisterPackage(packageId, packageVersion);
         registries.Events.UnregisterPackage(packageId, packageVersion);
         registries.Capabilities.UnregisterPackage(packageId, packageVersion);
+        registries.SchemaTemplates.UnregisterPackage(packageId, packageVersion);
         registries.Rules.UnregisterPackage(packageId, packageVersion);
     }
 

@@ -36,6 +36,29 @@ public static class ManifestValidator
         CheckNames(errors, "event", manifest.Events.Select(e => e.EventName));
         CheckNames(errors, "rule", manifest.Rules.Select(r => r.RuleId));
         CheckNames(errors, "capability", manifest.Capabilities.Select(c => c.CapabilityId));
+        CheckNames(errors, "schema template", manifest.SchemaTemplates.Select(t => t.TemplateId));
+
+        foreach (var template in manifest.SchemaTemplates)
+        {
+            var label = string.IsNullOrWhiteSpace(template.TemplateId) ? "(unnamed template)" : template.TemplateId;
+
+            if (string.IsNullOrWhiteSpace(template.TargetEntityType))
+                errors.Add($"Schema template '{label}' has no TargetEntityType.");
+            if (template.SourceFormat is not ("json" or "csv" or "text"))
+                errors.Add($"Schema template '{label}' has invalid SourceFormat '{template.SourceFormat}' (json|csv|text).");
+            if (template.FieldMappings.Count == 0)
+                errors.Add($"Schema template '{label}' declares no field mappings.");
+
+            foreach (var mapping in template.FieldMappings)
+            {
+                if (string.IsNullOrWhiteSpace(mapping.TargetField))
+                    errors.Add($"Schema template '{label}' has a mapping with no TargetField.");
+                if (template.SourceFormat != "text" && string.IsNullOrWhiteSpace(mapping.RawField))
+                    errors.Add($"Schema template '{label}' has a mapping with no RawField.");
+                if (template.SourceFormat == "text" && string.IsNullOrWhiteSpace(mapping.Pattern))
+                    errors.Add($"Schema template '{label}' is text-format but mapping '{mapping.TargetField}' has no Pattern.");
+            }
+        }
 
         foreach (var entity in manifest.Entities)
         {

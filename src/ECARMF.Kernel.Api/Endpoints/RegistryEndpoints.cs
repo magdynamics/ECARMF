@@ -29,6 +29,11 @@ public static class RegistryEndpoints
                 ? Results.Ok(registries.GetFor(tenantId).Capabilities.GetAll())
                 : TenantResolution.MissingTenantResult());
 
+        group.MapGet("/schematemplates", (HttpContext context, ITenantRegistryProvider registries) =>
+            TenantResolution.TryGetTenant(context, out var tenantId)
+                ? Results.Ok(registries.GetFor(tenantId).SchemaTemplates.GetAll())
+                : TenantResolution.MissingTenantResult());
+
         return group;
     }
 }
