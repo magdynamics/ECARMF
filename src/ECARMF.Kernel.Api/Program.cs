@@ -48,6 +48,7 @@ app.MapUserEndpoints();
 app.MapConnectorEndpoints();
 app.MapAllocationEndpoints();
 app.MapAnalyticsEndpoints();
+app.MapDashboardEndpoints();
 
 using (var scope = app.Services.CreateScope())
 {

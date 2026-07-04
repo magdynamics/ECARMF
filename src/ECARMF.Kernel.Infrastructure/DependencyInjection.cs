@@ -26,6 +26,7 @@ public static class DependencyInjection
         services.AddScoped<Application.Ingestion.IConnectorStore, EfConnectorStore>();
         services.AddScoped<Application.Capital.IAllocationStore, EfAllocationStore>();
         services.AddScoped<Application.Analytics.IDeviationStore, EfDeviationStore>();
+        services.AddScoped<IDashboardStore, EfDashboardStore>();
 
         return services;
     }

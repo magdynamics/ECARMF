@@ -75,6 +75,6 @@ public class EfScoreStore : IScoreStore
         Provenance = entry.Provenance,
         CorrelationId = entry.CorrelationId,
         ComputedAt = entry.ComputedAt,
-        Metadata = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(entry.MetadataJson) ?? []
+        Metadata = string.IsNullOrWhiteSpace(entry.MetadataJson) ? [] : System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(entry.MetadataJson) ?? []
     };
 }

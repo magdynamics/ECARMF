@@ -29,8 +29,20 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<DeviationRecord> Deviations => Set<DeviationRecord>();
 
+    public DbSet<DashboardRecord> Dashboards => Set<DashboardRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<DashboardRecord>(entity =>
+        {
+            entity.ToTable("Dashboards");
+            entity.HasKey(d => d.Id);
+            entity.Property(d => d.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(d => d.Name).HasMaxLength(200).IsRequired();
+            entity.Property(d => d.WidgetsJson).IsRequired();
+            entity.HasIndex(d => new { d.TenantId, d.Name }).IsUnique();
+        });
+
         modelBuilder.Entity<DeviationRecord>(entity =>
         {
             entity.ToTable("Deviations");
