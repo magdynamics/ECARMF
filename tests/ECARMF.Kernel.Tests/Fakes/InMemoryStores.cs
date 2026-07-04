@@ -1,0 +1,96 @@
+using ECARMF.Kernel.Application.Audit;
+using ECARMF.Kernel.Application.Packages;
+using ECARMF.Kernel.Application.Transactions;
+using ECARMF.Kernel.Domain.Audit;
+using ECARMF.Kernel.Domain.Packages;
+using ECARMF.Kernel.Domain.Transactions;
+
+namespace ECARMF.Kernel.Tests.Fakes;
+
+public class InMemoryPackageStore : IPackageStore
+{
+    private readonly List<StoredPackage> _packages = [];
+
+    public IReadOnlyList<StoredPackage> Items => _packages;
+
+    public Task<bool> ExistsAsync(string packageId, string packageVersion, CancellationToken ct = default) =>
+        Task.FromResult(_packages.Any(p => Matches(p, packageId, packageVersion)));
+
+    public Task AddAsync(KnowledgePackageManifest manifest, PackageLoadState state, string? statusDetail, CancellationToken ct = default)
+    {
+        _packages.Add(new StoredPackage(manifest, state, statusDetail));
+        return Task.CompletedTask;
+    }
+
+    public Task<StoredPackage?> GetAsync(string packageId, string packageVersion, CancellationToken ct = default) =>
+        Task.FromResult(_packages.FirstOrDefault(p => Matches(p, packageId, packageVersion)));
+
+    public Task UpdateStateAsync(string packageId, string packageVersion, PackageLoadState state, string? statusDetail, CancellationToken ct = default)
+    {
+        var index = _packages.FindIndex(p => Matches(p, packageId, packageVersion));
+        if (index < 0)
+        {
+            throw new InvalidOperationException($"Package '{packageId}' version '{packageVersion}' is not persisted.");
+        }
+
+        _packages[index] = _packages[index] with { State = state, StatusDetail = statusDetail };
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<StoredPackage>> GetAllAsync(CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<StoredPackage>>(_packages.ToList());
+
+    public Task<IReadOnlyList<StoredPackage>> GetByStateAsync(PackageLoadState state, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<StoredPackage>>(_packages.Where(p => p.State == state).ToList());
+
+    private static bool Matches(StoredPackage p, string packageId, string packageVersion) =>
+        string.Equals(p.Manifest.PackageId, packageId, StringComparison.OrdinalIgnoreCase)
+        && string.Equals(p.Manifest.PackageVersion, packageVersion, StringComparison.OrdinalIgnoreCase);
+}
+
+public class InMemoryTransactionStore : ITransactionStore
+{
+    public List<Transaction> Items { get; } = [];
+
+    public Task AppendAsync(Transaction transaction, CancellationToken ct = default)
+    {
+        Items.Add(transaction);
+        return Task.CompletedTask;
+    }
+}
+
+public class InMemoryOutcomeStore : IOutcomeStore
+{
+    public List<TransactionOutcome> Items { get; } = [];
+
+    public Task AppendAsync(TransactionOutcome outcome, CancellationToken ct = default)
+    {
+        Items.Add(outcome);
+        return Task.CompletedTask;
+    }
+}
+
+public class InMemoryAuditLog : IAuditLog
+{
+    public List<AuditEntry> Items { get; } = [];
+
+    public Task AppendAsync(AuditEntry entry, CancellationToken ct = default)
+    {
+        Items.Add(entry);
+        return Task.CompletedTask;
+    }
+
+    public Task AppendManyAsync(IReadOnlyList<AuditEntry> entries, CancellationToken ct = default)
+    {
+        Items.AddRange(entries);
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<AuditEntry>> GetByCorrelationAsync(Guid correlationId, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<AuditEntry>>(
+            Items.Where(a => a.CorrelationId == correlationId).OrderBy(a => a.OccurredAt).ToList());
+
+    public Task<IReadOnlyList<AuditEntry>> GetByTimeRangeAsync(DateTimeOffset from, DateTimeOffset to, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<AuditEntry>>(
+            Items.Where(a => a.OccurredAt >= from && a.OccurredAt <= to).OrderBy(a => a.OccurredAt).ToList());
+}
