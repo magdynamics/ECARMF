@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { api, ApiError } from '../api'
 import type { OperationResult, PackageDetail, PackageSummary } from '../types'
 
-export function PackageInspector({ tenant }: { tenant: string }) {
+export function PackageInspector({ tenant, user }: { tenant: string; user: string }) {
   const [packages, setPackages] = useState<PackageSummary[]>([])
   const [selected, setSelected] = useState<PackageSummary | null>(null)
   const [detail, setDetail] = useState<PackageDetail | null>(null)
@@ -24,7 +24,7 @@ export function PackageInspector({ tenant }: { tenant: string }) {
     setDetail(null)
     setMessage(null)
     void refresh()
-  }, [refresh, tenant])
+  }, [refresh, tenant, user])
 
   useEffect(() => {
     if (!selected) {

@@ -6,7 +6,7 @@ const POLL_MS = 5000
 
 /// KPIs computed purely from ScoreRecord / AuditLog / record-feed queries —
 /// the dashboard introduces no new backend concepts.
-export function Dashboard({ tenant }: { tenant: string }) {
+export function Dashboard({ tenant, user }: { tenant: string; user: string }) {
   const [scores, setScores] = useState<ScoreRecord[]>([])
   const [records, setRecords] = useState<ActivityItem[]>([])
   const [audit, setAudit] = useState<AuditEntryDto[]>([])
@@ -32,7 +32,7 @@ export function Dashboard({ tenant }: { tenant: string }) {
     void refresh()
     const timer = setInterval(() => void refresh(), POLL_MS)
     return () => clearInterval(timer)
-  }, [refresh, tenant])
+  }, [refresh, tenant, user])
 
   const kpis = useMemo(() => {
     const latestOutcome = (r: ActivityItem) => r.outcomes[r.outcomes.length - 1]?.outcome ?? null
@@ -69,7 +69,15 @@ export function Dashboard({ tenant }: { tenant: string }) {
     const overrides = audit.filter((a) => a.category === 'ApprovalRecorded')
     const rejected = records.filter((r) => latestOutcome(r)?.toLowerCase() === 'rejected')
 
+    // OKR attainment by venture/site: latest OKRAttainment per subject.
+    const okrBySubject = new Map<string, ScoreRecord>()
+    for (const s of scores.filter((x) => x.scoreType === 'OKRAttainment')) {
+      const existing = okrBySubject.get(s.subjectId)
+      if (!existing || existing.computedAt < s.computedAt) okrBySubject.set(s.subjectId, s)
+    }
+
     return {
+      okrAttainment: [...okrBySubject.values()].sort((a, b) => b.value - a.value),
       totalRecords: records.length,
       opportunityCount: opportunities.length,
       outcomeCounts: [...outcomeCounts.entries()].sort((a, b) => b[1] - a[1]),
@@ -183,6 +191,36 @@ export function Dashboard({ tenant }: { tenant: string }) {
           </table>
         </section>
       </div>
+
+      <section className="panel">
+        <h2>OKR attainment by venture</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>OKR @ venture/site</th>
+              <th>Attainment</th>
+              <th>Computed</th>
+            </tr>
+          </thead>
+          <tbody>
+            {kpis.okrAttainment.length === 0 && (
+              <tr>
+                <td colSpan={3} className="muted">
+                  No OKR scores yet — activate a performance framework package
+                  and ingest operational records.
+                </td>
+              </tr>
+            )}
+            {kpis.okrAttainment.map((s) => (
+              <tr key={s.subjectId}>
+                <td><code>{s.subjectId}</code></td>
+                <td>{(s.value * 100).toFixed(0)}%</td>
+                <td className="small muted">{new Date(s.computedAt).toLocaleTimeString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
 
       <section className="panel">
         <h2>Recent scores</h2>

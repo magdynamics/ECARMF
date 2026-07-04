@@ -4,13 +4,11 @@ import type { ActivityItem } from '../types'
 
 const POLL_MS = 3000
 
-export function RecordActivity({ tenant }: { tenant: string }) {
+export function RecordActivity({ tenant, user }: { tenant: string; user: string }) {
   const [items, setItems] = useState<ActivityItem[]>([])
   const [error, setError] = useState<string | null>(null)
   const [recordType, setRecordType] = useState('withdrawal')
-  const [submittedBy, setSubmittedBy] = useState('treasurer@example.com')
-  const [actingApprover, setActingApprover] = useState('cfo@example.com')
-  const [payloadJson, setPayloadJson] = useState('{"ventureId":"V-001","amount":60000}')
+  const [payloadJson, setPayloadJson] = useState('{"transactionType":"withdrawal","ventureId":"V-001","amount":60000}')
 
   const refresh = useCallback(async () => {
     try {
@@ -25,14 +23,14 @@ export function RecordActivity({ tenant }: { tenant: string }) {
     void refresh()
     const timer = setInterval(() => void refresh(), POLL_MS)
     return () => clearInterval(timer)
-  }, [refresh, tenant])
+  }, [refresh, tenant, user])
 
   async function submit() {
     setError(null)
     try {
+      // submittedBy is the authenticated identity (X-User-Id header).
       await api.post('/api/records', {
         recordType,
-        submittedBy,
         payload: JSON.parse(payloadJson),
       })
       await refresh()
@@ -45,8 +43,9 @@ export function RecordActivity({ tenant }: { tenant: string }) {
   async function decide(recordId: string, verdict: 'Approve' | 'Reject') {
     setError(null)
     try {
+      // The approver is the authenticated identity; segregation of duties
+      // and permissions are enforced server-side.
       await api.post(`/api/records/${recordId}/approvals`, {
-        approver: actingApprover,
         verdict,
         comment: null,
       })
@@ -66,22 +65,16 @@ export function RecordActivity({ tenant }: { tenant: string }) {
             Record type
             <input value={recordType} onChange={(e) => setRecordType(e.target.value)} />
           </label>
-          <label>
-            Submitted by
-            <input value={submittedBy} onChange={(e) => setSubmittedBy(e.target.value)} />
-          </label>
           <label className="grow">
             Payload (JSON)
             <input value={payloadJson} onChange={(e) => setPayloadJson(e.target.value)} />
           </label>
           <button onClick={submit}>Submit</button>
         </div>
-        <div className="form-row" style={{ marginTop: '0.6rem' }}>
-          <label>
-            Acting approver (for dual approval)
-            <input value={actingApprover} onChange={(e) => setActingApprover(e.target.value)} />
-          </label>
-        </div>
+        <p className="muted small">
+          Submitted and approved as the identity selected in the header — the
+          kernel enforces permissions and approver ≠ submitter server-side.
+        </p>
       </section>
 
       <section className="panel">

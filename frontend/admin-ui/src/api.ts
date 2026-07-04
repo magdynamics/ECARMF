@@ -2,6 +2,7 @@
 // carries the X-Tenant-Id header for the tenant selected in the UI.
 
 const TENANT_KEY = 'ecarmf.tenantId'
+const USER_KEY = 'ecarmf.userId'
 
 export function getTenant(): string {
   return localStorage.getItem(TENANT_KEY) ?? ''
@@ -9,6 +10,14 @@ export function getTenant(): string {
 
 export function setTenant(tenantId: string): void {
   localStorage.setItem(TENANT_KEY, tenantId)
+}
+
+export function getUser(): string {
+  return localStorage.getItem(USER_KEY) ?? 'owner@platform'
+}
+
+export function setUser(userId: string): void {
+  localStorage.setItem(USER_KEY, userId)
 }
 
 export class ApiError extends Error {
@@ -33,6 +42,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     headers: {
       'Content-Type': 'application/json',
       'X-Tenant-Id': tenant,
+      'X-User-Id': getUser(),
       ...init?.headers,
     },
   })
