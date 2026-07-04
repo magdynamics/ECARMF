@@ -1,0 +1,29 @@
+# Reference Solution Structure
+
+```text
+ECARMF.sln
+src/
+  Foundation/
+  Identity/
+  Ontology/
+  KnowledgeGraph/
+  DigitalTwin/
+  Asset/
+  Capital/
+  Economics/
+  Risk/
+  Threshold/
+  Decision/
+  Monitoring/
+  Governance/
+  Workflow/
+  Notification/
+  Integration/
+  AI/
+  Reporting/
+  Administration/
+  Shared/
+tests/
+docs/
+deployment/
+```
