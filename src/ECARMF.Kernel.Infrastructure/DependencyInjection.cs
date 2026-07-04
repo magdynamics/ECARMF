@@ -16,6 +16,7 @@ public static class DependencyInjection
 
         services.AddScoped<IPackageStore, EfPackageStore>();
         services.AddScoped<ITransactionStore, EfTransactionStore>();
+        services.AddScoped<IOutcomeStore, EfOutcomeStore>();
 
         return services;
     }

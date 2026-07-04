@@ -13,8 +13,23 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<TransactionRecord> Transactions => Set<TransactionRecord>();
 
+    public DbSet<OutcomeRecord> TransactionOutcomes => Set<OutcomeRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<OutcomeRecord>(entity =>
+        {
+            entity.ToTable("TransactionOutcomes");
+            entity.HasKey(o => o.Id);
+            entity.Property(o => o.EventName).HasMaxLength(200).IsRequired();
+            entity.Property(o => o.Outcome).HasMaxLength(50).IsRequired();
+            entity.Property(o => o.Reason).IsRequired();
+            entity.Property(o => o.RuleId).HasMaxLength(200);
+            entity.Property(o => o.PackageId).HasMaxLength(200);
+            entity.Property(o => o.PackageVersion).HasMaxLength(50);
+            entity.HasIndex(o => o.TransactionId);
+        });
+
         modelBuilder.Entity<TransactionRecord>(entity =>
         {
             entity.ToTable("Transactions");

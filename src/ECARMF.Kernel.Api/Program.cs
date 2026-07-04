@@ -1,4 +1,5 @@
 using ECARMF.Kernel.Api.Endpoints;
+using ECARMF.Kernel.Api.Hosting;
 using ECARMF.Kernel.Application;
 using ECARMF.Kernel.Application.Packages;
 using ECARMF.Kernel.Infrastructure;
@@ -12,6 +13,7 @@ var connectionString = builder.Configuration.GetConnectionString("ECARMF")
 
 builder.Services.AddECARMFApplication();
 builder.Services.AddECARMFInfrastructure(connectionString);
+builder.Services.AddHostedService<EventProcessingHostedService>();
 
 var app = builder.Build();
 
