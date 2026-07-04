@@ -39,10 +39,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapTransactionEndpoints();
+app.MapRecordEndpoints();
 app.MapAuditEndpoints();
 app.MapPackageEndpoints();
 app.MapRegistryEndpoints();
+app.MapScoreEndpoints();
+app.MapUserEndpoints();
+app.MapConnectorEndpoints();
+app.MapAllocationEndpoints();
+app.MapAnalyticsEndpoints();
+app.MapDashboardEndpoints();
 
 using (var scope = app.Services.CreateScope())
 {

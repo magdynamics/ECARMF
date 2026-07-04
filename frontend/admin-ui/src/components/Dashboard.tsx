@@ -1,0 +1,282 @@
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { api, ApiError } from '../api'
+import type { ActivityItem, AuditEntryDto, ScoreRecord } from '../types'
+
+const POLL_MS = 5000
+
+interface Widget {
+  id: string
+  type: string
+  title: string
+}
+
+interface DashboardConfig {
+  id: string
+  name: string
+  widgets: Widget[]
+}
+
+interface DeviationAlert {
+  id: string
+  entityReference: string
+  metricType: string
+  actualValue: number
+  expectedValue: number
+  expectedValueSource: string
+  varianceMagnitude: number
+  severity: string
+  detectedAt: string
+  acknowledgedBy: string | null
+}
+
+const WIDGET_TYPES = [
+  'kpiTiles', 'outcomeBreakdown', 'scoreAverages', 'okrAttainment', 'deviationFeed', 'recentScores',
+]
+
+/// Widget-driven dashboard: the layout is live, editable configuration
+/// (DashboardDefinition) — add/remove widgets without a package rebuild.
+/// Every widget renders purely from ScoreRecord/AuditLog/record queries.
+export function Dashboard({ tenant, user }: { tenant: string; user: string }) {
+  const [config, setConfig] = useState<DashboardConfig | null>(null)
+  const [scores, setScores] = useState<ScoreRecord[]>([])
+  const [records, setRecords] = useState<ActivityItem[]>([])
+  const [audit, setAudit] = useState<AuditEntryDto[]>([])
+  const [deviations, setDeviations] = useState<DeviationAlert[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const [newType, setNewType] = useState('kpiTiles')
+
+  const refresh = useCallback(async () => {
+    try {
+      const [dashboards, s, r, a, d] = await Promise.all([
+        api.get<DashboardConfig[]>('/api/dashboards'),
+        api.get<ScoreRecord[]>('/api/scores?limit=500'),
+        api.get<ActivityItem[]>('/api/records?limit=200'),
+        api.get<AuditEntryDto[]>('/api/audit'),
+        api.get<DeviationAlert[]>('/api/deviations?limit=25'),
+      ])
+      setConfig(dashboards[0] ?? null)
+      setScores(s)
+      setRecords(r)
+      setAudit(a)
+      setDeviations(d)
+      setError(null)
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : String(e))
+    }
+  }, [])
+
+  useEffect(() => {
+    void refresh()
+    const timer = setInterval(() => void refresh(), POLL_MS)
+    return () => clearInterval(timer)
+  }, [refresh, tenant, user])
+
+  async function persist(widgets: Widget[]) {
+    if (!config) return
+    setConfig({ ...config, widgets })
+    try {
+      await fetchPut(config.id, widgets)
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : String(e))
+    }
+  }
+
+  async function fetchPut(id: string, widgets: Widget[]) {
+    const tenantId = localStorage.getItem('ecarmf.tenantId') ?? ''
+    const userId = localStorage.getItem('ecarmf.userId') ?? ''
+    const response = await fetch(`/api/dashboards/${id}/widgets`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Tenant-Id': tenantId, 'X-User-Id': userId },
+      body: JSON.stringify({ widgets }),
+    })
+    if (!response.ok) throw new ApiError(`Save failed (${response.status})`, response.status, null)
+  }
+
+  function addWidget() {
+    if (!config) return
+    const widget: Widget = {
+      id: `w${Date.now()}`,
+      type: newType,
+      title: newType.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase()),
+    }
+    void persist([...config.widgets, widget])
+  }
+
+  function removeWidget(id: string) {
+    if (!config) return
+    void persist(config.widgets.filter((w) => w.id !== id))
+  }
+
+  const kpis = useMemo(() => {
+    const latestOutcome = (r: ActivityItem) => r.outcomes[r.outcomes.length - 1]?.outcome ?? null
+    const outcomeCounts = new Map<string, number>()
+    for (const r of records) {
+      const o = latestOutcome(r) ?? 'Pending'
+      outcomeCounts.set(o, (outcomeCounts.get(o) ?? 0) + 1)
+    }
+    const avgByType = new Map<string, { sum: number; n: number }>()
+    for (const s of scores) {
+      const acc = avgByType.get(s.scoreType) ?? { sum: 0, n: 0 }
+      acc.sum += s.value
+      acc.n += 1
+      avgByType.set(s.scoreType, acc)
+    }
+    const okrBySubject = new Map<string, ScoreRecord>()
+    for (const s of scores.filter((x) => x.scoreType === 'OKRAttainment')) {
+      const existing = okrBySubject.get(s.subjectId)
+      if (!existing || existing.computedAt < s.computedAt) okrBySubject.set(s.subjectId, s)
+    }
+    const decided = records.filter((r) => latestOutcome(r) !== null)
+    const flagged = records.filter((r) => r.outcomes.some((o) => o.outcome.toLowerCase() === 'flagged'))
+    const overrides = audit.filter((a) => a.category === 'ApprovalRecorded')
+    return {
+      outcomeCounts: [...outcomeCounts.entries()].sort((a, b) => b[1] - a[1]),
+      averages: [...avgByType.entries()]
+        .map(([type, { sum, n }]) => ({ type, avg: sum / n, n }))
+        .sort((a, b) => a.type.localeCompare(b.type)),
+      okrAttainment: [...okrBySubject.values()].sort((a, b) => b.value - a.value),
+      totalRecords: records.length,
+      opportunityCount: records.filter((r) => r.recordType.toLowerCase() === 'opportunity').length,
+      cycleCompletionRate: records.length ? decided.length / records.length : null,
+      manualOverrideRate: flagged.length ? overrides.length / flagged.length : null,
+      auditEntries24h: audit.length,
+    }
+  }, [records, scores, audit])
+
+  const pct = (v: number | null) => (v === null ? '—' : `${(v * 100).toFixed(0)}%`)
+
+  function renderWidget(widget: Widget) {
+    switch (widget.type) {
+      case 'kpiTiles':
+        return (
+          <div className="kpi-grid">
+            {[
+              [kpis.totalRecords, 'Records (last 200)'],
+              [kpis.opportunityCount, 'Opportunities'],
+              [pct(kpis.cycleCompletionRate), 'Cycle completion'],
+              [pct(kpis.manualOverrideRate), 'Manual override (flagged)'],
+              [kpis.auditEntries24h, 'Audit entries (24h)'],
+            ].map(([value, label]) => (
+              <div key={String(label)} className="panel kpi">
+                <div className="kpi-value">{value as never}</div>
+                <div className="muted small">{label}</div>
+              </div>
+            ))}
+          </div>
+        )
+      case 'outcomeBreakdown':
+        return (
+          <table>
+            <tbody>
+              {kpis.outcomeCounts.map(([outcome, count]) => (
+                <tr key={outcome}>
+                  <td><span className={`state state-${outcome.toLowerCase()}`}>{outcome}</span></td>
+                  <td>{count}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )
+      case 'scoreAverages':
+        return (
+          <table>
+            <tbody>
+              {kpis.averages.map((row) => (
+                <tr key={row.type}>
+                  <td><code>{row.type}</code></td>
+                  <td>{row.avg.toFixed(3)}</td>
+                  <td className="muted">{row.n} samples</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )
+      case 'okrAttainment':
+        return kpis.okrAttainment.length === 0 ? (
+          <p className="muted small">No OKR scores yet — ingest operational records.</p>
+        ) : (
+          <table>
+            <tbody>
+              {kpis.okrAttainment.map((s) => (
+                <tr key={s.subjectId}>
+                  <td><code>{s.subjectId}</code></td>
+                  <td>{(s.value * 100).toFixed(0)}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )
+      case 'deviationFeed':
+        return deviations.length === 0 ? (
+          <p className="muted small">No deviations — actuals are within threshold of targets/forecasts.</p>
+        ) : (
+          <table>
+            <tbody>
+              {deviations.map((d) => (
+                <tr key={d.id}>
+                  <td><span className={`state state-${d.severity.toLowerCase() === 'critical' ? 'rejected' : 'flagged'}`}>{d.severity}</span></td>
+                  <td className="small"><code>{d.entityReference}</code></td>
+                  <td className="small">
+                    actual {d.actualValue} vs {d.expectedValueSource.toLowerCase()} {d.expectedValue} ({(d.varianceMagnitude * 100).toFixed(0)}%)
+                  </td>
+                  <td className="muted small">{d.acknowledgedBy ? `ack: ${d.acknowledgedBy}` : new Date(d.detectedAt).toLocaleTimeString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )
+      case 'recentScores':
+        return (
+          <table>
+            <tbody>
+              {scores.slice(0, 10).map((s) => (
+                <tr key={s.id}>
+                  <td><code>{s.scoreType}</code></td>
+                  <td className="small">{s.subjectType} <span className="muted">{s.subjectId}</span></td>
+                  <td>{s.value}</td>
+                  <td className="muted small">{s.ruleId} ({s.packageId} v{s.packageVersion})</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )
+      default:
+        return <p className="muted small">Unknown widget type '{widget.type}'.</p>
+    }
+  }
+
+  return (
+    <div>
+      {error && <div className="banner banner-error">{error}</div>}
+
+      <section className="panel">
+        <h2>{config?.name ?? 'Dashboard'} <span className="state state-approved">OUTPUT</span></h2>
+        <p className="muted small">
+          This dashboard is live configuration, not code: add or remove widgets below and the
+          layout is saved for this tenant instantly — no package rebuild involved.
+        </p>
+        <div className="form-row">
+          <label>
+            Widget type
+            <select value={newType} onChange={(e) => setNewType(e.target.value)}>
+              {WIDGET_TYPES.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </label>
+          <button onClick={addWidget} disabled={!config}>Add widget</button>
+        </div>
+      </section>
+
+      {config?.widgets.map((widget) => (
+        <section key={widget.id} className="panel">
+          <div className="step-head" style={{ justifyContent: 'space-between' }}>
+            <h2 style={{ margin: 0 }}>{widget.title}</h2>
+            <button className="secondary" onClick={() => removeWidget(widget.id)}>Remove</button>
+          </div>
+          {renderWidget(widget)}
+        </section>
+      ))}
+    </div>
+  )
+}

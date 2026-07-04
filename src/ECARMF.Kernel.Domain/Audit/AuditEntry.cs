@@ -15,6 +15,10 @@ public class AuditEntry
 
     public string Category { get; set; } = string.Empty;
 
+    /// <summary>The responsible identity — a real User identifier (human or
+    /// AI/system actor), never a placeholder.</summary>
+    public string Actor { get; set; } = string.Empty;
+
     public string Summary { get; set; } = string.Empty;
 
     public Dictionary<string, string> Detail { get; set; } = [];
@@ -25,10 +29,15 @@ public class AuditEntry
 /// <summary>Well-known audit categories written by the kernel.</summary>
 public static class AuditCategories
 {
-    public const string TransactionReceived = "TransactionReceived";
+    public const string RecordReceived = "RecordReceived";
     public const string EventPublished = "EventPublished";
     public const string RuleEvaluated = "RuleEvaluated";
     public const string OutcomeRecorded = "OutcomeRecorded";
+    public const string ApprovalRecorded = "ApprovalRecorded";
+    public const string ScoreComputed = "ScoreComputed";
+    public const string AllocationRecommended = "AllocationRecommended";
+    public const string AllocationDecided = "AllocationDecided";
+    public const string DeviationDetected = "DeviationDetected";
     public const string PackageLoaded = "PackageLoaded";
     public const string PackageActivated = "PackageActivated";
     public const string PackageDeactivated = "PackageDeactivated";

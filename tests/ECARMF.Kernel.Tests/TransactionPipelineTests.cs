@@ -29,6 +29,7 @@ public class TransactionPipelineTests
     private readonly InMemoryPackageStore _packageStore = new();
     private readonly InMemoryTransactionStore _transactionStore = new();
     private readonly InMemoryOutcomeStore _outcomeStore = new();
+    private readonly InMemoryScoreStore _scoreStore = new();
     private readonly InMemoryAuditLog _audit = new();
     private readonly TenantRegistryProvider _registries = new();
     private readonly InProcessKernelEventBus _bus = new();
@@ -52,9 +53,10 @@ public class TransactionPipelineTests
     private async Task ActivateSamplePackageAsync(string tenantId = Tenant)
     {
         var loader = new PackageLoader(_packageStore, _registries, _audit);
-        var loadResult = await loader.LoadAsync(tenantId, LoadSampleManifest());
+        var manifest = LoadSampleManifest();
+        var loadResult = await loader.LoadAsync(tenantId, manifest);
         Assert.True(loadResult.Success, string.Join("; ", loadResult.Errors));
-        var activateResult = await loader.ActivateAsync(tenantId, "ecarmf.treasury-controls", "1.0.0");
+        var activateResult = await loader.ActivateAsync(tenantId, manifest.PackageId, manifest.PackageVersion);
         Assert.True(activateResult.Success, string.Join("; ", activateResult.Errors));
     }
 
@@ -74,7 +76,8 @@ public class TransactionPipelineTests
         await using var enumerator = _bus.ReadAllAsync(timeout.Token).GetAsyncEnumerator(timeout.Token);
         Assert.True(await enumerator.MoveNextAsync());
 
-        var processor = new EventProcessor(_registries, _outcomeStore, _bus, _audit);
+        var processor = new EventProcessor(_registries, _outcomeStore, _scoreStore, _bus, _audit,
+            new ECARMF.Kernel.Application.Performance.PerformanceEvaluationService(_registries, _scoreStore, _audit));
         var result = await processor.ProcessAsync(enumerator.Current);
         return (receipt, result);
     }
@@ -97,10 +100,10 @@ public class TransactionPipelineTests
 
         Assert.True(receipt.EventPublished);
         Assert.NotNull(result.Outcome);
-        Assert.Equal(RuleOutcome.Flagged, result.Outcome!.Outcome);
+        Assert.Equal("Flagged", result.Outcome!.Outcome);
         Assert.Equal("TREASURY-R-001", result.Outcome.RuleId);
         Assert.Equal("ecarmf.treasury-controls", result.Outcome.PackageId);
-        Assert.Equal("1.0.0", result.Outcome.PackageVersion);
+        Assert.Equal("1.1.0", result.Outcome.PackageVersion);
         Assert.Equal(Tenant, result.Outcome.TenantId);
         Assert.Contains("60000", result.Outcome.Reason);
         Assert.Contains("V-001", result.Outcome.Reason);
@@ -118,7 +121,7 @@ public class TransactionPipelineTests
         var (_, result) = await SubmitAndProcessAsync("withdrawal", "1200");
 
         Assert.NotNull(result.Outcome);
-        Assert.Equal(RuleOutcome.Approved, result.Outcome!.Outcome);
+        Assert.Equal("Approved", result.Outcome!.Outcome);
         Assert.Null(result.Outcome.RuleId);
         Assert.Contains("default", result.Outcome.Reason, StringComparison.OrdinalIgnoreCase);
         // The rule was still evaluated (and audited) even though it did not match.
@@ -133,21 +136,21 @@ public class TransactionPipelineTests
 
         var (_, result) = await SubmitAndProcessAsync("deposit", "500000");
 
-        Assert.Equal(RuleOutcome.Approved, result.Outcome!.Outcome);
+        Assert.Equal("Approved", result.Outcome!.Outcome);
     }
 
     [Fact]
-    public async Task Flagged_transaction_publishes_TransactionFlagged_follow_up()
+    public async Task Flagged_record_publishes_Flagged_follow_up_event()
     {
         await ActivateSamplePackageAsync();
 
         await SubmitAndProcessAsync("withdrawal", "60000");
 
-        // The follow-up event is on the bus after processing the intake event.
+        // The follow-up event name is the outcome string itself.
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         await using var enumerator = _bus.ReadAllAsync(timeout.Token).GetAsyncEnumerator(timeout.Token);
         Assert.True(await enumerator.MoveNextAsync());
-        Assert.Equal("TransactionFlagged", enumerator.Current.EventName);
+        Assert.Equal("Flagged", enumerator.Current.EventName);
         Assert.Equal("Flagged", enumerator.Current.Payload["outcome"]);
         Assert.Equal(Tenant, enumerator.Current.TenantId);
     }
@@ -162,7 +165,7 @@ public class TransactionPipelineTests
 
         Assert.Equal(
             [
-                AuditCategories.TransactionReceived,
+                AuditCategories.RecordReceived,
                 AuditCategories.EventPublished,
                 AuditCategories.RuleEvaluated,
                 AuditCategories.OutcomeRecorded

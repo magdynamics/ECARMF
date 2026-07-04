@@ -13,4 +13,6 @@ public interface ITransactionStore
 
     /// <summary>Most recent transactions for a tenant, newest first.</summary>
     Task<IReadOnlyList<Transaction>> GetRecentAsync(string tenantId, int limit, CancellationToken ct = default);
+
+    Task<Transaction?> GetByIdAsync(string tenantId, Guid transactionId, CancellationToken ct = default);
 }

@@ -34,7 +34,7 @@ public class PackageLoaderTests
                 TriggerEvent = "TransactionReceived",
                 Priority = 100,
                 Conditions = [new RuleCondition { Field = "amount", Operator = ConditionOperator.GreaterThan, Value = "10" }],
-                OutcomeOnMatch = RuleOutcome.Flagged,
+                OutcomeOnMatch = "Flagged",
                 ReasonTemplate = "amount {amount} too high"
             }
         ],

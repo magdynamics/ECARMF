@@ -77,25 +77,40 @@ The platform serves multiple clients. Tenancy is enforced at every layer:
 - Events on the kernel bus carry the tenant, and the processor resolves
   rules from that tenant's registries only.
 
-### 6.4 Transaction Pipeline (audit integrity first)
+### 6.4 Record Pipeline (audit integrity first)
+
+Transaction and Opportunity are both just entity types flowing through one
+generic record pipeline — there are no type-specific pipelines.
 
 ```
-POST /api/transactions  (X-Tenant-Id)
-  1. Transaction persisted immutably           <- before anything else
-  2. AuditEntry: TransactionReceived           <- before publishing
-  3. KernelEvent: TransactionReceived -> bus   (only if an active package
+POST /api/records  (X-Tenant-Id, recordType + payload)
+  1. Record persisted immutably                <- before anything else
+  2. AuditEntry: RecordReceived                <- before publishing
+  3. KernelEvent: RecordReceived -> bus        (only if an active package
                                                 of this tenant declares it)
   4. EventProcessor (hosted service, scope per event)
        - evaluates the tenant's subscribed rules in priority order
        - audits every rule evaluation, matched or not
-       - first matching rule fires: outcome Approved/Rejected/Flagged
-       - no match on intake: Approved by default policy (recorded as such)
+       - matching rules emit their declared ScoreRecords (audited as
+         ScoreComputed with rule + package provenance)
+       - scoring-only rules (no outcome) fire and processing continues;
+         the first matching rule WITH an outcome decides and stops
+       - outcome types are package-defined strings (Approved, Rejected,
+         Flagged, Hold, Escalate, Accept, ...), never a kernel enum
+       - no outcome rule matched on intake: Approved by default policy
+         (recorded and explained as such)
        - outcome persisted with RuleId + PackageId + PackageVersion +
          rendered ReasonTemplate  (ECARMF-001 FND-0005: explainability)
-       - follow-up event TransactionApproved/Rejected/Flagged published
-         only from intake processing (cycles are impossible) and only if
-         declared by an active package
+       - the follow-up event name IS the outcome string, published only
+         from intake processing (cycles are impossible) and only if an
+         active package declares that event
 ```
+
+Dual approval: `POST /api/records/{id}/approvals` lets a second approver —
+who must differ from the submitter — release or reject a Flagged record.
+The decision is append-only (one per record, enforced by a unique index),
+audited before its consequences publish, and the releasing outcome cites
+the rule that placed the hold.
 
 Ordering rules that must never be violated:
 
@@ -136,7 +151,77 @@ graph, digital twin synchronization, full canonical entity catalog
 enforcement, and certification artifacts — these arrive as later releases
 and as Knowledge Packages, not as kernel changes.
 
-### 6.7 Guidance for Future Contributors and AI Agents
+### 6.7 Flywheel Intelligence — mapped onto kernel primitives
+
+The flywheel cycle (collect → validate → process → score → decide →
+execute → audit → learn → improve → repeat) is not a separate system. Every
+flywheel concept maps onto a generic kernel primitive:
+
+| Flywheel concept | Kernel primitive |
+|---|---|
+| Opportunity, Transaction | Entity types flowing through the one record pipeline (`POST /api/records`) |
+| Trust / AssetReadiness / DataConfidence / ControlEffectiveness / TreasuryEfficiency scores | One `ScoreRecord` type with different `ScoreType` tags, emitted by rules as metadata (`EmitScores`), queryable at `GET /api/scores/{entityType}/{entityId}` |
+| A flywheel "cycle" | The audit trail of one correlation id (`GET /api/audit/cycle/{correlationId}`) — one audit log, no divergence risk |
+| Model / threshold / weight versioning for AI learning | Package versioning in `PackageLoader`: a learning update is a **new package version**; prior versions are never overwritten (see Treasury Controls 1.0.0 → 1.1.0 in the samples) |
+| Manual override with reason, user, timestamp, approval trail | `ApprovalRecorded` audit entries + the append-only `Approvals` decision store |
+| Decision recommendations (accept / reject / hold / improve / escalate / audit further) | Package-defined outcome strings with reasoning, confidence, and assumptions rendered into the audited reason |
+| Learning feedback (execution results improving future evaluations) | Rules triggered by decision follow-up events (e.g. `Accept`, `Hold`) emitting Trust / ControlEffectiveness ScoreRecords — see `packages/flywheel-opportunity-evaluation-v1.json` |
+| Flywheel KPIs (confidence averages, trust movement, override rate, cycle completion) | Dashboard queries over ScoreRecords and the Audit Log — no dedicated KPI backend |
+
+### 6.8 Ingestion: Connectors and SchemaTemplates
+
+Records arrive through configured **DataSourceConnector** instances (source
+category + ingestion mode + a **SchemaTemplate** reference + reliability
+tier + provenance class). Templates are declarative field mappings shipped
+in packages and registered in the fifth registry (`SchemaTemplateRegistry`)
+— adding a second bank is a new connector row reusing the bank template,
+not new code. Everything lands through one door
+(`POST /api/connectors/{id}/ingest`), stamped with `sourceId`,
+`sourceCategory`, `provenance` (HumanEntered / ExternalSystemVerified /
+AIGenerated), `reliabilityRating`, `ingestedAt`, and the template version,
+then enters the same immutable intake pipeline as every record. Reference
+templates for all six source categories ship in
+`packages/connector-reference-templates-v1.json`; live third-party
+integrations (OAuth, SFTP, MQTT) are later connector instances — the
+mechanism already supports them without kernel changes.
+
+**AI analytical sources earn trust, never assume it:** AI-generated scores
+carry `provenance: AIGenerated`, and the `AILearningFeedbackService`
+publishes predicted-vs-actual `ModelAccuracy` ScoreRecords (e.g. every
+dual-approval verdict grades the rule that placed the hold). This is the
+loop that stops the flywheel reinforcing its own errors.
+
+### 6.9 Identity, Roles & Access
+
+Every API call authenticates a seeded identity via `X-User-Id` (OAuth/SSO
+integration is future work; the permission mechanism is real). The full
+eight-role catalog is enforced through generic composable permissions
+(`Capability:RequireDualApproval:Approve`, `Package:Manage`, …); the Owner
+is the only unrestricted role; the AI system actor (`system:flywheel`) is a
+first-class User whose actions are logged under its own identity and who
+can never hold approval permissions. Submitter and approver are the
+authenticated identity — segregation of duties (approver ≠ submitter)
+enforces against real identities, and every audit entry's `Actor` is a real
+User reference, never a placeholder.
+
+### 6.10 Capital Intelligence and Performance Intelligence
+
+Both compose on existing primitives rather than adding parallel mechanisms:
+
+- **AllocationRecommendation** (Capital Intelligence, ECARMF-011): where /
+  how much / which institution / which jurisdiction, with mandatory
+  reasoning, confidence, assumptions, risk factors, ranked
+  `alternativesConsidered`, and `supportingScoreRecordIds` grounding every
+  claim in ScoreRecords. Three autonomy tiers — Autonomous (AI executes),
+  RecommendOnly (human approves/modifies/rejects), Escalated (AI stops) —
+  decided by `AutonomyPolicy`; an AI actor can generate but never decide.
+- **Performance frameworks** (KPI/OKR) are package metadata in the sixth
+  registry (`PerformanceFrameworkRegistry`). KPI calculation is a
+  declarative formula evaluated in the same event-processing pass;
+  `KPIActual` / `KPIVariance` / `OKRAttainment` are ScoreRecord types, so
+  allocation reasoning and dashboards read them like every other score.
+
+### 6.11 Guidance for Future Contributors and AI Agents
 
 1. Read `ECARMF-001-Foundation-Standard.md` and `ECARMF 002/` before coding.
 2. New domain behavior = new Knowledge Package manifest (see

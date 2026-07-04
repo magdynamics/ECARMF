@@ -1,9 +1,12 @@
+using System.Globalization;
 using ECARMF.Kernel.Application.Audit;
 using ECARMF.Kernel.Application.Events;
 using ECARMF.Kernel.Application.Registries;
+using ECARMF.Kernel.Application.Scoring;
 using ECARMF.Kernel.Application.Transactions;
 using ECARMF.Kernel.Domain.Audit;
 using ECARMF.Kernel.Domain.Packages;
+using ECARMF.Kernel.Domain.Scoring;
 using ECARMF.Kernel.Domain.Transactions;
 
 namespace ECARMF.Kernel.Application.Processing;
@@ -38,19 +41,25 @@ public class EventProcessor : IEventProcessor
 {
     private readonly ITenantRegistryProvider _registries;
     private readonly IOutcomeStore _outcomes;
+    private readonly IScoreStore _scores;
     private readonly IKernelEventBus _bus;
     private readonly IAuditLog _audit;
+    private readonly Performance.IPerformanceEvaluator _performance;
 
     public EventProcessor(
         ITenantRegistryProvider registries,
         IOutcomeStore outcomes,
+        IScoreStore scores,
         IKernelEventBus bus,
-        IAuditLog audit)
+        IAuditLog audit,
+        Performance.IPerformanceEvaluator performance)
     {
         _registries = registries;
         _outcomes = outcomes;
+        _scores = scores;
         _bus = bus;
         _audit = audit;
+        _performance = performance;
     }
 
     public async Task<ProcessingResult> ProcessAsync(KernelEvent kernelEvent, CancellationToken ct = default)
@@ -60,6 +69,8 @@ public class EventProcessor : IEventProcessor
         var evaluations = new List<RuleEvaluation>();
         Registered<RuleDeclaration>? fired = null;
 
+        var emittedScores = new List<ScoreRecord>();
+
         foreach (var rule in subscribed)
         {
             var matched = rule.Declaration.Conditions.Count > 0
@@ -68,11 +79,43 @@ public class EventProcessor : IEventProcessor
             evaluations.Add(new RuleEvaluation(
                 rule.Declaration.RuleId, rule.PackageId, rule.PackageVersion, matched));
 
-            if (matched)
+            if (!matched)
+            {
+                continue;
+            }
+
+            emittedScores.AddRange(BuildScores(rule, kernelEvent));
+
+            // Scoring-only rules (no outcome) fire and processing continues;
+            // the first matching rule WITH an outcome decides and stops.
+            if (!string.IsNullOrWhiteSpace(rule.Declaration.OutcomeOnMatch))
             {
                 fired = rule;
                 break;
             }
+        }
+
+        foreach (var score in emittedScores)
+        {
+            await _scores.AppendAsync(score, ct);
+            await _audit.AppendAsync(new AuditEntry
+            {
+                TenantId = kernelEvent.TenantId,
+                CorrelationId = kernelEvent.CorrelationId,
+                Category = AuditCategories.ScoreComputed,
+                Actor = "system:flywheel",
+                Summary = $"Score '{score.ScoreType}' = {score.Value} computed for {score.SubjectType} '{score.SubjectId}' by rule '{score.RuleId}'.",
+                Detail = new Dictionary<string, string>
+                {
+                    ["scoreType"] = score.ScoreType,
+                    ["value"] = score.Value.ToString(CultureInfo.InvariantCulture),
+                    ["subjectType"] = score.SubjectType,
+                    ["subjectId"] = score.SubjectId,
+                    ["ruleId"] = score.RuleId ?? string.Empty,
+                    ["packageId"] = score.PackageId ?? string.Empty,
+                    ["packageVersion"] = score.PackageVersion ?? string.Empty
+                }
+            }, ct);
         }
 
         // Every rule evaluation is audited, matched or not, before anything
@@ -82,6 +125,7 @@ public class EventProcessor : IEventProcessor
             TenantId = kernelEvent.TenantId,
             CorrelationId = kernelEvent.CorrelationId,
             Category = AuditCategories.RuleEvaluated,
+            Actor = "system:flywheel",
             Summary = $"Rule '{e.RuleId}' evaluated for event '{kernelEvent.EventName}': {(e.Matched ? "matched" : "did not match")}.",
             Detail = new Dictionary<string, string>
             {
@@ -96,7 +140,14 @@ public class EventProcessor : IEventProcessor
         await _audit.AppendManyAsync(evaluationEntries, ct);
 
         var isIntakeEvent = string.Equals(
-            kernelEvent.EventName, KernelEventNames.TransactionReceived, StringComparison.OrdinalIgnoreCase);
+            kernelEvent.EventName, KernelEventNames.RecordReceived, StringComparison.OrdinalIgnoreCase);
+
+        // Performance frameworks evaluate in the same pass: KPI calculation
+        // is a rule/formula over the record, not a separate mechanism.
+        if (isIntakeEvent)
+        {
+            await _performance.EvaluateAsync(kernelEvent, ct);
+        }
 
         // An outcome is recorded whenever a rule fires, and always for the
         // intake event (where the default-approve policy applies). Follow-up
@@ -111,7 +162,7 @@ public class EventProcessor : IEventProcessor
             TenantId = kernelEvent.TenantId,
             TransactionId = kernelEvent.CorrelationId,
             EventName = kernelEvent.EventName,
-            Outcome = fired?.Declaration.OutcomeOnMatch ?? RuleOutcome.Approved,
+            Outcome = fired?.Declaration.OutcomeOnMatch ?? KernelOutcomes.Approved,
             Reason = fired is not null
                 ? ReasonRenderer.Render(fired.Declaration.ReasonTemplate, kernelEvent.Payload)
                 : "No active rule objected; approved by default kernel policy.",
@@ -128,10 +179,11 @@ public class EventProcessor : IEventProcessor
             TenantId = kernelEvent.TenantId,
             CorrelationId = kernelEvent.CorrelationId,
             Category = AuditCategories.OutcomeRecorded,
+            Actor = "system:flywheel",
             Summary = $"Outcome '{outcome.Outcome}' recorded for event '{kernelEvent.EventName}': {outcome.Reason}",
             Detail = new Dictionary<string, string>
             {
-                ["outcome"] = outcome.Outcome.ToString(),
+                ["outcome"] = outcome.Outcome,
                 ["reason"] = outcome.Reason,
                 ["ruleId"] = outcome.RuleId ?? string.Empty,
                 ["packageId"] = outcome.PackageId ?? string.Empty,
@@ -140,16 +192,17 @@ public class EventProcessor : IEventProcessor
             }
         }, ct);
 
-        // Only intake processing emits outcome events, so rules reacting to
-        // TransactionApproved/Rejected/Flagged can never re-trigger a cycle.
+        // The follow-up event name IS the outcome string (Approved, Flagged,
+        // Hold, Escalate, …) — packages define both. Only intake processing
+        // emits outcome events, so rules reacting to them can never cycle.
         if (isIntakeEvent)
         {
-            var followUpEvent = $"Transaction{outcome.Outcome}";
+            var followUpEvent = outcome.Outcome;
             if (registries.Events.IsDeclared(followUpEvent))
             {
                 var payload = new Dictionary<string, string>(kernelEvent.Payload, StringComparer.OrdinalIgnoreCase)
                 {
-                    ["outcome"] = outcome.Outcome.ToString(),
+                    ["outcome"] = outcome.Outcome,
                     ["reason"] = outcome.Reason
                 };
 
@@ -159,5 +212,53 @@ public class EventProcessor : IEventProcessor
         }
 
         return new ProcessingResult(kernelEvent.EventName, kernelEvent.CorrelationId, evaluations, outcome);
+    }
+
+    /// <summary>Resolves a matched rule's declared score emissions against the
+    /// event payload. Values are literals or {field} tokens; an unresolvable
+    /// value skips that emission (visible via the missing ScoreComputed entry).</summary>
+    private static IEnumerable<ScoreRecord> BuildScores(
+        Registered<RuleDeclaration> rule, KernelEvent kernelEvent)
+    {
+        foreach (var emission in rule.Declaration.EmitScores)
+        {
+            var rendered = ReasonRenderer.Render(emission.Value, kernelEvent.Payload);
+            if (!decimal.TryParse(rendered, NumberStyles.Number, CultureInfo.InvariantCulture, out var value))
+            {
+                continue;
+            }
+
+            var subjectId = kernelEvent.CorrelationId.ToString();
+            if (!string.IsNullOrWhiteSpace(emission.SubjectIdField))
+            {
+                var fromPayload = kernelEvent.Payload.FirstOrDefault(kv =>
+                    string.Equals(kv.Key, emission.SubjectIdField, StringComparison.OrdinalIgnoreCase)).Value;
+                if (!string.IsNullOrWhiteSpace(fromPayload))
+                {
+                    subjectId = fromPayload;
+                }
+            }
+
+            var subjectType = emission.SubjectType;
+            if (string.IsNullOrWhiteSpace(subjectType))
+            {
+                subjectType = kernelEvent.Payload.FirstOrDefault(kv =>
+                    string.Equals(kv.Key, "recordType", StringComparison.OrdinalIgnoreCase)).Value ?? "Record";
+            }
+
+            yield return new ScoreRecord
+            {
+                TenantId = kernelEvent.TenantId,
+                SubjectType = subjectType,
+                SubjectId = subjectId,
+                ScoreType = emission.ScoreType,
+                Value = value,
+                RuleId = rule.Declaration.RuleId,
+                PackageId = rule.PackageId,
+                PackageVersion = rule.PackageVersion,
+                CorrelationId = kernelEvent.CorrelationId,
+                ComputedAt = DateTimeOffset.UtcNow
+            };
+        }
     }
 }

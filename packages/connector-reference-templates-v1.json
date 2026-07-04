@@ -1,0 +1,126 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "Connector Reference Templates",
+  "version": "1",
+  "status": "Published",
+  "owner": "ECARMF Standards Committee",
+  "description": "Reference SchemaTemplates for the six source categories: accounting, bank feed, broker/custodian, operating systems, manual entry, and AI analytical providers. Mapping definitions + test fixtures; live third-party integrations are connector instances added later.",
+
+  "packageId": "ecarmf.connector-reference-templates",
+  "name": "Connector Reference Templates",
+  "packageVersion": "1.0.0",
+  "publisher": "ECARMF",
+  "dependencies": [],
+
+  "entities": [
+    { "entityTypeName": "TreasuryEvent", "description": "A treasury movement observed at a bank/custodian.", "attributes": [
+      { "name": "valueDate", "dataType": "date", "required": true },
+      { "name": "amount", "dataType": "number", "required": true },
+      { "name": "direction", "dataType": "string", "required": true } ] },
+    { "entityTypeName": "AssetEvaluation", "description": "A position/valuation observation.", "attributes": [
+      { "name": "assetReference", "dataType": "string", "required": true },
+      { "name": "amount", "dataType": "number", "required": true } ] },
+    { "entityTypeName": "OperationalEvent", "description": "An operating-system (SiteView/IoT) event.", "attributes": [
+      { "name": "assetReference", "dataType": "string", "required": true },
+      { "name": "eventCategory", "dataType": "string", "required": true } ] }
+  ],
+  "events": [],
+  "rules": [],
+  "capabilities": [
+    { "capabilityId": "DataSourceConnectors", "name": "Data Source Connectors", "description": "Declares this tenant runs the connector ingestion mechanism with these reference templates." }
+  ],
+
+  "schemaTemplates": [
+    {
+      "templateId": "accounting-journal-json",
+      "name": "Accounting journal entry (QuickBooks/Xero-style JSON)",
+      "sourceFormat": "json",
+      "targetEntityType": "Transaction",
+      "fieldMappings": [
+        { "rawField": "TxnId", "targetField": "externalReferenceId", "transform": "none", "required": true },
+        { "rawField": "TxnDate", "targetField": "occurredAt", "transform": "parseDate", "required": true },
+        { "rawField": "Line[1].Amount", "targetField": "amount", "transform": "absoluteValue", "required": true },
+        { "rawField": "Memo", "targetField": "ventureId", "transform": "extractRegex", "pattern": "Venture: (\\w+)", "required": false },
+        { "rawField": "Memo", "targetField": "memo", "transform": "none", "required": false }
+      ]
+    },
+    {
+      "templateId": "bank-mt940-text",
+      "name": "Bank statement line (MT940-style)",
+      "sourceFormat": "text",
+      "targetEntityType": "TreasuryEvent",
+      "fieldMappings": [
+        { "rawField": "", "targetField": "valueDate", "transform": "parseDate", "pattern": ":61:(\\d{6})", "required": true },
+        { "rawField": "", "targetField": "direction", "transform": "valueMap", "pattern": ":61:\\d{10}([DC])", "valueMap": { "D": "Debit", "C": "Credit" }, "required": true },
+        { "rawField": "", "targetField": "amount", "transform": "parseDecimalComma", "pattern": ":61:\\d{10}[DC]([\\d,]+)", "required": true },
+        { "rawField": "", "targetField": "externalReferenceId", "transform": "none", "pattern": "NTRF(\\w+)//", "required": false },
+        { "rawField": "", "targetField": "counterparty", "transform": "none", "pattern": ":86:Beneficiary: (.+)", "required": false }
+      ]
+    },
+    {
+      "templateId": "broker-trades-csv",
+      "name": "Broker/custodian trade confirmations (CSV)",
+      "sourceFormat": "csv",
+      "targetEntityType": "Transaction",
+      "fieldMappings": [
+        { "rawField": "TradeDate", "targetField": "occurredAt", "transform": "parseDate", "required": true },
+        { "rawField": "Symbol", "targetField": "assetReference", "transform": "none", "required": true },
+        { "rawField": "Description", "targetField": "assetDescription", "transform": "none", "required": false },
+        { "rawField": "Quantity", "targetField": "quantity", "transform": "none", "required": true },
+        { "rawField": "Price", "targetField": "price", "transform": "none", "required": true },
+        { "rawField": "Amount", "targetField": "amount", "transform": "none", "required": true },
+        { "rawField": "Action", "targetField": "transactionType", "transform": "valueMap", "valueMap": { "BUY": "Purchase", "SELL": "Disposal" }, "required": true }
+      ],
+      "consistencyChecks": [
+        { "factorA": "quantity", "factorB": "price", "product": "amount", "tolerancePercent": 1 }
+      ]
+    },
+    {
+      "templateId": "siteview-events-json",
+      "name": "Operating system equipment event (SiteView-style JSON)",
+      "sourceFormat": "json",
+      "targetEntityType": "OperationalEvent",
+      "fieldMappings": [
+        { "rawField": "equipmentId", "targetField": "assetReference", "transform": "none", "required": true },
+        { "rawField": "siteId", "targetField": "siteId", "transform": "none", "required": true },
+        { "rawField": "eventType", "targetField": "eventCategory", "transform": "none", "required": true },
+        { "rawField": "timestamp", "targetField": "occurredAt", "transform": "parseDate", "required": true },
+        { "rawField": "downtimeHours", "targetField": "downtimeHours", "transform": "none", "required": false },
+        { "rawField": "cost", "targetField": "cost", "transform": "none", "required": false }
+      ]
+    },
+    {
+      "templateId": "manual-opportunity-json",
+      "name": "Manual opportunity entry (UI form)",
+      "sourceFormat": "json",
+      "targetEntityType": "Opportunity",
+      "fieldMappings": [
+        { "rawField": "opportunityType", "targetField": "opportunitySubtype", "transform": "none", "required": true },
+        { "rawField": "title", "targetField": "title", "transform": "none", "required": true },
+        { "rawField": "estimatedValue", "targetField": "estimatedValue", "transform": "absoluteValue", "required": true },
+        { "rawField": "opportunityId", "targetField": "opportunityId", "transform": "none", "required": false },
+        { "rawField": "sourceType", "targetField": "sourceType", "transform": "none", "required": false },
+        { "rawField": "reliabilityRating", "targetField": "reliabilityRating", "transform": "none", "required": false },
+        { "rawField": "estimatedValue", "targetField": "amount", "transform": "absoluteValue", "required": false },
+        { "rawField": "riskRating", "targetField": "riskRating", "transform": "none", "required": false },
+        { "rawField": "complianceRating", "targetField": "complianceRating", "transform": "none", "required": false },
+        { "rawField": "readinessRating", "targetField": "readinessRating", "transform": "none", "required": false },
+        { "rawField": "notes", "targetField": "notes", "transform": "none", "required": false }
+      ]
+    },
+    {
+      "templateId": "market-risk-provider-json",
+      "name": "External AI/market-risk provider feed",
+      "sourceFormat": "json",
+      "targetEntityType": "AnalyticalScore",
+      "fieldMappings": [
+        { "rawField": "modelId", "targetField": "modelId", "transform": "none", "required": true },
+        { "rawField": "assetClass", "targetField": "subjectId", "transform": "none", "required": true },
+        { "rawField": "riskScore", "targetField": "value", "transform": "none", "required": true },
+        { "rawField": "confidenceInterval", "targetField": "confidenceInterval", "transform": "none", "required": false },
+        { "rawField": "asOf", "targetField": "computedAt", "transform": "parseDate", "required": true },
+        { "rawField": "modelProvider", "targetField": "provider", "transform": "none", "required": true }
+      ]
+    }
+  ]
+}

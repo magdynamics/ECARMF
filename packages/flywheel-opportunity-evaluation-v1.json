@@ -1,0 +1,194 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "Flywheel Opportunity Evaluation",
+  "version": "1",
+  "status": "Published",
+  "owner": "ECARMF Standards Committee",
+  "description": "Flywheel cycle for investment opportunities: validate data quality, score risk/valuation/compliance/readiness, recommend a decision, and feed execution results back as trust and control-effectiveness scores.",
+
+  "packageId": "ecarmf.flywheel-opportunity-evaluation",
+  "name": "Flywheel Opportunity Evaluation",
+  "packageVersion": "1.0.0",
+  "publisher": "ECARMF",
+  "dependencies": [
+    { "packageId": "ecarmf.treasury-controls", "minimumVersion": "1.0.0" }
+  ],
+
+  "entities": [
+    {
+      "entityTypeName": "Opportunity",
+      "description": "A candidate investment/allocation opportunity collected from any source.",
+      "attributes": [
+        { "name": "opportunityId", "dataType": "string", "required": true },
+        { "name": "sourceType", "dataType": "string", "required": true },
+        { "name": "sourceMetadata", "dataType": "string", "required": false },
+        { "name": "timestamp", "dataType": "date", "required": false },
+        { "name": "reliabilityRating", "dataType": "number", "required": true }
+      ]
+    }
+  ],
+
+  "events": [
+    {
+      "eventName": "Accept",
+      "description": "The opportunity was accepted; execution tracking begins.",
+      "payloadFields": [
+        { "name": "outcome", "dataType": "string", "required": true },
+        { "name": "reason", "dataType": "string", "required": true }
+      ]
+    },
+    {
+      "eventName": "Hold",
+      "description": "The opportunity is held pending better data or conditions.",
+      "payloadFields": [
+        { "name": "outcome", "dataType": "string", "required": true },
+        { "name": "reason", "dataType": "string", "required": true }
+      ]
+    },
+    {
+      "eventName": "Escalate",
+      "description": "The opportunity exceeds autonomous limits and needs senior review.",
+      "payloadFields": [
+        { "name": "outcome", "dataType": "string", "required": true },
+        { "name": "reason", "dataType": "string", "required": true }
+      ]
+    },
+    {
+      "eventName": "AuditFurther",
+      "description": "No decision rule was confident; route to deeper audit.",
+      "payloadFields": [
+        { "name": "outcome", "dataType": "string", "required": true },
+        { "name": "reason", "dataType": "string", "required": true }
+      ]
+    }
+  ],
+
+  "rules": [
+    {
+      "ruleId": "FLY-R-010",
+      "name": "Validate opportunity data quality",
+      "description": "Scoring-only rule: records the source reliability as a DataConfidence score for the opportunity.",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "Opportunity" },
+        { "field": "reliabilityRating", "operator": "GreaterOrEqual", "value": "0" }
+      ],
+      "outcomeOnMatch": "",
+      "reasonTemplate": "",
+      "emitScores": [
+        { "scoreType": "DataConfidence", "value": "{reliabilityRating}", "subjectType": "Opportunity", "subjectIdField": "opportunityId" }
+      ]
+    },
+    {
+      "ruleId": "FLY-R-020",
+      "name": "Evaluate opportunity",
+      "description": "Scoring-only rule: records risk, valuation, compliance, and combined asset-readiness scores from the evaluated inputs.",
+      "triggerEvent": "RecordReceived",
+      "priority": 20,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "Opportunity" },
+        { "field": "estimatedValue", "operator": "GreaterThan", "value": "0" }
+      ],
+      "outcomeOnMatch": "",
+      "reasonTemplate": "",
+      "emitScores": [
+        { "scoreType": "RiskScore", "value": "{riskRating}", "subjectType": "Opportunity", "subjectIdField": "opportunityId" },
+        { "scoreType": "Valuation", "value": "{estimatedValue}", "subjectType": "Opportunity", "subjectIdField": "opportunityId" },
+        { "scoreType": "Compliance", "value": "{complianceRating}", "subjectType": "Opportunity", "subjectIdField": "opportunityId" },
+        { "scoreType": "AssetReadiness", "value": "{readinessRating}", "subjectType": "Opportunity", "subjectIdField": "opportunityId" }
+      ]
+    },
+    {
+      "ruleId": "FLY-R-025",
+      "name": "Escalate outsized opportunities",
+      "description": "Opportunities above the autonomous allocation limit go to senior review regardless of scores.",
+      "triggerEvent": "RecordReceived",
+      "priority": 25,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "Opportunity" },
+        { "field": "estimatedValue", "operator": "GreaterThan", "value": "5000000" }
+      ],
+      "outcomeOnMatch": "Escalate",
+      "reasonTemplate": "Opportunity {opportunityId} valued at {estimatedValue} exceeds the 5000000 autonomous limit; assumptions: source reliability {reliabilityRating}, risk {riskRating}. Senior review required."
+    },
+    {
+      "ruleId": "FLY-R-030",
+      "name": "Accept qualified opportunities",
+      "description": "High-confidence, low-risk, execution-ready opportunities are accepted.",
+      "triggerEvent": "RecordReceived",
+      "priority": 30,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "Opportunity" },
+        { "field": "reliabilityRating", "operator": "GreaterOrEqual", "value": "0.7" },
+        { "field": "riskRating", "operator": "LessOrEqual", "value": "0.4" },
+        { "field": "readinessRating", "operator": "GreaterOrEqual", "value": "0.7" }
+      ],
+      "outcomeOnMatch": "Accept",
+      "reasonTemplate": "Opportunity {opportunityId} accepted: confidence {reliabilityRating}, risk {riskRating}, readiness {readinessRating}, valuation {estimatedValue}. Assumptions: source '{sourceType}' data verified; risk factors within treasury tolerance."
+    },
+    {
+      "ruleId": "FLY-R-032",
+      "name": "Hold low-confidence opportunities",
+      "description": "Unreliable source data holds the opportunity for data improvement.",
+      "triggerEvent": "RecordReceived",
+      "priority": 32,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "Opportunity" },
+        { "field": "reliabilityRating", "operator": "LessThan", "value": "0.5" }
+      ],
+      "outcomeOnMatch": "Hold",
+      "reasonTemplate": "Opportunity {opportunityId} held: data confidence {reliabilityRating} is below 0.5. Improve source data from '{sourceType}' and resubmit."
+    },
+    {
+      "ruleId": "FLY-R-035",
+      "name": "Route undecided opportunities to audit",
+      "description": "Fallback decision: nothing else was confident enough, audit further.",
+      "triggerEvent": "RecordReceived",
+      "priority": 35,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "Opportunity" }
+      ],
+      "outcomeOnMatch": "AuditFurther",
+      "reasonTemplate": "Opportunity {opportunityId} did not meet accept/hold/escalate criteria (confidence {reliabilityRating}, risk {riskRating}); routing to deeper audit."
+    },
+    {
+      "ruleId": "FLY-R-040",
+      "name": "Learn source trust from accepted opportunities",
+      "description": "Execution feedback: an accepted opportunity raises the trust history of its source.",
+      "triggerEvent": "Accept",
+      "priority": 40,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "Opportunity" }
+      ],
+      "outcomeOnMatch": "",
+      "reasonTemplate": "",
+      "emitScores": [
+        { "scoreType": "Trust", "value": "{reliabilityRating}", "subjectType": "OpportunitySource", "subjectIdField": "sourceType" }
+      ]
+    },
+    {
+      "ruleId": "FLY-R-041",
+      "name": "Learn control effectiveness from held opportunities",
+      "description": "Control feedback: a hold means the data-quality control did its job.",
+      "triggerEvent": "Hold",
+      "priority": 41,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "Opportunity" }
+      ],
+      "outcomeOnMatch": "",
+      "reasonTemplate": "",
+      "emitScores": [
+        { "scoreType": "ControlEffectiveness", "value": "1", "subjectType": "Rule", "subjectIdField": "" }
+      ]
+    }
+  ],
+
+  "capabilities": [
+    {
+      "capabilityId": "OpportunityFlywheel",
+      "name": "Opportunity Flywheel",
+      "description": "Collect -> validate -> score -> decide -> execute -> audit -> learn cycle for opportunities."
+    }
+  ]
+}

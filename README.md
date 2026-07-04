@@ -70,24 +70,40 @@ The platform serves multiple clients. Every API request must carry an
 `X-Tenant-Id` header; packages, transactions, outcomes, and audit trails are
 isolated per tenant. The admin UI has a tenant switcher in its header.
 
-### Try the pipeline
+### Try the pipeline (control + flywheel)
 
 ```bash
 TENANT='X-Tenant-Id: tenant-alpha'
 
-# 1. Upload and activate the sample Treasury Controls package
+# 1. Upload and activate the sample packages (flywheel depends on treasury)
 curl -X POST http://localhost:5099/api/packages -H "$TENANT" \
   -H "Content-Type: application/json" -d @packages/treasury-controls-v1.json
 curl -X POST -H "$TENANT" \
-  http://localhost:5099/api/packages/ecarmf.treasury-controls/1.0.0/activate
+  http://localhost:5099/api/packages/ecarmf.treasury-controls/1.1.0/activate
+curl -X POST http://localhost:5099/api/packages -H "$TENANT" \
+  -H "Content-Type: application/json" -d @packages/flywheel-opportunity-evaluation-v1.json
+curl -X POST -H "$TENANT" \
+  http://localhost:5099/api/packages/ecarmf.flywheel-opportunity-evaluation/1.0.0/activate
 
-# 2. A $60,000 withdrawal gets Flagged by rule TREASURY-R-001
-curl -X POST http://localhost:5099/api/transactions -H "$TENANT" \
+# 2. A $60,000 withdrawal gets Flagged by rule TREASURY-R-001...
+curl -X POST http://localhost:5099/api/records -H "$TENANT" \
   -H "Content-Type: application/json" \
-  -d '{"transactionType":"withdrawal","submittedBy":"treasurer@example.com","payload":{"ventureId":"V-001","amount":60000}}'
+  -d '{"recordType":"withdrawal","submittedBy":"treasurer@example.com","payload":{"transactionType":"withdrawal","ventureId":"V-001","amount":60000}}'
 
-# 3. Inspect the full audit trail
-curl -H "$TENANT" http://localhost:5099/api/audit/transaction/{transactionId}
+# ...and a second approver releases it (dual approval)
+curl -X POST http://localhost:5099/api/records/{recordId}/approvals -H "$TENANT" \
+  -H "Content-Type: application/json" \
+  -d '{"approver":"cfo@example.com","verdict":"Approve","comment":"verified"}'
+
+# 3. An opportunity flows through the full flywheel:
+#    validated -> scored -> decided -> trust learned from the outcome
+curl -X POST http://localhost:5099/api/records -H "$TENANT" \
+  -H "Content-Type: application/json" \
+  -d '{"recordType":"Opportunity","submittedBy":"scout@example.com","payload":{"opportunityId":"OPP-1","sourceType":"broker-network","reliabilityRating":0.9,"estimatedValue":1200000,"riskRating":0.3,"complianceRating":0.95,"readinessRating":0.8}}'
+
+# 4. Score history and the reconstructed cycle
+curl -H "$TENANT" http://localhost:5099/api/scores/Opportunity/OPP-1
+curl -H "$TENANT" http://localhost:5099/api/audit/cycle/{recordId}
 ```
 
 ## Repository Structure

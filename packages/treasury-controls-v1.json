@@ -8,7 +8,7 @@
 
   "packageId": "ecarmf.treasury-controls",
   "name": "Treasury Controls",
-  "packageVersion": "1.0.0",
+  "packageVersion": "1.1.0",
   "publisher": "ECARMF",
   "dependencies": [],
 
@@ -27,7 +27,7 @@
 
   "events": [
     {
-      "eventName": "TransactionReceived",
+      "eventName": "RecordReceived",
       "description": "A transaction has been durably persisted and is ready for rule processing.",
       "payloadFields": [
         { "name": "ventureId", "dataType": "string", "required": true },
@@ -37,7 +37,7 @@
       ]
     },
     {
-      "eventName": "TransactionApproved",
+      "eventName": "Approved",
       "description": "The transaction passed all active controls.",
       "payloadFields": [
         { "name": "outcome", "dataType": "string", "required": true },
@@ -45,7 +45,7 @@
       ]
     },
     {
-      "eventName": "TransactionRejected",
+      "eventName": "Rejected",
       "description": "An active control rejected the transaction.",
       "payloadFields": [
         { "name": "outcome", "dataType": "string", "required": true },
@@ -53,7 +53,7 @@
       ]
     },
     {
-      "eventName": "TransactionFlagged",
+      "eventName": "Flagged",
       "description": "The transaction is held pending additional approval.",
       "payloadFields": [
         { "name": "outcome", "dataType": "string", "required": true },
@@ -67,7 +67,7 @@
       "ruleId": "TREASURY-R-001",
       "name": "Large withdrawals require dual approval",
       "description": "Withdrawals over $50,000 are flagged and held for a second approval via the RequireDualApproval capability.",
-      "triggerEvent": "TransactionReceived",
+      "triggerEvent": "RecordReceived",
       "priority": 100,
       "conditions": [
         { "field": "transactionType", "operator": "Equals", "value": "withdrawal" },

@@ -6,7 +6,8 @@ public static class RegistryEndpoints
 {
     public static IEndpointRouteBuilder MapRegistryEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/registries");
+        var group = app.MapGroup("/api/registries")
+            .RequirePermission(Domain.Identity.Permissions.RegistryRead);
 
         group.MapGet("/entities", (HttpContext context, ITenantRegistryProvider registries) =>
             TenantResolution.TryGetTenant(context, out var tenantId)
@@ -26,6 +27,25 @@ public static class RegistryEndpoints
         group.MapGet("/capabilities", (HttpContext context, ITenantRegistryProvider registries) =>
             TenantResolution.TryGetTenant(context, out var tenantId)
                 ? Results.Ok(registries.GetFor(tenantId).Capabilities.GetAll())
+                : TenantResolution.MissingTenantResult());
+
+        group.MapGet("/schematemplates", (HttpContext context, ITenantRegistryProvider registries) =>
+            TenantResolution.TryGetTenant(context, out var tenantId)
+                ? Results.Ok(registries.GetFor(tenantId).SchemaTemplates.GetAll())
+                : TenantResolution.MissingTenantResult());
+
+        group.MapGet("/performanceframeworks", (HttpContext context, ITenantRegistryProvider registries) =>
+            TenantResolution.TryGetTenant(context, out var tenantId)
+                ? Results.Ok(registries.GetFor(tenantId).PerformanceFrameworks.GetAll())
+                : TenantResolution.MissingTenantResult());
+
+        // Framework recommendation: MVP industry-classification lookup; the
+        // interface supports an AI-driven recommender later.
+        app.MapGet("/api/performance/recommend", (
+            string industry, HttpContext context,
+            ECARMF.Kernel.Application.Performance.IFrameworkRecommender recommender) =>
+            TenantResolution.TryGetTenant(context, out var tenantId)
+                ? Results.Ok(recommender.Recommend(tenantId, industry ?? string.Empty))
                 : TenantResolution.MissingTenantResult());
 
         return group;

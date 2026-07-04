@@ -12,7 +12,7 @@ public class RegistryTests
         TriggerEvent = trigger,
         Priority = priority,
         Conditions = [new RuleCondition { Field = "amount", Operator = ConditionOperator.GreaterThan, Value = "1" }],
-        OutcomeOnMatch = RuleOutcome.Flagged,
+        OutcomeOnMatch = "Flagged",
         ReasonTemplate = "test"
     };
 

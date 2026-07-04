@@ -1,8 +1,10 @@
 using ECARMF.Kernel.Application.Audit;
 using ECARMF.Kernel.Application.Packages;
+using ECARMF.Kernel.Application.Scoring;
 using ECARMF.Kernel.Application.Transactions;
 using ECARMF.Kernel.Domain.Audit;
 using ECARMF.Kernel.Domain.Packages;
+using ECARMF.Kernel.Domain.Scoring;
 using ECARMF.Kernel.Domain.Transactions;
 
 namespace ECARMF.Kernel.Tests.Fakes;
@@ -73,6 +75,56 @@ public class InMemoryTransactionStore : ITransactionStore
             Items.Where(t => string.Equals(t.TenantId, tenantId, StringComparison.OrdinalIgnoreCase))
                 .OrderByDescending(t => t.ReceivedAt)
                 .Take(limit)
+                .ToList());
+
+    public Task<Transaction?> GetByIdAsync(string tenantId, Guid transactionId, CancellationToken ct = default) =>
+        Task.FromResult(Items.FirstOrDefault(t =>
+            string.Equals(t.TenantId, tenantId, StringComparison.OrdinalIgnoreCase)
+            && t.TransactionId == transactionId));
+}
+
+public class InMemoryScoreStore : IScoreStore
+{
+    public List<ScoreRecord> Items { get; } = [];
+
+    public Task AppendAsync(ScoreRecord score, CancellationToken ct = default)
+    {
+        Items.Add(score);
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<ScoreRecord>> GetHistoryAsync(
+        string tenantId, string subjectType, string subjectId, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<ScoreRecord>>(
+            Items.Where(s => string.Equals(s.TenantId, tenantId, StringComparison.OrdinalIgnoreCase)
+                          && string.Equals(s.SubjectType, subjectType, StringComparison.OrdinalIgnoreCase)
+                          && string.Equals(s.SubjectId, subjectId, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(s => s.ComputedAt).ToList());
+
+    public Task<IReadOnlyList<ScoreRecord>> GetRecentAsync(
+        string tenantId, int limit, string? scoreType = null, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<ScoreRecord>>(
+            Items.Where(s => string.Equals(s.TenantId, tenantId, StringComparison.OrdinalIgnoreCase)
+                          && (scoreType is null || string.Equals(s.ScoreType, scoreType, StringComparison.OrdinalIgnoreCase)))
+                .OrderByDescending(s => s.ComputedAt).Take(limit).ToList());
+}
+
+public class InMemoryApprovalStore : IApprovalStore
+{
+    public List<ApprovalDecision> Items { get; } = [];
+
+    public Task AppendAsync(ApprovalDecision decision, CancellationToken ct = default)
+    {
+        Items.Add(decision);
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<ApprovalDecision>> GetForTransactionAsync(
+        string tenantId, Guid transactionId, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<ApprovalDecision>>(
+            Items.Where(a => string.Equals(a.TenantId, tenantId, StringComparison.OrdinalIgnoreCase)
+                          && a.TransactionId == transactionId)
+                .OrderBy(a => a.DecidedAt)
                 .ToList());
 }
 

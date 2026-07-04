@@ -16,6 +16,15 @@ public static class DependencyInjection
         services.AddScoped<IPackageLoader, PackageLoader>();
         services.AddScoped<ITransactionIntakeService, TransactionIntakeService>();
         services.AddScoped<IEventProcessor, EventProcessor>();
+        services.AddScoped<IApprovalService, ApprovalService>();
+        services.AddScoped<Ingestion.IDataSourceConnector, Ingestion.ConnectorIngestionService>();
+        services.AddScoped<Flywheel.IAILearningFeedbackService, Flywheel.AILearningFeedbackService>();
+        services.AddScoped<Capital.ICapitalAllocationEngine, Capital.CapitalAllocationEngine>();
+        services.AddScoped<Performance.PerformanceEvaluationService>();
+        services.AddScoped<Performance.IPerformanceEvaluator>(sp => sp.GetRequiredService<Performance.PerformanceEvaluationService>());
+        services.AddScoped<Performance.IFrameworkRecommender>(sp => sp.GetRequiredService<Performance.PerformanceEvaluationService>());
+        services.AddScoped<Analytics.IForecastingEngine, Analytics.ForecastingEngine>();
+        services.AddScoped<Analytics.IDeviationMonitor, Analytics.DeviationMonitoringService>();
 
         return services;
     }

@@ -36,6 +36,50 @@ public static class ManifestValidator
         CheckNames(errors, "event", manifest.Events.Select(e => e.EventName));
         CheckNames(errors, "rule", manifest.Rules.Select(r => r.RuleId));
         CheckNames(errors, "capability", manifest.Capabilities.Select(c => c.CapabilityId));
+        CheckNames(errors, "schema template", manifest.SchemaTemplates.Select(t => t.TemplateId));
+        CheckNames(errors, "performance framework", manifest.PerformanceFrameworks.Select(f => f.FrameworkId));
+
+        foreach (var framework in manifest.PerformanceFrameworks)
+        {
+            var label = string.IsNullOrWhiteSpace(framework.FrameworkId) ? "(unnamed framework)" : framework.FrameworkId;
+            var kpiIds = new HashSet<string>(framework.Kpis.Select(k => k.KpiId), StringComparer.OrdinalIgnoreCase);
+
+            foreach (var kpi in framework.Kpis)
+            {
+                if (string.IsNullOrWhiteSpace(kpi.KpiId))
+                    errors.Add($"Framework '{label}' has a KPI with no KpiId.");
+                if (string.IsNullOrWhiteSpace(kpi.Formula))
+                    errors.Add($"Framework '{label}' KPI '{kpi.KpiId}' has no Formula.");
+            }
+
+            foreach (var okr in framework.Okrs)
+            {
+                foreach (var kr in okr.KeyResults.Where(kr => !kpiIds.Contains(kr.KpiId)))
+                    errors.Add($"Framework '{label}' OKR '{okr.OkrId}' references unknown KPI '{kr.KpiId}'.");
+            }
+        }
+
+        foreach (var template in manifest.SchemaTemplates)
+        {
+            var label = string.IsNullOrWhiteSpace(template.TemplateId) ? "(unnamed template)" : template.TemplateId;
+
+            if (string.IsNullOrWhiteSpace(template.TargetEntityType))
+                errors.Add($"Schema template '{label}' has no TargetEntityType.");
+            if (template.SourceFormat is not ("json" or "csv" or "text"))
+                errors.Add($"Schema template '{label}' has invalid SourceFormat '{template.SourceFormat}' (json|csv|text).");
+            if (template.FieldMappings.Count == 0)
+                errors.Add($"Schema template '{label}' declares no field mappings.");
+
+            foreach (var mapping in template.FieldMappings)
+            {
+                if (string.IsNullOrWhiteSpace(mapping.TargetField))
+                    errors.Add($"Schema template '{label}' has a mapping with no TargetField.");
+                if (template.SourceFormat != "text" && string.IsNullOrWhiteSpace(mapping.RawField))
+                    errors.Add($"Schema template '{label}' has a mapping with no RawField.");
+                if (template.SourceFormat == "text" && string.IsNullOrWhiteSpace(mapping.Pattern))
+                    errors.Add($"Schema template '{label}' is text-format but mapping '{mapping.TargetField}' has no Pattern.");
+            }
+        }
 
         foreach (var entity in manifest.Entities)
         {
@@ -59,8 +103,18 @@ public static class ManifestValidator
                 errors.Add($"Rule '{label}' triggers on event '{rule.TriggerEvent}', which is not declared by this package or any active package.");
             }
 
-            if (!Enum.IsDefined(rule.OutcomeOnMatch))
-                errors.Add($"Rule '{label}' has an invalid OutcomeOnMatch value.");
+            // A rule must do something when it matches: decide an outcome,
+            // emit scores, or both. Scoring-only rules leave OutcomeOnMatch empty.
+            if (string.IsNullOrWhiteSpace(rule.OutcomeOnMatch) && rule.EmitScores.Count == 0)
+                errors.Add($"Rule '{label}' declares neither an OutcomeOnMatch nor any EmitScores.");
+
+            foreach (var emission in rule.EmitScores)
+            {
+                if (string.IsNullOrWhiteSpace(emission.ScoreType))
+                    errors.Add($"Rule '{label}' has a score emission with no ScoreType.");
+                if (string.IsNullOrWhiteSpace(emission.Value))
+                    errors.Add($"Rule '{label}' has a score emission with no Value.");
+            }
 
             foreach (var condition in rule.Conditions)
             {

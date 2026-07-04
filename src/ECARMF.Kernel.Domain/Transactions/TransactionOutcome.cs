@@ -1,5 +1,3 @@
-using ECARMF.Kernel.Domain.Packages;
-
 namespace ECARMF.Kernel.Domain.Transactions;
 
 /// <summary>
@@ -19,7 +17,9 @@ public class TransactionOutcome
     /// <summary>The event whose processing produced this outcome.</summary>
     public string EventName { get; set; } = string.Empty;
 
-    public RuleOutcome Outcome { get; set; }
+    /// <summary>Package-defined outcome string (see KernelOutcomes for the
+    /// kernel's well-known conventions).</summary>
+    public string Outcome { get; set; } = string.Empty;
 
     public string Reason { get; set; } = string.Empty;
 
