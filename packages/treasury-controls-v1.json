@@ -1,0 +1,88 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "Treasury Controls",
+  "version": "1",
+  "status": "Published",
+  "owner": "ECARMF Standards Committee",
+  "description": "Baseline treasury protection controls: large withdrawals require a second approval.",
+
+  "packageId": "ecarmf.treasury-controls",
+  "name": "Treasury Controls",
+  "packageVersion": "1.0.0",
+  "publisher": "ECARMF",
+  "dependencies": [],
+
+  "entities": [
+    {
+      "entityTypeName": "Venture",
+      "description": "An operating venture holding treasury funds.",
+      "attributes": [
+        { "name": "id", "dataType": "uuid", "required": true },
+        { "name": "name", "dataType": "string", "required": true },
+        { "name": "type", "dataType": "string", "required": true },
+        { "name": "treasuryBalance", "dataType": "number", "required": true }
+      ]
+    }
+  ],
+
+  "events": [
+    {
+      "eventName": "TransactionReceived",
+      "description": "A transaction has been durably persisted and is ready for rule processing.",
+      "payloadFields": [
+        { "name": "ventureId", "dataType": "string", "required": true },
+        { "name": "amount", "dataType": "number", "required": true },
+        { "name": "transactionType", "dataType": "string", "required": true },
+        { "name": "submittedBy", "dataType": "string", "required": true }
+      ]
+    },
+    {
+      "eventName": "TransactionApproved",
+      "description": "The transaction passed all active controls.",
+      "payloadFields": [
+        { "name": "outcome", "dataType": "string", "required": true },
+        { "name": "reason", "dataType": "string", "required": true }
+      ]
+    },
+    {
+      "eventName": "TransactionRejected",
+      "description": "An active control rejected the transaction.",
+      "payloadFields": [
+        { "name": "outcome", "dataType": "string", "required": true },
+        { "name": "reason", "dataType": "string", "required": true }
+      ]
+    },
+    {
+      "eventName": "TransactionFlagged",
+      "description": "The transaction is held pending additional approval.",
+      "payloadFields": [
+        { "name": "outcome", "dataType": "string", "required": true },
+        { "name": "reason", "dataType": "string", "required": true }
+      ]
+    }
+  ],
+
+  "rules": [
+    {
+      "ruleId": "TREASURY-R-001",
+      "name": "Large withdrawals require dual approval",
+      "description": "Withdrawals over $50,000 are flagged and held for a second approval via the RequireDualApproval capability.",
+      "triggerEvent": "TransactionReceived",
+      "priority": 100,
+      "conditions": [
+        { "field": "transactionType", "operator": "Equals", "value": "withdrawal" },
+        { "field": "amount", "operator": "GreaterThan", "value": "50000" }
+      ],
+      "outcomeOnMatch": "Flagged",
+      "reasonTemplate": "Withdrawal of {amount} from venture {ventureId} exceeds 50000 and requires a second approval (RequireDualApproval)."
+    }
+  ],
+
+  "capabilities": [
+    {
+      "capabilityId": "RequireDualApproval",
+      "name": "Require Dual Approval",
+      "description": "Holds a flagged transaction until a second authorized approver confirms it."
+    }
+  ]
+}
