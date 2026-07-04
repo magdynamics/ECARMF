@@ -24,8 +24,13 @@ public class RuleDeclaration
     public List<RuleCondition> Conditions { get; set; } = [];
 
     /// <summary>Package-defined outcome produced when the rule fires
-    /// (e.g. Approved, Rejected, Flagged, Hold, Escalate, Accept).</summary>
+    /// (e.g. Approved, Rejected, Flagged, Hold, Escalate, Accept). Empty for
+    /// scoring-only rules: they emit their scores and processing continues
+    /// to the next rule instead of deciding.</summary>
     public string OutcomeOnMatch { get; set; } = string.Empty;
+
+    /// <summary>ScoreRecords emitted when this rule matches.</summary>
+    public List<ScoreEmission> EmitScores { get; set; } = [];
 
     /// <summary>Human-readable explanation template recorded with the outcome,
     /// e.g. "Withdrawal of {amount} exceeds {threshold} and requires dual approval".</summary>

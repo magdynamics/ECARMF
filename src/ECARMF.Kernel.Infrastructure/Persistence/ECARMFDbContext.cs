@@ -19,8 +19,27 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<ApprovalRecord> Approvals => Set<ApprovalRecord>();
 
+    public DbSet<ScoreEntry> Scores => Set<ScoreEntry>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<ScoreEntry>(entity =>
+        {
+            entity.ToTable("Scores");
+            entity.HasKey(s => s.Id);
+            entity.Property(s => s.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(s => s.SubjectType).HasMaxLength(200).IsRequired();
+            entity.Property(s => s.SubjectId).HasMaxLength(200).IsRequired();
+            entity.Property(s => s.ScoreType).HasMaxLength(200).IsRequired();
+            entity.Property(s => s.Value).HasPrecision(18, 6);
+            entity.Property(s => s.RuleId).HasMaxLength(200);
+            entity.Property(s => s.PackageId).HasMaxLength(200);
+            entity.Property(s => s.PackageVersion).HasMaxLength(50);
+            entity.HasIndex(s => new { s.TenantId, s.SubjectType, s.SubjectId });
+            entity.HasIndex(s => new { s.TenantId, s.ScoreType, s.ComputedAt });
+            entity.HasIndex(s => s.CorrelationId);
+        });
+
         modelBuilder.Entity<ApprovalRecord>(entity =>
         {
             entity.ToTable("Approvals");

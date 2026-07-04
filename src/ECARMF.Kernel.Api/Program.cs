@@ -43,6 +43,7 @@ app.MapRecordEndpoints();
 app.MapAuditEndpoints();
 app.MapPackageEndpoints();
 app.MapRegistryEndpoints();
+app.MapScoreEndpoints();
 
 using (var scope = app.Services.CreateScope())
 {

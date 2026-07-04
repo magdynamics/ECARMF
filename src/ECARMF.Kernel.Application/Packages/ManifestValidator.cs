@@ -59,8 +59,18 @@ public static class ManifestValidator
                 errors.Add($"Rule '{label}' triggers on event '{rule.TriggerEvent}', which is not declared by this package or any active package.");
             }
 
-            if (string.IsNullOrWhiteSpace(rule.OutcomeOnMatch))
-                errors.Add($"Rule '{label}' has no OutcomeOnMatch. Outcome types are package-defined strings (e.g. Approved, Flagged, Hold).");
+            // A rule must do something when it matches: decide an outcome,
+            // emit scores, or both. Scoring-only rules leave OutcomeOnMatch empty.
+            if (string.IsNullOrWhiteSpace(rule.OutcomeOnMatch) && rule.EmitScores.Count == 0)
+                errors.Add($"Rule '{label}' declares neither an OutcomeOnMatch nor any EmitScores.");
+
+            foreach (var emission in rule.EmitScores)
+            {
+                if (string.IsNullOrWhiteSpace(emission.ScoreType))
+                    errors.Add($"Rule '{label}' has a score emission with no ScoreType.");
+                if (string.IsNullOrWhiteSpace(emission.Value))
+                    errors.Add($"Rule '{label}' has a score emission with no Value.");
+            }
 
             foreach (var condition in rule.Conditions)
             {

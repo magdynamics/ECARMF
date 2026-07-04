@@ -1,8 +1,10 @@
 using ECARMF.Kernel.Application.Audit;
 using ECARMF.Kernel.Application.Packages;
+using ECARMF.Kernel.Application.Scoring;
 using ECARMF.Kernel.Application.Transactions;
 using ECARMF.Kernel.Domain.Audit;
 using ECARMF.Kernel.Domain.Packages;
+using ECARMF.Kernel.Domain.Scoring;
 using ECARMF.Kernel.Domain.Transactions;
 
 namespace ECARMF.Kernel.Tests.Fakes;
@@ -79,6 +81,32 @@ public class InMemoryTransactionStore : ITransactionStore
         Task.FromResult(Items.FirstOrDefault(t =>
             string.Equals(t.TenantId, tenantId, StringComparison.OrdinalIgnoreCase)
             && t.TransactionId == transactionId));
+}
+
+public class InMemoryScoreStore : IScoreStore
+{
+    public List<ScoreRecord> Items { get; } = [];
+
+    public Task AppendAsync(ScoreRecord score, CancellationToken ct = default)
+    {
+        Items.Add(score);
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<ScoreRecord>> GetHistoryAsync(
+        string tenantId, string subjectType, string subjectId, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<ScoreRecord>>(
+            Items.Where(s => string.Equals(s.TenantId, tenantId, StringComparison.OrdinalIgnoreCase)
+                          && string.Equals(s.SubjectType, subjectType, StringComparison.OrdinalIgnoreCase)
+                          && string.Equals(s.SubjectId, subjectId, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(s => s.ComputedAt).ToList());
+
+    public Task<IReadOnlyList<ScoreRecord>> GetRecentAsync(
+        string tenantId, int limit, string? scoreType = null, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<ScoreRecord>>(
+            Items.Where(s => string.Equals(s.TenantId, tenantId, StringComparison.OrdinalIgnoreCase)
+                          && (scoreType is null || string.Equals(s.ScoreType, scoreType, StringComparison.OrdinalIgnoreCase)))
+                .OrderByDescending(s => s.ComputedAt).Take(limit).ToList());
 }
 
 public class InMemoryApprovalStore : IApprovalStore

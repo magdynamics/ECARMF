@@ -1,5 +1,6 @@
 using ECARMF.Kernel.Application.Audit;
 using ECARMF.Kernel.Application.Packages;
+using ECARMF.Kernel.Application.Scoring;
 using ECARMF.Kernel.Application.Transactions;
 using ECARMF.Kernel.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,7 @@ public static class DependencyInjection
         services.AddScoped<IOutcomeStore, EfOutcomeStore>();
         services.AddScoped<IAuditLog, EfAuditLog>();
         services.AddScoped<IApprovalStore, EfApprovalStore>();
+        services.AddScoped<IScoreStore, EfScoreStore>();
 
         return services;
     }

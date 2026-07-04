@@ -19,6 +19,21 @@ public static class AuditEndpoints
             return Results.Ok(entries);
         });
 
+        // A flywheel "cycle" is the audit trail of one correlation id:
+        // received -> validated -> scored -> decided -> executed -> audited.
+        app.MapGet("/api/audit/cycle/{correlationId:guid}", async (
+            Guid correlationId,
+            HttpContext context,
+            IAuditLog audit,
+            CancellationToken ct) =>
+        {
+            if (!TenantResolution.TryGetTenant(context, out var tenantId))
+                return TenantResolution.MissingTenantResult();
+
+            var entries = await audit.GetByCorrelationAsync(tenantId, correlationId, ct);
+            return Results.Ok(entries);
+        });
+
         app.MapGet("/api/audit", async (
             DateTimeOffset? from,
             DateTimeOffset? to,

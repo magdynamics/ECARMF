@@ -29,6 +29,7 @@ public class TransactionPipelineTests
     private readonly InMemoryPackageStore _packageStore = new();
     private readonly InMemoryTransactionStore _transactionStore = new();
     private readonly InMemoryOutcomeStore _outcomeStore = new();
+    private readonly InMemoryScoreStore _scoreStore = new();
     private readonly InMemoryAuditLog _audit = new();
     private readonly TenantRegistryProvider _registries = new();
     private readonly InProcessKernelEventBus _bus = new();
@@ -74,7 +75,7 @@ public class TransactionPipelineTests
         await using var enumerator = _bus.ReadAllAsync(timeout.Token).GetAsyncEnumerator(timeout.Token);
         Assert.True(await enumerator.MoveNextAsync());
 
-        var processor = new EventProcessor(_registries, _outcomeStore, _bus, _audit);
+        var processor = new EventProcessor(_registries, _outcomeStore, _scoreStore, _bus, _audit);
         var result = await processor.ProcessAsync(enumerator.Current);
         return (receipt, result);
     }
