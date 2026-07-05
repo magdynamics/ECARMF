@@ -53,7 +53,7 @@ public class IrsRateComparisonTests
         Assert.True((await loader.ActivateAsync(Tenant, "ecarmf.treasury-controls", "1.2.0")).Success);
         var load = await loader.LoadAsync(Tenant, LoadManifest("irs-corporate-tax-rates-v1.json"));
         Assert.True(load.Success, string.Join("; ", load.Errors));
-        Assert.True((await loader.ActivateAsync(Tenant, "ecarmf.irs-corporate-tax-rates", "1.0.0")).Success);
+        Assert.True((await loader.ActivateAsync(Tenant, "ecarmf.irs-corporate-tax-rates", "1.2.0")).Success);
     }
 
     private async Task<Guid> SubmitReturnAsync(Dictionary<string, string> payload)
@@ -123,6 +123,53 @@ public class IrsRateComparisonTests
         Assert.Empty(_alerts.Items);
         var kpi = Assert.Single(_scores.Items, s => s.ScoreType == "KPIActual");
         Assert.Equal(0.21m, kpi.Value);
+    }
+
+    [Fact]
+    public async Task SCorp_returns_are_flagged_as_pass_through_not_miscompared()
+    {
+        await ActivateAsync();
+
+        // The shape the irs-1120s-binder-text template extracts from a real
+        // 1120-S binder PDF (e.g. the Genworth case study).
+        var id = await SubmitReturnAsync(new Dictionary<string, string>
+        {
+            ["returnId"] = "LifeFittEquipment,Inc.",
+            ["entityName"] = "LifeFittEquipment,Inc.",
+            ["formType"] = "1120S",
+            ["taxYear"] = "2018",
+            ["taxableIncome"] = "108067"
+        });
+
+        var outcome = Assert.Single(await _outcomes.GetForTransactionsAsync(Tenant, [id]));
+        Assert.Equal("Flagged", outcome.Outcome);
+        Assert.Equal("IRS-R-021", outcome.RuleId);
+        Assert.Contains("pass-through", outcome.Reason, StringComparison.OrdinalIgnoreCase);
+        // No false 21%-comparison alarm: reportedTax is absent by design for
+        // pass-throughs, so the effective-rate KPI never computes.
+        Assert.Empty(_alerts.Items);
+    }
+
+    [Fact]
+    public async Task Binder_text_template_extracts_the_1120S_essentials()
+    {
+        await ActivateAsync();
+        Assert.True(_registries.GetFor(Tenant).SchemaTemplates.TryGet("irs-1120s-binder-text", out var registered));
+
+        // Condensed from the actual PdfPig text of the sample binder.
+        const string pdfText =
+            "Form 1120S (2018) Page 4 ... 22-xxxxxxxLifeFittEquipment,Inc.999LiftWayBerkeley,CA94710" +
+            "e-fileXXX-XX-XXXXMarkEFitt76655RockyTrailBerkeley,CA94710100108,0670A2,916A183C5,806D213,995 " +
+            "Schedule K-1 (Form 1120S) 2018";
+
+        var mapping = ECARMF.Kernel.Application.Ingestion.SchemaMapper.Map(registered.Declaration, pdfText);
+
+        Assert.True(mapping.Success, string.Join("; ", mapping.Errors));
+        var payload = Assert.Single(mapping.Records).Payload;
+        Assert.Equal("1120S", payload["formType"]);
+        Assert.Equal("2018", payload["taxYear"]);
+        Assert.Equal("LifeFittEquipment,Inc.", payload["entityName"]);
+        Assert.Equal("108067", payload["taxableIncome"]);
     }
 
     [Fact]

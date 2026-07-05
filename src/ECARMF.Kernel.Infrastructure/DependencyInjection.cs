@@ -41,6 +41,7 @@ public static class DependencyInjection
         services.AddScoped<Application.Billing.IBillingPlanStore, EfBillingPlanStore>();
         services.AddScoped<Application.Billing.IBillingStatementStore, EfBillingStatementStore>();
         services.AddScoped<Application.Billing.IUsageMeter, EfUsageMeter>();
+        services.AddScoped<Application.Agents.IAgentInteractionStore, EfAgentInteractionStore>();
         services.AddHttpClient("integration-feeds", client => client.Timeout = TimeSpan.FromSeconds(60));
         services.AddDataProtection();
 

@@ -62,6 +62,7 @@ app.MapBillingEndpoints();
 app.MapLibraryEndpoints();
 app.MapIntegrationEndpoints();
 app.MapBenchmarkEndpoints();
+app.MapAgentEndpoints();
 
 using (var scope = app.Services.CreateScope())
 {

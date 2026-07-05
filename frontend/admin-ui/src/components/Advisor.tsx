@@ -7,6 +7,27 @@ interface AdvisorRecommendation {
   priority: string
 }
 
+interface DeclaredAgent {
+  agentId: string
+  name: string
+  description: string | null
+  sampleQuestions: string[]
+  packageId: string
+  packageVersion: string
+}
+
+interface AgentInteraction {
+  id: string
+  agentId: string
+  question: string
+  answer: string
+  modelReference: string
+  askedBy: string
+  askedAt: string
+  feedbackUseful: boolean | null
+  feedbackBy: string | null
+}
+
 interface AdvisorBrief {
   id: string
   title: string
@@ -26,15 +47,48 @@ export function Advisor({ tenant, user }: { tenant: string; user: string }) {
   const [briefs, setBriefs] = useState<AdvisorBrief[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [agents, setAgents] = useState<DeclaredAgent[]>([])
+  const [selectedAgent, setSelectedAgent] = useState('')
+  const [question, setQuestion] = useState('')
+  const [asking, setAsking] = useState(false)
+  const [interactions, setInteractions] = useState<AgentInteraction[]>([])
 
   const load = useCallback(async () => {
     try {
       setBriefs(await api.get<AdvisorBrief[]>('/api/advisor/briefs'))
+      const declared = await api.get<DeclaredAgent[]>('/api/agents')
+      setAgents(declared)
+      if (declared.length > 0) setSelectedAgent((s) => s || declared[0].agentId)
+      setInteractions(await api.get<AgentInteraction[]>('/api/agents/interactions?limit=10'))
       setError('')
     } catch (e) {
       setError(e instanceof ApiError ? e.message : String(e))
     }
   }, [])
+
+  async function ask() {
+    setAsking(true)
+    setError('')
+    try {
+      await api.post(`/api/agents/${selectedAgent}/ask`, { question })
+      setQuestion('')
+      setInteractions(await api.get<AgentInteraction[]>('/api/agents/interactions?limit=10'))
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : String(e))
+    } finally {
+      setAsking(false)
+    }
+  }
+
+  async function rateAnswer(id: string, useful: boolean) {
+    setError('')
+    try {
+      await api.post(`/api/agents/interactions/${id}/feedback`, { useful })
+      setInteractions(await api.get<AgentInteraction[]>('/api/agents/interactions?limit=10'))
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : String(e))
+    }
+  }
 
   useEffect(() => {
     void load()
@@ -63,7 +117,75 @@ export function Advisor({ tenant, user }: { tenant: string; user: string }) {
     }
   }
 
+  const currentAgent = agents.find((a) => a.agentId === selectedAgent)
+
   return (
+    <div>
+    <section className="panel">
+      <h2>Specialized AI Agents <span className="state state-approved">OUTPUT</span></h2>
+      <p className="muted small">
+        Knowledge Packages ship domain-specialist agents the same way they ship rules — an IRS
+        guide, a compliance guide, an operations analyst. Each agent sees only its declared tenant
+        context, is advisory-only by kernel guardrail, acts under its own identity, and earns trust
+        from your ratings. Consulting an agent uses this tenant's own AI credential (Setup → AI
+        Backend).
+      </p>
+      {error && <p className="error">{error}</p>}
+      {agents.length === 0 ? (
+        <p className="muted">No active package declares an agent yet — activate a package that ships one (e.g. IRS Corporate Tax Rates 1.2.0).</p>
+      ) : (
+        <>
+          <div className="form-row">
+            <label>Agent<select value={selectedAgent} onChange={(e) => setSelectedAgent(e.target.value)}>
+              {agents.map((a) => (
+                <option key={a.agentId} value={a.agentId}>{a.name} ({a.packageId} v{a.packageVersion})</option>
+              ))}
+            </select></label>
+            <button onClick={ask} disabled={asking || !question.trim()}>
+              {asking ? 'Consulting…' : 'Ask'}
+            </button>
+          </div>
+          <textarea
+            rows={2}
+            placeholder={currentAgent?.sampleQuestions[0] ?? 'Ask a question grounded in this tenant’s data…'}
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+          />
+          {currentAgent && currentAgent.sampleQuestions.length > 0 && (
+            <p className="muted small">
+              Try: {currentAgent.sampleQuestions.map((q, i) => (
+                <button key={i} className="secondary" style={{ margin: '0 0.3rem 0.3rem 0' }}
+                  onClick={() => setQuestion(q)}>{q}</button>
+              ))}
+            </p>
+          )}
+          {interactions.map((i) => (
+            <div key={i.id} className="card">
+              <div className="card-header">
+                <strong>{i.question}</strong>
+                <span className="muted small">
+                  {agents.find((a) => a.agentId === i.agentId)?.name ?? i.agentId} ·{' '}
+                  {new Date(i.askedAt).toLocaleString()} · {i.askedBy}
+                </span>
+              </div>
+              <p style={{ whiteSpace: 'pre-wrap' }}>{i.answer}</p>
+              <div className="card-actions">
+                {i.feedbackUseful === null ? (
+                  <>
+                    <span className="muted">Was this answer useful?</span>
+                    <button onClick={() => rateAnswer(i.id, true)}>👍</button>
+                    <button onClick={() => rateAnswer(i.id, false)}>👎</button>
+                  </>
+                ) : (
+                  <span className="muted">Rated {i.feedbackUseful ? 'useful' : 'not useful'} by {i.feedbackBy}</span>
+                )}
+              </div>
+            </div>
+          ))}
+        </>
+      )}
+    </section>
+
     <section className="panel">
       <h2>Executive Advisor</h2>
       <p className="muted">
@@ -121,5 +243,6 @@ export function Advisor({ tenant, user }: { tenant: string; user: string }) {
         </div>
       ))}
     </section>
+    </div>
   )
 }

@@ -8,7 +8,7 @@
 
   "packageId": "ecarmf.irs-corporate-tax-rates",
   "name": "IRS Corporate Tax Rates (Reference)",
-  "packageVersion": "1.0.0",
+  "packageVersion": "1.2.0",
   "publisher": "ECARMF (source: IRS public data)",
   "dependencies": [
     { "packageId": "ecarmf.treasury-controls", "minimumVersion": "1.0.0" }
@@ -23,7 +23,8 @@
         { "name": "entityName", "dataType": "string", "required": true },
         { "name": "taxYear", "dataType": "number", "required": true },
         { "name": "taxableIncome", "dataType": "number", "required": true },
-        { "name": "reportedTax", "dataType": "number", "required": true }
+        { "name": "reportedTax", "dataType": "number", "required": false },
+        { "name": "formType", "dataType": "string", "required": false }
       ]
     }
   ],
@@ -31,6 +32,19 @@
   "events": [],
 
   "rules": [
+    {
+      "ruleId": "IRS-R-021",
+      "name": "Route S-corporation returns to pass-through review",
+      "description": "Form 1120-S entities are pass-throughs: income flows to shareholders via Schedule K-1 and the flat 21% entity-level rate does not apply. Comparing them to the corporate rate would be a false alarm, so they are flagged for pass-through review instead.",
+      "triggerEvent": "RecordReceived",
+      "priority": 71,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "CorporateTaxReturn" },
+        { "field": "formType", "operator": "Contains", "value": "1120S" }
+      ],
+      "outcomeOnMatch": "Flagged",
+      "reasonTemplate": "Return of '{entityName}' (TY{taxYear}) is a Form 1120-S — an S corporation. Pass-through income of {taxableIncome} flows to shareholders via Schedule K-1; the 21% entity-level rate comparison does not apply. Routed for pass-through review."
+    },
     {
       "ruleId": "IRS-R-020",
       "name": "Route pre-TCJA years to manual review",
@@ -82,6 +96,19 @@
 
   "schemaTemplates": [
     {
+      "templateId": "irs-1120s-binder-text",
+      "name": "S-Corp tax return binder (PDF text, 1120-S + K-1)",
+      "sourceFormat": "text",
+      "targetEntityType": "CorporateTaxReturn",
+      "fieldMappings": [
+        { "rawField": "", "targetField": "formType", "transform": "none", "pattern": "Form ?(1120S)", "required": true },
+        { "rawField": "", "targetField": "taxYear", "transform": "none", "pattern": "Form 1120S \\((20\\d{2})\\)", "required": true },
+        { "rawField": "", "targetField": "entityName", "transform": "none", "pattern": "([A-Z][A-Za-z]{2,},Inc\\.)", "required": false },
+        { "rawField": "", "targetField": "taxableIncome", "transform": "absoluteValue", "pattern": "100(\\d{1,3}(?:,\\d{3})+)0A", "required": false },
+        { "rawField": "", "targetField": "returnId", "transform": "none", "pattern": "([A-Z][A-Za-z]{2,},Inc\\.)", "required": false }
+      ]
+    },
+    {
       "templateId": "irs-tax-return-json",
       "name": "Corporate tax return essentials (JSON)",
       "sourceFormat": "json",
@@ -92,6 +119,21 @@
         { "rawField": "taxYear", "targetField": "taxYear", "transform": "none", "required": true },
         { "rawField": "taxableIncome", "targetField": "taxableIncome", "transform": "none", "required": true },
         { "rawField": "reportedTax", "targetField": "reportedTax", "transform": "absoluteValue", "required": true }
+      ]
+    }
+  ],
+
+  "agents": [
+    {
+      "agentId": "irs-guide",
+      "name": "IRS Corporate Tax Guide",
+      "description": "Answers questions about corporate tax rate compliance grounded in this package's published IRS reference data and the tenant's own returns and alerts.",
+      "persona": "You are the IRS Corporate Tax Guide, an advisory agent whose domain knowledge is the published U.S. federal corporate income tax framework as encoded in this package: IRC section 11 as amended by the Tax Cuts and Jobs Act sets a flat 21% corporate rate for tax years beginning after December 31, 2017; earlier years used graduated brackets (15% to 35%) and are outside this package's automated comparison, so returns for those years are flagged for manual review. The platform computes each return's effective tax rate (reportedTax / taxableIncome) as a KPI against the published 21% target, and material variances appear as deviation alerts. When asked about a specific return, use the tenant's records and alerts in your context: state the effective rate, compare it to the published rate, list legitimate reasons effective rates differ (credits such as R&D or foreign tax credits, NOL carryforwards, book-tax timing differences, state taxes not being federal), and say which the data can or cannot distinguish. You explain and compare; you never prepare filings, compute a client's liability authoritatively, or give advice that substitutes for a licensed tax professional.",
+      "contextSources": [ "records:CorporateTaxReturn", "deviations", "scores", "benchmarks" ],
+      "sampleQuestions": [
+        "Why was return RTN-2025-777 flagged against the published rate?",
+        "Which of our returns deviate most from the 21% corporate rate?",
+        "What are legitimate reasons a company's effective rate is below 21%?"
       ]
     }
   ],

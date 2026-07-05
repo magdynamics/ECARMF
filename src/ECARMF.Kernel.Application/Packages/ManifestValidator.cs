@@ -39,6 +39,22 @@ public static class ManifestValidator
         CheckNames(errors, "schema template", manifest.SchemaTemplates.Select(t => t.TemplateId));
         CheckNames(errors, "performance framework", manifest.PerformanceFrameworks.Select(f => f.FrameworkId));
         CheckNames(errors, "workflow", manifest.Workflows.Select(w => w.WorkflowId));
+        CheckNames(errors, "agent", manifest.Agents.Select(a => a.AgentId));
+
+        foreach (var agent in manifest.Agents)
+        {
+            var label = string.IsNullOrWhiteSpace(agent.AgentId) ? "(unnamed agent)" : agent.AgentId;
+            if (string.IsNullOrWhiteSpace(agent.Persona))
+                errors.Add($"Agent '{label}' has no Persona — an agent without domain knowledge is just a chat box.");
+            foreach (var source in agent.ContextSources)
+            {
+                var valid = source.ToLowerInvariant() is "scores" or "deviations" or "benchmarks"
+                    or "tasks" or "allocations" or "library"
+                    || source.StartsWith("records:", StringComparison.OrdinalIgnoreCase);
+                if (!valid)
+                    errors.Add($"Agent '{label}' declares invalid context source '{source}' (scores|deviations|benchmarks|tasks|allocations|library|records:{{RecordType}}).");
+            }
+        }
 
         foreach (var workflow in manifest.Workflows)
         {

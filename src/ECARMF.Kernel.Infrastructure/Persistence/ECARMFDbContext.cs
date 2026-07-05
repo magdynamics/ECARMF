@@ -53,8 +53,27 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<BillingStatementRecord> BillingStatements => Set<BillingStatementRecord>();
 
+    public DbSet<AgentInteractionRecord> AgentInteractions => Set<AgentInteractionRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<AgentInteractionRecord>(entity =>
+        {
+            entity.ToTable("AgentInteractions");
+            entity.HasKey(i => i.Id);
+            entity.Property(i => i.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(i => i.AgentId).HasMaxLength(200).IsRequired();
+            entity.Property(i => i.PackageId).HasMaxLength(200).IsRequired();
+            entity.Property(i => i.PackageVersion).HasMaxLength(50).IsRequired();
+            entity.Property(i => i.Question).IsRequired();
+            entity.Property(i => i.Answer).IsRequired();
+            entity.Property(i => i.ModelReference).HasMaxLength(300).IsRequired();
+            entity.Property(i => i.Provenance).HasMaxLength(50).IsRequired();
+            entity.Property(i => i.AskedBy).HasMaxLength(400).IsRequired();
+            entity.Property(i => i.FeedbackBy).HasMaxLength(400);
+            entity.HasIndex(i => new { i.TenantId, i.AgentId, i.AskedAt });
+        });
+
         modelBuilder.Entity<SourceDocumentRecord>(entity =>
         {
             entity.ToTable("SourceDocuments");

@@ -53,6 +53,7 @@ public static class AuditCategories
     public const string BenchmarkBreached = "BenchmarkBreached";
     public const string BillingStatementGenerated = "BillingStatementGenerated";
     public const string BillingPlanAssigned = "BillingPlanAssigned";
+    public const string AgentConsulted = "AgentConsulted";
     public const string PackageLoaded = "PackageLoaded";
     public const string PackageActivated = "PackageActivated";
     public const string PackageDeactivated = "PackageDeactivated";

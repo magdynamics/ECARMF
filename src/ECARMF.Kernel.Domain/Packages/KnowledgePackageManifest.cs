@@ -35,4 +35,6 @@ public class KnowledgePackageManifest : UniversalBaseEntity
     public List<PerformanceFrameworkDeclaration> PerformanceFrameworks { get; set; } = [];
 
     public List<WorkflowDeclaration> Workflows { get; set; } = [];
+
+    public List<AgentDeclaration> Agents { get; set; } = [];
 }
