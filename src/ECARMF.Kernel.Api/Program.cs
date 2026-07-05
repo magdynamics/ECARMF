@@ -20,6 +20,7 @@ builder.Services.AddECARMFInfrastructure(connectionString);
 builder.Services.AddHostedService<EventProcessingHostedService>();
 builder.Services.AddHostedService<ECARMF.Kernel.Api.Hosting.FeedSchedulerHostedService>();
 builder.Services.AddHostedService<ECARMF.Kernel.Api.Hosting.RenewalMonitorHostedService>();
+builder.Services.AddHostedService<ECARMF.Kernel.Api.Hosting.EmailDispatchHostedService>();
 
 // Manifests declare operators and outcomes by name (e.g. "GreaterThan").
 builder.Services.ConfigureHttpJsonOptions(options =>
@@ -72,6 +73,7 @@ app.MapLibraryEndpoints();
 app.MapIntegrationEndpoints();
 app.MapBenchmarkEndpoints();
 app.MapRenewalEndpoints();
+app.MapMailEndpoints();
 app.MapAgentEndpoints();
 
 using (var scope = app.Services.CreateScope())

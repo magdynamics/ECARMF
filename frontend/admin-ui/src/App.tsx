@@ -9,6 +9,7 @@ import { Billing } from './components/Billing'
 import { Clients } from './components/Clients'
 import { Dashboard } from './components/Dashboard'
 import { DataEntry } from './components/DataEntry'
+import { EmailSettings } from './components/EmailSettings'
 import { Home } from './components/Home'
 import { Integrations } from './components/Integrations'
 import { Library } from './components/Library'
@@ -39,6 +40,7 @@ const NAV: { tab: string; label: string; icon: string; group: string }[] = [
   { tab: 'advisor', label: 'AI Advisor', icon: '🤖', group: 'Output' },
   { tab: 'clients', label: 'Clients', icon: '🏢', group: 'Platform' },
   { tab: 'billing', label: 'Billing', icon: '🧾', group: 'Platform' },
+  { tab: 'email', label: 'Email', icon: '✉️', group: 'Platform' },
 ]
 
 interface Me {
@@ -110,7 +112,7 @@ function App() {
 
   const effectiveTenant = signedInWithKey ? (me?.tenantId ?? '') : tenant
   const effectiveUser = signedInWithKey ? (me?.identifier ?? '') : user
-  const isPlatformTab = tab === 'clients' || tab === 'billing'
+  const isPlatformTab = tab === 'clients' || tab === 'billing' || tab === 'email'
   const onPlatformTenant = effectiveTenant.toLowerCase() === 'platform'
 
   // Operator gate: the Platform group needs the reserved operator tenant.
@@ -256,6 +258,8 @@ function App() {
             <Advisor tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'clients' ? (
             <Clients tenant={effectiveTenant} user={effectiveUser} />
+          ) : tab === 'email' ? (
+            <EmailSettings tenant={effectiveTenant} user={effectiveUser} />
           ) : (
             <Billing tenant={effectiveTenant} user={effectiveUser} />
           )}

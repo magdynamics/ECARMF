@@ -57,6 +57,8 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<RenewalRecord> Renewals => Set<RenewalRecord>();
 
+    public DbSet<MailSettingsRecord> MailSettings => Set<MailSettingsRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AgentInteractionRecord>(entity =>
@@ -143,6 +145,17 @@ public class ECARMFDbContext : DbContext
             entity.Property(b => b.NotifyRole).HasMaxLength(100).IsRequired();
             entity.Property(b => b.CreatedBy).HasMaxLength(400).IsRequired();
             entity.HasIndex(b => new { b.TenantId, b.Enabled });
+        });
+
+        modelBuilder.Entity<MailSettingsRecord>(entity =>
+        {
+            entity.ToTable("MailSettings");
+            entity.HasKey(m => m.Id);
+            entity.Property(m => m.Host).HasMaxLength(400).IsRequired();
+            entity.Property(m => m.Username).HasMaxLength(400);
+            entity.Property(m => m.FromAddress).HasMaxLength(400).IsRequired();
+            entity.Property(m => m.MinSeverity).HasMaxLength(20).IsRequired();
+            entity.Property(m => m.ConfiguredBy).HasMaxLength(400).IsRequired();
         });
 
         modelBuilder.Entity<RenewalRecord>(entity =>

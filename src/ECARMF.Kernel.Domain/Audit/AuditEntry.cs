@@ -60,4 +60,6 @@ public static class AuditCategories
     public const string PackageFailed = "PackageFailed";
     public const string RenewalAlertRaised = "RenewalAlertRaised";
     public const string RenewalCompleted = "RenewalCompleted";
+    public const string NotificationEmailed = "NotificationEmailed";
+    public const string MailSettingsUpdated = "MailSettingsUpdated";
 }

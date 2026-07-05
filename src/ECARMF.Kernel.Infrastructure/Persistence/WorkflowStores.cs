@@ -29,6 +29,11 @@ public class NotificationRecord
     public string Severity { get; set; } = string.Empty;
     public Guid CorrelationId { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
+
+    // Email delivery state: null until a dispatch pass handled this row;
+    // the outcome records recipients, a skip reason, or the send error.
+    public DateTimeOffset? EmailProcessedAt { get; set; }
+    public string? EmailOutcome { get; set; }
 }
 
 public class EfTaskStore : ITaskStore
@@ -76,6 +81,36 @@ public class EfTaskStore : ITaskStore
         CorrelationId = r.CorrelationId, CreatedAt = r.CreatedAt,
         CompletedBy = r.CompletedBy, CompletedAt = r.CompletedAt
     };
+}
+
+public class EfNotificationOutbox : Application.Notifications.INotificationOutbox
+{
+    private readonly ECARMFDbContext _db;
+    public EfNotificationOutbox(ECARMFDbContext db) => _db = db;
+
+    public async Task<IReadOnlyList<NotificationItem>> GetPendingAsync(int limit, CancellationToken ct = default)
+    {
+        var records = await _db.Notifications.AsNoTracking()
+            .Where(n => n.EmailProcessedAt == null)
+            .OrderBy(n => n.CreatedAt).Take(limit).ToListAsync(ct);
+        return records.Select(r => new NotificationItem
+        {
+            Id = r.Id, TenantId = r.TenantId, WorkflowId = r.WorkflowId, Target = r.Target,
+            Message = r.Message, Severity = r.Severity,
+            CorrelationId = r.CorrelationId, CreatedAt = r.CreatedAt
+        }).ToList();
+    }
+
+    public async Task MarkProcessedAsync(Guid notificationId, string outcome, CancellationToken ct = default)
+    {
+        var record = await _db.Notifications.FirstOrDefaultAsync(n => n.Id == notificationId, ct);
+        if (record is not null)
+        {
+            record.EmailProcessedAt = DateTimeOffset.UtcNow;
+            record.EmailOutcome = outcome.Length > 1000 ? outcome[..1000] : outcome;
+            await _db.SaveChangesAsync(ct);
+        }
+    }
 }
 
 public class EfNotificationStore : INotificationStore

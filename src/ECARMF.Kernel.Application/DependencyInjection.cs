@@ -31,6 +31,7 @@ public static class DependencyInjection
         services.AddScoped<Integrations.IIntegrationFeedService, Integrations.IntegrationFeedService>();
         services.AddScoped<Analytics.IBenchmarkMonitor, Analytics.BenchmarkMonitorService>();
         services.AddScoped<Compliance.IRenewalMonitor, Compliance.RenewalMonitorService>();
+        services.AddScoped<Notifications.NotificationEmailService>();
         services.AddScoped<Billing.IBillingService, Billing.BillingService>();
         services.AddScoped<Agents.IAgentConsultService, Agents.AgentConsultService>();
 
