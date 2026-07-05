@@ -72,6 +72,7 @@ public static class AuditCategories
     public const string TreasuryThresholdProposed = "TreasuryThresholdProposed";
     public const string TreasuryThresholdApproved = "TreasuryThresholdApproved";
     public const string TreasurySweepExecuted = "TreasurySweepExecuted";
+    public const string TreasurySweepProposed = "TreasurySweepProposed";
     public const string PayrollBalanceFlagged = "PayrollBalanceFlagged";
     public const string TenantSensitivityChanged = "TenantSensitivityChanged";
 }

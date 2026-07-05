@@ -162,6 +162,60 @@ public class TreasurySweepTests
     }
 
     [Fact]
+    public async Task Cross_institution_sweeps_are_recommend_only_and_never_auto_execute()
+    {
+        // JJ Fish Requirement 7: each location banks at its own institution,
+        // so every sweep to the group account is cross-bank (1-2 day
+        // settlement) — proposed, never auto-executed.
+        _accounts.Items.Add(new SweepAccount
+        {
+            TenantId = "jj-fish", AccountId = "location-1-operating", Name = "Location 1 Operating",
+            Institution = "First Bank of Location 1", Kind = SweepAccountKinds.Operating,
+            DestinationAccountId = "group-operating", ApprovedThreshold = 15000m,
+            ApprovedBy = "owner@jjfish", ApprovedAt = DateTimeOffset.UtcNow, CreatedBy = "admin"
+        });
+        _accounts.Items.Add(new SweepAccount
+        {
+            TenantId = "jj-fish", AccountId = "group-operating", Name = "JJ Fish Group Operating",
+            Institution = "Group Central Bank", Kind = SweepAccountKinds.Operating, CreatedBy = "admin"
+        });
+
+        var result = await _service.ObserveBalanceAsync("jj-fish", "location-1-operating", 22000m, "feed");
+
+        Assert.False(result.SweepExecuted); // proposed, not executed
+        Assert.Equal(7000m, result.SweepAmount);
+        Assert.NotNull(result.RecommendationId);
+        var proposal = Assert.Single(_allocations.Items);
+        Assert.Equal(AutonomyTier.RecommendOnly, proposal.Tier);
+        Assert.Equal("Pending", proposal.Status);
+        Assert.Equal("Group Central Bank", proposal.TargetInstitution);
+        Assert.Contains("1-2 days", proposal.Reasoning);
+        Assert.Contains(_notifications.Items, n =>
+            n.Target == "TreasuryOfficer" && n.Message.Contains("Cross-bank sweep proposed"));
+        Assert.Contains(_audit.Items, a => a.Category == AuditCategories.TreasurySweepProposed);
+        Assert.DoesNotContain(_audit.Items, a => a.Category == AuditCategories.TreasurySweepExecuted);
+        Assert.Null(_accounts.Items.First(a => a.AccountId == "location-1-operating").LastSweepAt);
+    }
+
+    [Fact]
+    public async Task Same_institution_registered_destination_still_sweeps_autonomously()
+    {
+        _accounts.Items.Add(new SweepAccount
+        {
+            TenantId = Tenant, AccountId = "corporate-operating", Name = "Corporate Operating",
+            Institution = "Bank of America", Kind = SweepAccountKinds.Operating, CreatedBy = "admin"
+        });
+        AddAccount("oak-lawn-operating", approved: 20000m);
+
+        var result = await _service.ObserveBalanceAsync(Tenant, "oak-lawn-operating", 26000m, "feed");
+
+        Assert.True(result.SweepExecuted);
+        var sweep = _allocations.Items.Single();
+        Assert.Equal(AutonomyTier.Autonomous, sweep.Tier);
+        Assert.Equal("AutoExecuted", sweep.Status);
+    }
+
+    [Fact]
     public async Task Redundant_proposals_are_suppressed_by_the_deadband()
     {
         AddAccount("oak-lawn-operating", approved: 30000m);

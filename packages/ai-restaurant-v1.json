@@ -1,0 +1,187 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "AI Restaurant",
+  "version": "1",
+  "status": "Published",
+  "owner": "MAG Dynamics",
+  "description": "AI Restaurant agent package: multi-location restaurant operations (JJ Fish test case). Per-location POS daily sales summaries (Clover, Toast, and Square templates all land on the same PosDailySales entity) and accounting period summaries (QuickBooks and MAG Accounting templates land on AccountingPeriodSummary) feed the Restaurant Operations KPI Framework v1 — per-location KPIActuals, deviation monitoring, group rollup via subject scoping. The spec's POS_Transaction target is realized as a per-location DAILY summary record, matching how the KPI engine evaluates (one record, one formula pass) and the dental precedent (EaglesoftDailyActivity). KPI targets are AI-seeded industry baselines (provenance: package-declared starting points); adjust per location by publishing a new version — the human number is then authoritative. Second package of the AI Agent Package Library shelf.",
+
+  "packageId": "ecarmf.ai-restaurant",
+  "name": "AI Restaurant",
+  "packageVersion": "1.0.0",
+  "publisher": "MAG Dynamics",
+  "dependencies": [],
+
+  "entities": [
+    {
+      "entityTypeName": "PosDailySales",
+      "description": "One restaurant location's daily POS summary: sales, covers, voids/refunds, capacity. Vendor-neutral target — Clover, Toast, and Square templates all map here.",
+      "attributes": [
+        { "name": "locationId", "dataType": "string", "required": true },
+        { "name": "businessDate", "dataType": "string", "required": true },
+        { "name": "grossSales", "dataType": "number", "required": true },
+        { "name": "covers", "dataType": "number", "required": true },
+        { "name": "voidCount", "dataType": "number", "required": false },
+        { "name": "refundCount", "dataType": "number", "required": false },
+        { "name": "totalTransactions", "dataType": "number", "required": true },
+        { "name": "tableCount", "dataType": "number", "required": false },
+        { "name": "operatingHours", "dataType": "number", "required": false }
+      ]
+    },
+    {
+      "entityTypeName": "AccountingPeriodSummary",
+      "description": "One location's accounting period summary: revenue, food COGS, payroll cost, inventory valuation. QuickBooks and MAG Accounting templates both map here.",
+      "attributes": [
+        { "name": "locationId", "dataType": "string", "required": true },
+        { "name": "periodEnd", "dataType": "string", "required": true },
+        { "name": "revenue", "dataType": "number", "required": true },
+        { "name": "foodCogs", "dataType": "number", "required": false },
+        { "name": "payrollCost", "dataType": "number", "required": false },
+        { "name": "theoreticalInventory", "dataType": "number", "required": false },
+        { "name": "actualInventory", "dataType": "number", "required": false }
+      ]
+    }
+  ],
+
+  "events": [
+    {
+      "eventName": "RecordReceived",
+      "description": "A record has been durably persisted and is ready for KPI evaluation.",
+      "payloadFields": [
+        { "name": "locationId", "dataType": "string", "required": true }
+      ]
+    }
+  ],
+  "rules": [],
+  "capabilities": [
+    { "capabilityId": "RestaurantOperationsIntelligence", "name": "Restaurant Operations Intelligence", "description": "Per-location restaurant KPIs with deviation monitoring across mixed POS/accounting vendor stacks." }
+  ],
+
+  "schemaTemplates": [
+    {
+      "templateId": "clover-daily-json",
+      "name": "Clover daily sales export (JSON)",
+      "sourceFormat": "json",
+      "targetEntityType": "PosDailySales",
+      "fieldMappings": [
+        { "rawField": "merchant", "targetField": "locationId", "transform": "none", "required": true },
+        { "rawField": "businessDate", "targetField": "businessDate", "transform": "parseDate", "required": true },
+        { "rawField": "grossSales", "targetField": "grossSales", "transform": "none", "required": true },
+        { "rawField": "orderCount", "targetField": "covers", "transform": "none", "required": true },
+        { "rawField": "voidCount", "targetField": "voidCount", "transform": "none", "required": false },
+        { "rawField": "refundCount", "targetField": "refundCount", "transform": "none", "required": false },
+        { "rawField": "paymentCount", "targetField": "totalTransactions", "transform": "none", "required": true },
+        { "rawField": "tableCount", "targetField": "tableCount", "transform": "none", "required": false },
+        { "rawField": "hoursOpen", "targetField": "operatingHours", "transform": "none", "required": false }
+      ]
+    },
+    {
+      "templateId": "toast-daily-json",
+      "name": "Toast daily sales summary (JSON)",
+      "sourceFormat": "json",
+      "targetEntityType": "PosDailySales",
+      "fieldMappings": [
+        { "rawField": "restaurantExternalId", "targetField": "locationId", "transform": "none", "required": true },
+        { "rawField": "businessDate", "targetField": "businessDate", "transform": "parseDate", "required": true },
+        { "rawField": "netSales", "targetField": "grossSales", "transform": "none", "required": true },
+        { "rawField": "guestCount", "targetField": "covers", "transform": "none", "required": true },
+        { "rawField": "voidedChecks", "targetField": "voidCount", "transform": "none", "required": false },
+        { "rawField": "refundedChecks", "targetField": "refundCount", "transform": "none", "required": false },
+        { "rawField": "checkCount", "targetField": "totalTransactions", "transform": "none", "required": true },
+        { "rawField": "diningTableCount", "targetField": "tableCount", "transform": "none", "required": false },
+        { "rawField": "serviceHours", "targetField": "operatingHours", "transform": "none", "required": false }
+      ]
+    },
+    {
+      "templateId": "square-daily-json",
+      "name": "Square daily sales report (JSON)",
+      "sourceFormat": "json",
+      "targetEntityType": "PosDailySales",
+      "fieldMappings": [
+        { "rawField": "locationRef", "targetField": "locationId", "transform": "none", "required": true },
+        { "rawField": "date", "targetField": "businessDate", "transform": "parseDate", "required": true },
+        { "rawField": "grossSalesAmount", "targetField": "grossSales", "transform": "none", "required": true },
+        { "rawField": "customerCount", "targetField": "covers", "transform": "none", "required": true },
+        { "rawField": "voids", "targetField": "voidCount", "transform": "none", "required": false },
+        { "rawField": "returns", "targetField": "refundCount", "transform": "none", "required": false },
+        { "rawField": "paymentsTotalCount", "targetField": "totalTransactions", "transform": "none", "required": true },
+        { "rawField": "tables", "targetField": "tableCount", "transform": "none", "required": false },
+        { "rawField": "openHours", "targetField": "operatingHours", "transform": "none", "required": false }
+      ]
+    },
+    {
+      "templateId": "quickbooks-restaurant-period-json",
+      "name": "QuickBooks restaurant period summary (JSON) - reference until live credentials exist",
+      "sourceFormat": "json",
+      "targetEntityType": "AccountingPeriodSummary",
+      "fieldMappings": [
+        { "rawField": "location", "targetField": "locationId", "transform": "none", "required": true },
+        { "rawField": "periodEndDate", "targetField": "periodEnd", "transform": "parseDate", "required": true },
+        { "rawField": "totalRevenue", "targetField": "revenue", "transform": "none", "required": true },
+        { "rawField": "cogsFood", "targetField": "foodCogs", "transform": "none", "required": false },
+        { "rawField": "payrollExpense", "targetField": "payrollCost", "transform": "none", "required": false },
+        { "rawField": "theoreticalInventoryValue", "targetField": "theoreticalInventory", "transform": "none", "required": false },
+        { "rawField": "actualInventoryValue", "targetField": "actualInventory", "transform": "none", "required": false }
+      ]
+    },
+    {
+      "templateId": "mag-accounting-period-json",
+      "name": "MAG Accounting period summary (JSON) - reference until MAG connection details arrive (shared dependency with Universal Dental)",
+      "sourceFormat": "json",
+      "targetEntityType": "AccountingPeriodSummary",
+      "fieldMappings": [
+        { "rawField": "entityCode", "targetField": "locationId", "transform": "none", "required": true },
+        { "rawField": "fiscalPeriodEnd", "targetField": "periodEnd", "transform": "parseDate", "required": true },
+        { "rawField": "netRevenue", "targetField": "revenue", "transform": "none", "required": true },
+        { "rawField": "foodCostTotal", "targetField": "foodCogs", "transform": "none", "required": false },
+        { "rawField": "laborCostTotal", "targetField": "payrollCost", "transform": "none", "required": false },
+        { "rawField": "inventoryTheoretical", "targetField": "theoreticalInventory", "transform": "none", "required": false },
+        { "rawField": "inventoryCounted", "targetField": "actualInventory", "transform": "none", "required": false }
+      ]
+    }
+  ],
+
+  "performanceFrameworks": [
+    {
+      "frameworkId": "restaurant-operations-v1",
+      "name": "Restaurant Operations KPI Framework v1",
+      "industry": "Restaurant",
+      "description": "Per-location restaurant KPIs (JJ Fish Requirement 5). POS-driven KPIs evaluate on each PosDailySales record; accounting-driven ratios evaluate on each AccountingPeriodSummary. Targets are AI-seeded restaurant-industry baselines pending per-location review against trailing 90-day performance.",
+      "kpis": [
+        { "kpiId": "covers-daily", "name": "Covers (daily)", "formula": "covers", "triggerRecordType": "PosDailySales", "subjectField": "locationId", "unit": "count", "targetValue": 250, "direction": "higher" },
+        { "kpiId": "revenue-daily", "name": "Revenue (daily)", "formula": "grossSales", "triggerRecordType": "PosDailySales", "subjectField": "locationId", "unit": "usd", "targetValue": 5000, "direction": "higher" },
+        { "kpiId": "average-check", "name": "Average check size", "formula": "grossSales / covers", "triggerRecordType": "PosDailySales", "subjectField": "locationId", "unit": "usd", "targetValue": 20, "direction": "higher" },
+        { "kpiId": "table-turnover", "name": "Table turnover rate", "formula": "covers / (tableCount * operatingHours)", "triggerRecordType": "PosDailySales", "subjectField": "locationId", "unit": "ratio", "targetValue": 1.0, "direction": "higher" },
+        { "kpiId": "void-refund-rate", "name": "Void/refund rate", "formula": "(voidCount + refundCount) / totalTransactions", "triggerRecordType": "PosDailySales", "subjectField": "locationId", "unit": "ratio", "targetValue": 0.02, "direction": "lower" },
+        { "kpiId": "food-cost-pct", "name": "Food cost %", "formula": "foodCogs / revenue", "triggerRecordType": "AccountingPeriodSummary", "subjectField": "locationId", "unit": "ratio", "targetValue": 0.30, "direction": "lower" },
+        { "kpiId": "labor-cost-pct", "name": "Labor cost %", "formula": "payrollCost / revenue", "triggerRecordType": "AccountingPeriodSummary", "subjectField": "locationId", "unit": "ratio", "targetValue": 0.30, "direction": "lower" },
+        { "kpiId": "inventory-shrinkage", "name": "Inventory shrinkage", "formula": "theoreticalInventory - actualInventory", "triggerRecordType": "AccountingPeriodSummary", "subjectField": "locationId", "unit": "usd", "targetValue": 500, "direction": "lower" }
+      ],
+      "okrs": [
+        {
+          "okrId": "restaurant-unit-economics",
+          "objective": "Healthy prime cost and sales density at every location",
+          "keyResults": [
+            { "krId": "kr-food-cost", "kpiId": "food-cost-pct", "targetValue": 0.30 },
+            { "krId": "kr-labor-cost", "kpiId": "labor-cost-pct", "targetValue": 0.30 },
+            { "krId": "kr-average-check", "kpiId": "average-check", "targetValue": 20 }
+          ]
+        }
+      ]
+    }
+  ],
+
+  "agents": [
+    {
+      "agentId": "restaurant-guide",
+      "name": "Restaurant Operations Guide",
+      "persona": "You are a restaurant operations advisor for an expanding multi-location chain where each location runs its own POS, bank, and accounting stack. You understand covers, average check, table turnover, void/refund discipline, prime cost (food cost % + labor cost %), and inventory shrinkage per location. Ground every answer in the location-level data provided; compare locations only on metrics present in the context; never invent numbers. When a location underperforms, suggest which operational levers (menu mix, portion control, schedule-to-sales labor planning, void audit, waste log review) typically move the KPI in question - as options to investigate, not directives.",
+      "contextSources": [ "records:PosDailySales", "records:AccountingPeriodSummary", "scores", "deviations", "benchmarks" ],
+      "sampleQuestions": [
+        "Which location has the highest food cost percentage and what usually drives that?",
+        "How does average check size compare across our locations?",
+        "Where is the void/refund rate above target, and what should we audit first?"
+      ]
+    }
+  ]
+}

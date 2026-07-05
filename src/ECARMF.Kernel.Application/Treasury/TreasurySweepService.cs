@@ -56,10 +56,13 @@ public interface ITreasurySweepService
 }
 
 /// <summary>
-/// The AI Treasury function (Universal Dental Requirement 8). Thresholds
-/// are continuously managed, not set once and frozen; threshold-setting is
-/// Recommend-Only while sweep execution against a standing approved
-/// threshold is Autonomous. The AI never approves its own proposal.
+/// The AI Treasury function (Universal Dental Requirement 8; cross-bank
+/// refinement from JJ Fish Requirement 7). Thresholds are continuously
+/// managed, not set once and frozen; threshold-setting is Recommend-Only
+/// while sweep execution against a standing approved threshold is
+/// Autonomous — unless the destination sits at a different institution,
+/// where 1-2 day settlement drops the sweep itself to Recommend-Only.
+/// The AI never approves its own proposal.
 /// </summary>
 public class TreasurySweepService : ITreasurySweepService
 {
@@ -308,10 +311,20 @@ public class TreasurySweepService : ITreasurySweepService
             return new SweepObservationResult(balance, false, null, null, true);
         }
 
-        // Operating account over its standing approved threshold: the
-        // overage sweeps autonomously — same institution, same tenant,
-        // standing human-approved threshold. Every sweep fully reasoned.
+        // Operating account over its standing approved threshold. The tier
+        // depends on where the money goes: a same-institution destination
+        // settles same-day and sweeps autonomously; a destination at a
+        // DIFFERENT institution (JJ Fish — every location banks separately)
+        // settles over 1-2 days, so the sweep is proposed Recommend-Only
+        // and executes only after a human decision on the capital flow.
         var overage = balance - threshold;
+        var destinationId = account.DestinationAccountId ?? "corporate-operating";
+        var destination = account.DestinationAccountId is { } destId
+            ? await _accounts.GetAsync(tenantId, destId, ct)
+            : null;
+        var crossInstitution = destination is not null
+            && !string.Equals(destination.Institution, account.Institution, StringComparison.OrdinalIgnoreCase);
+
         var latestThresholdScore = (await _scores.GetHistoryAsync(tenantId, SubjectType, accountId, ct))
             .Where(s => s.ScoreType == ThresholdScoreType)
             .OrderByDescending(s => s.ComputedAt)
@@ -322,30 +335,86 @@ public class TreasurySweepService : ITreasurySweepService
             TenantId = tenantId,
             Direction = CapitalFlowDirections.Outbound,
             SourceId = account.AccountId,
-            TargetReference = account.DestinationAccountId ?? "corporate-operating",
+            TargetReference = destinationId,
             TargetAssetClass = "Cash",
             Amount = overage,
-            TargetInstitution = account.Institution,
-            ConfidenceScore = 0.9m,
+            TargetInstitution = destination?.Institution ?? account.Institution,
+            ConfidenceScore = crossInstitution ? 0.75m : 0.9m,
             Reasoning =
                 $"Treasury sweep: '{account.Name}' observed balance {balance:N0} exceeds the standing approved " +
                 $"threshold {threshold:N0} (approved by {account.ApprovedBy} on {account.ApprovedAt:yyyy-MM-dd}). " +
-                $"Overage {overage:N0} sweeps to '{account.DestinationAccountId ?? "corporate-operating"}' — " +
-                "same institution, same tenant, standing threshold: Autonomous tier.",
-            Assumptions =
-            [
-                "Same-institution transfer settles same-day with no settlement risk.",
-                "The approved threshold already reserves the account's working buffer."
-            ],
-            RiskFactors = ["A pending large debit could arrive after this observation."],
+                (crossInstitution
+                    ? $"Overage {overage:N0} would move to '{destinationId}' at {destination!.Institution} — a " +
+                      $"DIFFERENT institution than {account.Institution}. Cross-institution transfers settle over " +
+                      "1-2 days, so this sweep is Recommend-Only: it executes only after human approval."
+                    : $"Overage {overage:N0} sweeps to '{destinationId}' — " +
+                      "same institution, same tenant, standing threshold: Autonomous tier."),
+            Assumptions = crossInstitution
+                ?
+                [
+                    "Cross-institution transfer settles in 1-2 business days; funds are in transit meanwhile.",
+                    "The approved threshold already reserves the account's working buffer."
+                ]
+                :
+                [
+                    "Same-institution transfer settles same-day with no settlement risk.",
+                    "The approved threshold already reserves the account's working buffer."
+                ],
+            RiskFactors = crossInstitution
+                ?
+                [
+                    "A pending large debit could arrive after this observation.",
+                    "Settlement delay: the source account cannot recall funds in transit if cash needs change."
+                ]
+                : ["A pending large debit could arrive after this observation."],
             SupportingScoreRecordIds = latestThresholdScore is null
                 ? [balanceScore.Id]
                 : [balanceScore.Id, latestThresholdScore.Id],
-            Tier = AutonomyTier.Autonomous,
-            Status = "AutoExecuted",
+            Tier = crossInstitution ? AutonomyTier.RecommendOnly : AutonomyTier.Autonomous,
+            Status = crossInstitution ? "Pending" : "AutoExecuted",
             CorrelationId = correlationId
         };
         await _allocations.AddAsync(recommendation, ct);
+
+        if (crossInstitution)
+        {
+            await _notifications.AddAsync(new NotificationItem
+            {
+                TenantId = tenantId,
+                WorkflowId = $"treasury:{accountId}",
+                Target = "TreasuryOfficer",
+                Message = $"Cross-bank sweep proposed: {overage:N0} from '{account.Name}' ({account.Institution}) " +
+                          $"to '{destinationId}' ({destination!.Institution}). Settlement takes 1-2 days — " +
+                          "review and approve the capital flow before it executes.",
+                Severity = "Info",
+                CorrelationId = correlationId
+            }, ct);
+
+            await _audit.AppendAsync(new AuditEntry
+            {
+                TenantId = tenantId,
+                CorrelationId = correlationId,
+                Category = AuditCategories.TreasurySweepProposed,
+                Actor = "system:flywheel",
+                Summary = $"Cross-institution sweep of {overage:N0} from '{accountId}' ({account.Institution}) to " +
+                          $"'{destinationId}' ({destination.Institution}) proposed Recommend-Only; NOT auto-executed.",
+                Detail = new Dictionary<string, string>
+                {
+                    ["accountId"] = accountId,
+                    ["balance"] = balance.ToString(CultureInfo.InvariantCulture),
+                    ["thresholdInEffect"] = threshold.ToString(CultureInfo.InvariantCulture),
+                    ["overage"] = overage.ToString(CultureInfo.InvariantCulture),
+                    ["destination"] = destinationId,
+                    ["sourceInstitution"] = account.Institution,
+                    ["destinationInstitution"] = destination.Institution,
+                    ["recommendationId"] = recommendation.Id.ToString()
+                }
+            }, ct);
+
+            account.UpdatedAt = now;
+            await _accounts.UpdateAsync(account, ct);
+            return new SweepObservationResult(balance, false, overage, recommendation.Id, false);
+        }
 
         await _audit.AppendAsync(new AuditEntry
         {
@@ -354,14 +423,14 @@ public class TreasurySweepService : ITreasurySweepService
             Category = AuditCategories.TreasurySweepExecuted,
             Actor = "system:flywheel",
             Summary = $"Autonomous sweep: {overage:N0} from '{accountId}' to " +
-                      $"'{account.DestinationAccountId ?? "corporate-operating"}' (balance {balance:N0} > threshold {threshold:N0}).",
+                      $"'{destinationId}' (balance {balance:N0} > threshold {threshold:N0}).",
             Detail = new Dictionary<string, string>
             {
                 ["accountId"] = accountId,
                 ["balance"] = balance.ToString(CultureInfo.InvariantCulture),
                 ["thresholdInEffect"] = threshold.ToString(CultureInfo.InvariantCulture),
                 ["overage"] = overage.ToString(CultureInfo.InvariantCulture),
-                ["destination"] = account.DestinationAccountId ?? "corporate-operating",
+                ["destination"] = destinationId,
                 ["recommendationId"] = recommendation.Id.ToString()
             }
         }, ct);
