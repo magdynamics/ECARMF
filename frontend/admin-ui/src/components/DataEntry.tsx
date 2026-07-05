@@ -29,6 +29,9 @@ export function DataEntry({ tenant, user }: { tenant: string; user: string }) {
   const [docText, setDocText] = useState('')
   const [docFile, setDocFile] = useState<File | null>(null)
   const [docBusy, setDocBusy] = useState(false)
+  const [bulkType, setBulkType] = useState('')
+  const [bulkFile, setBulkFile] = useState<File | null>(null)
+  const [bulkBusy, setBulkBusy] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -109,6 +112,38 @@ export function DataEntry({ tenant, user }: { tenant: string; user: string }) {
       setError(e instanceof ApiError ? e.message : String(e))
     } finally {
       setDocBusy(false)
+    }
+  }
+
+  async function bulkImport() {
+    if (!bulkFile) return
+    setMessage(null)
+    setError(null)
+    setBulkBusy(true)
+    try {
+      const bytes = new Uint8Array(await bulkFile.arrayBuffer())
+      let binary = ''
+      bytes.forEach((b) => (binary += String.fromCharCode(b)))
+      const result = await api.post<{
+        totalRows: number
+        imported: number
+        failed: number
+        errors: string[]
+      }>('/api/records/bulk-import', {
+        recordType: bulkType,
+        fileName: bulkFile.name,
+        contentBase64: btoa(binary),
+      })
+      setMessage(
+        `Imported ${result.imported} of ${result.totalRows} row(s) as '${bulkType}' — ` +
+          `each one ran the full rules pipeline. The spreadsheet is archived in the Library.` +
+          (result.failed > 0 ? ` ${result.failed} row(s) failed: ${result.errors.slice(0, 3).join(' | ')}` : ''),
+      )
+      setBulkFile(null)
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : String(e))
+    } finally {
+      setBulkBusy(false)
     }
   }
 
@@ -213,6 +248,33 @@ export function DataEntry({ tenant, user }: { tenant: string; user: string }) {
           value={docText}
           onChange={(e) => setDocText(e.target.value)}
         />
+      </section>
+
+      <section className="panel">
+        <h2>Bulk import history (CSV) <span className="state state-staged">INPUT</span></h2>
+        <p className="muted small">
+          Day one for a new client: years of records in a spreadsheet. The header row names the
+          fields (e.g. <code>valueDate,amount,description</code>); every row becomes a typed
+          record through the same rules, scoring, and benchmark checks as live data — no side
+          door. Up to 10,000 rows per file; failed rows are reported individually and never stop
+          the rest. The spreadsheet itself is archived in the Library with a link to every record
+          it produced.
+        </p>
+        <div className="form-row">
+          <label>
+            Record type
+            <input placeholder="e.g. JournalEntry, withdrawal" value={bulkType}
+              onChange={(e) => setBulkType(e.target.value)} />
+          </label>
+          <label>
+            CSV file
+            <input type="file" accept=".csv,text/csv"
+              onChange={(e) => setBulkFile(e.target.files?.[0] ?? null)} />
+          </label>
+          <button onClick={bulkImport} disabled={bulkBusy || !bulkFile || !bulkType.trim()}>
+            {bulkBusy ? 'Importing…' : 'Import through the pipeline'}
+          </button>
+        </div>
       </section>
     </div>
   )

@@ -76,6 +76,7 @@ app.MapBenchmarkEndpoints();
 app.MapRenewalEndpoints();
 app.MapMailEndpoints();
 app.MapReportEndpoints();
+app.MapBulkImportEndpoints();
 app.MapAgentEndpoints();
 
 using (var scope = app.Services.CreateScope())
