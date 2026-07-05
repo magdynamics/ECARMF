@@ -58,4 +58,6 @@ public static class AuditCategories
     public const string PackageActivated = "PackageActivated";
     public const string PackageDeactivated = "PackageDeactivated";
     public const string PackageFailed = "PackageFailed";
+    public const string RenewalAlertRaised = "RenewalAlertRaised";
+    public const string RenewalCompleted = "RenewalCompleted";
 }

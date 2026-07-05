@@ -55,6 +55,8 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<AgentInteractionRecord> AgentInteractions => Set<AgentInteractionRecord>();
 
+    public DbSet<RenewalRecord> Renewals => Set<RenewalRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AgentInteractionRecord>(entity =>
@@ -141,6 +143,24 @@ public class ECARMFDbContext : DbContext
             entity.Property(b => b.NotifyRole).HasMaxLength(100).IsRequired();
             entity.Property(b => b.CreatedBy).HasMaxLength(400).IsRequired();
             entity.HasIndex(b => new { b.TenantId, b.Enabled });
+        });
+
+        modelBuilder.Entity<RenewalRecord>(entity =>
+        {
+            entity.ToTable("Renewals");
+            entity.HasKey(r => r.Id);
+            entity.Property(r => r.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(r => r.Name).HasMaxLength(400).IsRequired();
+            entity.Property(r => r.Category).HasMaxLength(50).IsRequired();
+            entity.Property(r => r.Counterparty).HasMaxLength(400);
+            entity.Property(r => r.Reference).HasMaxLength(200);
+            entity.Property(r => r.Notes).HasMaxLength(2000);
+            entity.Property(r => r.LeadTimeDaysCsv).HasMaxLength(200).IsRequired();
+            entity.Property(r => r.NotifyRole).HasMaxLength(100).IsRequired();
+            entity.Property(r => r.Status).HasMaxLength(50).IsRequired();
+            entity.Property(r => r.CreatedBy).HasMaxLength(400).IsRequired();
+            entity.HasIndex(r => new { r.TenantId, r.Status });
+            entity.HasIndex(r => new { r.Status, r.DueDate });
         });
 
         modelBuilder.Entity<BillingPlanRecord>(entity =>

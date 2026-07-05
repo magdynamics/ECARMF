@@ -38,6 +38,7 @@ public static class DependencyInjection
         services.AddScoped<Application.Integrations.IIntegrationStore, EfIntegrationStore>();
         services.AddScoped<Application.Integrations.IFeedPuller, Ai.HttpFeedPuller>();
         services.AddScoped<Application.Analytics.IBenchmarkStore, EfBenchmarkStore>();
+        services.AddScoped<Application.Compliance.IRenewalStore, EfRenewalStore>();
         services.AddScoped<Application.Billing.IBillingPlanStore, EfBillingPlanStore>();
         services.AddScoped<Application.Billing.IBillingStatementStore, EfBillingStatementStore>();
         services.AddScoped<Application.Billing.IUsageMeter, EfUsageMeter>();
