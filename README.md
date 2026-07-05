@@ -64,11 +64,47 @@ docker compose up --build
 # Admin UI: http://localhost:3000
 ```
 
-### Multi-tenancy
+### Multi-tenancy & credentials
 
-The platform serves multiple clients. Every API request must carry an
-`X-Tenant-Id` header; packages, transactions, outcomes, and audit trails are
-isolated per tenant. The admin UI has a tenant switcher in its header.
+The platform serves multiple clients. We operate it as the platform admin
+from the reserved `platform` tenant: client tenants are onboarded there
+(profile, contacts, billing plan, suspend/reactivate), and every client user
+is provisioned with an **access key** (shown once, stored hashed). A request
+carrying `X-Api-Key` derives both the user and the tenant from the
+credential — asserted headers are overridden, suspended tenants are locked
+out platform-wide, and rotation revokes the old key instantly. For local
+development, `X-Tenant-Id` + `X-User-Id` headers still work as an asserted
+identity. Packages, records, outcomes, scores, documents, AI credentials,
+and audit trails are isolated per tenant.
+
+### Enterprise AI Operating System layer
+
+Built on the kernel primitives, all metadata-driven:
+
+- **Workflows** — packages declare trigger→steps automation (notify /
+  createTask / publishEvent); tasks are human work items an AI actor can
+  never complete.
+- **Executive Advisor + declarable AI agents** — packages ship domain
+  specialists (e.g. the IRS Corporate Tax Guide) via the 8th registry: a
+  persona, declared context sources, kernel guardrails (advisory-only,
+  grounded), each under its own identity, trust-tracked through human
+  feedback (ModelAccuracy). Runs on each tenant's own Anthropic key
+  (Setup → AI Backend); deterministic fallbacks otherwise.
+- **Document extraction** — upload PDFs/emails/statements; the extraction
+  agent produces the connector's expected payload and normal ingestion runs
+  (a real 1120-S tax-return binder is the reference case: correctly flagged
+  as a pass-through instead of mis-compared to the 21% corporate rate).
+- **Source library** — every upload archived verbatim (SHA-256) and indexed:
+  source, uploader, template, and the records it produced.
+- **Integrations** — managed push/pull feeds from accounting, POS, billing,
+  and real-estate systems, with scheduling, protected secrets, and run
+  history.
+- **Benchmarks** — tenant expectations ("GP% ≥ 25%", "no movement above
+  10k") with configurable triggers, severities, and alert routing.
+- **Billing** — per-tenant utilization metered from operational tables,
+  plans with unit rates, itemized statements.
+- **Regulatory content** — COSO, GAAP, Reg D, AML/KYC, and IRS reference
+  rates authored purely as Knowledge Packages (see `packages/README.md`).
 
 ### Try the pipeline (control + flywheel)
 

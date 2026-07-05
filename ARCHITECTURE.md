@@ -230,3 +230,84 @@ Both compose on existing primitives rather than adding parallel mechanisms:
 4. Never resolve a tenant implicitly; tenancy always flows from the caller.
 5. Every outcome-affecting change must keep the outcome traceable to a rule
    and package version.
+
+## 7. The Enterprise AI Operating System layer (Phases 1–6)
+
+Everything below is built **on** the kernel primitives above — new
+registries, stores, and configuration; never a parallel engine.
+
+### 7.1 Workflows (7th registry)
+
+Packages declare `WorkflowDeclaration`s (trigger event + conditions +
+steps: `notify` | `createTask` | `publishEvent`). The `WorkflowEngine`
+executes them after the outcome is durable — including on follow-up
+events with no matching rules. Tasks are human work items: an AI/system
+actor cannot complete them. Every execution is audited
+(`WorkflowExecuted`) with package provenance.
+
+### 7.2 AI agents (8th registry) and the Executive Advisor
+
+The `ExecutiveAdvisorService` is the built-in agent: it snapshots the
+tenant's scores, deviations, allocations, and tasks and writes an audited
+brief under `system:advisor`. **Declared agents** generalize it: packages
+ship `AgentDeclaration`s (persona + declared context sources + sample
+questions) into the `AgentRegistry`; the `AgentConsultService` wraps every
+persona in a non-negotiable kernel guardrail (advisory-only, grounded,
+never invent, recommend professionals), shows the agent only its declared
+sources, provisions a per-agent identity (`system:agent:{id}`), audits
+every consultation (`AgentConsulted`), and feeds human ratings into that
+agent's own `ModelAccuracy` history. All agents run through the
+`ILanguageModelProvider`, which resolves **the tenant's own Anthropic
+credential** (encrypted at rest, write-only) — one client's AI usage never
+runs on another's key; without a key, deterministic composers take over.
+
+### 7.3 Document extraction and the source library
+
+`DocumentExtractionService` turns uploads (PDF via PdfPig, text, email)
+into the raw payload the target connector's SchemaTemplate expects — text
+templates extract deterministically via their own regex patterns; json/csv
+templates use the tenant's AI backend — then normal ingestion runs.
+`IDocumentLibrary` archives **every** payload through any connector,
+accepted or rejected, verbatim with SHA-256, size, source, uploader,
+template, extraction backend, and produced record ids; document extraction
+archives the original file as well. Reference case: a real Form 1120-S
+binder PDF extracts to `{formType, entityName, taxYear, taxableIncome}`
+and rule `IRS-R-021` flags it as a pass-through instead of mis-comparing
+it to the 21 % corporate rate.
+
+### 7.4 Integrations, benchmarks, search
+
+`IntegrationDefinition`s manage feeds from external applications
+(Accounting / POS / Billing / RealEstateManagement / …): push (the app
+delivers) or pull (the platform fetches, with a protected bearer secret
+and optional schedule run by `FeedSchedulerHostedService`); every run —
+success or failure — is a `FeedRun` in the integration's health history.
+`Benchmark`s are tenant-set expectations (score-kind watches every
+computed score/KPI; recordField-kind watches incoming payloads); a breach
+raises a `DeviationAlert`, a notification to the configured role, an
+optional task, and a `BenchmarkBreached` audit entry — checked inside the
+same processing pass. Record activity is queryable server-side
+(`/api/records/search`: type/outcome/submitter/text/date + paging) for
+tenants with thousands of records.
+
+### 7.5 Platform operations: clients, credentials, billing
+
+The reserved `platform` tenant is the operator console (guarded by
+`Tenant:Manage` + the platform-tenant check). Client tenants are
+`TenantProfile`s; their people are `User`s with contact fields and
+**access-key credentials** (SHA-256 hashed, shown once, rotatable). The
+`ApiKeyAuthenticationMiddleware` makes the credential authoritative: it
+derives tenant + identity and overwrites asserted headers, and enforces
+tenant suspension platform-wide. Billing meters utilization straight from
+operational tables (records, documents/storage, AI calls, feed runs,
+active users) — the meter can never disagree with what happened — and
+prices it against assignable plans into itemized `BillingStatement`s.
+
+### 7.6 Regulatory content as packages
+
+COSO 2013, GAAP journal controls, SEC Reg D, AML/KYC screening, and the
+IRS corporate-rate reference all ship as ordinary Knowledge Packages
+(`packages/README.md`) — rules, events, templates, KPI frameworks,
+workflows, and agents, activated side by side over the treasury base with
+zero kernel changes. Published reference data (e.g. IRS rates) becomes a
+KPI target; when the source updates, that is a **new package version**.
