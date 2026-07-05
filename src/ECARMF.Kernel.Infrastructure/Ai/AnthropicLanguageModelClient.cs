@@ -59,22 +59,29 @@ public class AnthropicLanguageModelClient : ILanguageModelClient
 }
 
 /// <summary>
-/// Resolves the AI backend per tenant: the tenant's own stored credential
-/// wins; the platform-operator credential (Anthropic:ApiKey configuration or
-/// ANTHROPIC_API_KEY) is only a development/demo fallback; with neither, the
-/// unconfigured client makes agents use their deterministic composers.
+/// Resolves the AI backend per tenant. The tenant's own stored configuration
+/// wins — either a fully on-premise local model server (provider "local":
+/// Ollama / LM Studio / llama.cpp — no external key, nothing leaves the
+/// machine) or the tenant's own Anthropic credential. Platform-level
+/// fallbacks come from configuration (LocalAi:Endpoint for an on-prem
+/// default, or Anthropic:ApiKey / ANTHROPIC_API_KEY for development). With
+/// nothing configured, agents use their deterministic composers.
 /// </summary>
-public class AnthropicLanguageModelProvider : ILanguageModelProvider
+public class TenantLanguageModelProvider : ILanguageModelProvider
 {
     private static readonly UnconfiguredLanguageModelClient Unconfigured = new();
 
     private readonly ITenantAiSettingsStore _settings;
+    private readonly string? _platformLocalEndpoint;
+    private readonly string? _platformLocalModel;
     private readonly string? _platformApiKey;
     private readonly string? _platformModel;
 
-    public AnthropicLanguageModelProvider(ITenantAiSettingsStore settings, IConfiguration configuration)
+    public TenantLanguageModelProvider(ITenantAiSettingsStore settings, IConfiguration configuration)
     {
         _settings = settings;
+        _platformLocalEndpoint = configuration["LocalAi:Endpoint"];
+        _platformLocalModel = configuration["LocalAi:Model"];
         _platformApiKey = configuration["Anthropic:ApiKey"]
             ?? Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY");
         _platformModel = configuration["Anthropic:Model"];
@@ -82,10 +89,25 @@ public class AnthropicLanguageModelProvider : ILanguageModelProvider
 
     public async Task<ILanguageModelClient> GetForTenantAsync(string tenantId, CancellationToken ct = default)
     {
-        var (apiKey, model) = await _settings.GetCredentialsAsync(tenantId, ct);
-        if (!string.IsNullOrWhiteSpace(apiKey))
+        var tenant = await _settings.GetCredentialsAsync(tenantId, ct);
+        if (tenant is not null)
         {
-            return new AnthropicLanguageModelClient(apiKey, model);
+            if (string.Equals(tenant.Provider, AiProviders.Local, StringComparison.OrdinalIgnoreCase)
+                && !string.IsNullOrWhiteSpace(tenant.Endpoint))
+            {
+                return new LocalLanguageModelClient(tenant.Endpoint, tenant.Model, tenant.ApiKey);
+            }
+
+            if (!string.IsNullOrWhiteSpace(tenant.ApiKey))
+            {
+                return new AnthropicLanguageModelClient(tenant.ApiKey, tenant.Model);
+            }
+        }
+
+        // Platform-level defaults: prefer the fully independent on-prem server.
+        if (!string.IsNullOrWhiteSpace(_platformLocalEndpoint))
+        {
+            return new LocalLanguageModelClient(_platformLocalEndpoint, _platformLocalModel);
         }
 
         if (!string.IsNullOrWhiteSpace(_platformApiKey))

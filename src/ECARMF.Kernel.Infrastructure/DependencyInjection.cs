@@ -32,7 +32,7 @@ public static class DependencyInjection
         services.AddScoped<Application.Advisor.IAdvisorStore, EfAdvisorStore>();
         services.AddScoped<Application.Identity.ITenantDirectory, EfTenantDirectory>();
         services.AddScoped<Application.Advisor.ITenantAiSettingsStore, EfTenantAiSettingsStore>();
-        services.AddScoped<Application.Advisor.ILanguageModelProvider, Ai.AnthropicLanguageModelProvider>();
+        services.AddScoped<Application.Advisor.ILanguageModelProvider, Ai.TenantLanguageModelProvider>();
         services.AddSingleton<Application.Ingestion.IDocumentTextReader, Ai.DocumentTextReader>();
         services.AddScoped<Application.Library.IDocumentLibrary, EfDocumentLibrary>();
         services.AddScoped<Application.Integrations.IIntegrationStore, EfIntegrationStore>();

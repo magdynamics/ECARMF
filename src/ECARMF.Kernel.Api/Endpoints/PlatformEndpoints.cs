@@ -18,6 +18,16 @@ public record CreateTenantUserRequest(
 
 public record SetUserStatusRequest(string Status);
 
+public record ImportUserEntry(
+    string Identifier, string? DisplayName, string? Role,
+    string? Email, string? Phone, string? JobTitle);
+
+public record ImportClientEntry(
+    string TenantId, string Name, string? Industry, string? ContactName, string? ContactEmail,
+    List<ImportUserEntry>? Users);
+
+public record ImportClientsRequest(List<ImportClientEntry> Clients);
+
 /// <summary>
 /// Client management for the platform operator. We run the platform for our
 /// clients: tenants are onboarded here, their contacts become user profiles,
@@ -96,6 +106,113 @@ public static class PlatformEndpoints
             }, ct);
 
             return Results.Created($"/api/platform/tenants/{tenantId}", profile);
+        });
+
+        // Bulk onboarding for an existing client base: one upload creates the
+        // tenants, seeds their identities, provisions their contacts, and
+        // issues each contact's access key (returned once, in this response).
+        // Existing tenants/users are skipped and reported, never overwritten.
+        group.MapPost("/import", async (
+            ImportClientsRequest request, HttpContext context,
+            IUserStore users, ITenantDirectory tenants, IAuditLog audit, CancellationToken ct) =>
+        {
+            var (error, op) = await RequirePlatformOperatorAsync(context, users, ct);
+            if (error is not null) return error;
+            if (request.Clients is null || request.Clients.Count == 0)
+                return Results.BadRequest(new { error = "clients is required (a non-empty array)." });
+            if (request.Clients.Count > 500)
+                return Results.BadRequest(new { error = "Import at most 500 clients per request." });
+
+            var results = new List<object>();
+
+            foreach (var client in request.Clients)
+            {
+                var tenantId = client.TenantId?.Trim().ToLowerInvariant() ?? string.Empty;
+                if (!TenantIdShape.IsMatch(tenantId) || PlatformTenant.IsPlatform(tenantId)
+                    || string.IsNullOrWhiteSpace(client.Name))
+                {
+                    results.Add(new { tenantId, status = "invalid", error = "tenantId must be a 3-64 char lowercase slug and name is required." });
+                    continue;
+                }
+
+                var existing = await tenants.GetAsync(tenantId, ct);
+                if (existing is null)
+                {
+                    var profile = new Domain.Tenancy.TenantProfile
+                    {
+                        TenantId = tenantId,
+                        Name = client.Name.Trim(),
+                        Industry = client.Industry,
+                        ContactName = client.ContactName,
+                        ContactEmail = client.ContactEmail,
+                        CreatedBy = op!.Identifier
+                    };
+                    await tenants.AddAsync(profile, ct);
+                    await users.EnsureSeedUsersAsync(tenantId, ct);
+                    await audit.AppendAsync(new AuditEntry
+                    {
+                        TenantId = tenantId,
+                        CorrelationId = profile.Id,
+                        Category = AuditCategories.TenantCreated,
+                        Actor = op.Identifier,
+                        Summary = $"Tenant '{profile.Name}' ({tenantId}) onboarded via bulk import.",
+                        Detail = new Dictionary<string, string> { ["tenantId"] = tenantId, ["name"] = profile.Name, ["import"] = "true" }
+                    }, ct);
+                }
+
+                var userResults = new List<object>();
+                foreach (var entry in client.Users ?? [])
+                {
+                    var identifier = entry.Identifier?.Trim() ?? string.Empty;
+                    var role = string.IsNullOrWhiteSpace(entry.Role) ? RoleCatalog.ExecutiveOwner : entry.Role;
+                    if (identifier.Length < 3 || identifier.StartsWith("system:", StringComparison.OrdinalIgnoreCase)
+                        || !RoleCatalog.RolePermissions.ContainsKey(role)
+                        || string.Equals(role, RoleCatalog.AISystemActor, StringComparison.OrdinalIgnoreCase))
+                    {
+                        userResults.Add(new { identifier, status = "invalid" });
+                        continue;
+                    }
+                    if (await users.GetByIdentifierAsync(tenantId, identifier, ct) is not null)
+                    {
+                        userResults.Add(new { identifier, status = "already-exists" });
+                        continue;
+                    }
+
+                    var accessKey = AccessKey.Generate();
+                    await users.CreateUserAsync(new User
+                    {
+                        TenantId = tenantId,
+                        Identifier = identifier,
+                        DisplayName = string.IsNullOrWhiteSpace(entry.DisplayName) ? identifier : entry.DisplayName.Trim(),
+                        IsSystemActor = false,
+                        Roles = [role],
+                        Email = entry.Email,
+                        Phone = entry.Phone,
+                        JobTitle = entry.JobTitle
+                    }, AccessKey.Hash(accessKey), ct);
+
+                    await audit.AppendAsync(new AuditEntry
+                    {
+                        TenantId = tenantId,
+                        CorrelationId = Guid.NewGuid(),
+                        Category = AuditCategories.UserProvisioned,
+                        Actor = op!.Identifier,
+                        Summary = $"User '{identifier}' ({role}) provisioned via bulk import with an access credential.",
+                        Detail = new Dictionary<string, string> { ["identifier"] = identifier, ["role"] = role, ["import"] = "true" }
+                    }, ct);
+
+                    userResults.Add(new { identifier, role, status = "created", accessKey });
+                }
+
+                results.Add(new
+                {
+                    tenantId,
+                    status = existing is null ? "created" : "already-exists",
+                    users = userResults
+                });
+            }
+
+            return Results.Ok(new { imported = results.Count, results });
         });
 
         group.MapPost("/{tenantId}/status", async (

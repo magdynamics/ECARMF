@@ -6,7 +6,7 @@ using ECARMF.Kernel.Domain.Identity;
 
 namespace ECARMF.Kernel.Api.Endpoints;
 
-public record SetAiSettingsRequest(string ApiKey, string? Model);
+public record SetAiSettingsRequest(string? Provider, string? ApiKey, string? Endpoint, string? Model);
 
 /// <summary>
 /// Tenant-specific AI backend configuration. The platform serves multiple
@@ -40,10 +40,17 @@ public static class AiSettingsEndpoints
             var (error, user) = await AccessGuard.RequireAsync(context, users, tenantId, Permissions.ConnectorConfigure, ct);
             if (error is not null) return error;
 
-            if (string.IsNullOrWhiteSpace(request.ApiKey))
-                return Results.BadRequest(new { error = "apiKey is required." });
+            var provider = string.IsNullOrWhiteSpace(request.Provider)
+                ? AiProviders.Anthropic
+                : request.Provider.Trim().ToLowerInvariant();
+            if (provider is not (AiProviders.Anthropic or AiProviders.Local))
+                return Results.BadRequest(new { error = "provider must be 'anthropic' or 'local' (an OpenAI-compatible on-prem server)." });
+            if (provider == AiProviders.Anthropic && string.IsNullOrWhiteSpace(request.ApiKey))
+                return Results.BadRequest(new { error = "apiKey is required for the anthropic provider." });
+            if (provider == AiProviders.Local && string.IsNullOrWhiteSpace(request.Endpoint))
+                return Results.BadRequest(new { error = "endpoint is required for the local provider (e.g. http://localhost:11434 for Ollama)." });
 
-            await settings.SetAsync(tenantId, request.ApiKey.Trim(), request.Model, user!.Identifier, ct);
+            await settings.SetAsync(tenantId, provider, request.ApiKey, request.Endpoint, request.Model, user!.Identifier, ct);
             var status = await settings.GetStatusAsync(tenantId, ct);
 
             await audit.AppendAsync(new AuditEntry
@@ -52,9 +59,13 @@ public static class AiSettingsEndpoints
                 CorrelationId = Guid.NewGuid(),
                 Category = AuditCategories.AiSettingsUpdated,
                 Actor = user.Identifier,
-                Summary = $"Tenant AI backend configured (key {status.ApiKeyHint}, model {status.Model ?? "platform default"}).",
+                Summary = provider == AiProviders.Local
+                    ? $"Tenant AI backend set to on-prem local server {status.Endpoint} (model {status.Model ?? "default"})."
+                    : $"Tenant AI backend set to Anthropic (key {status.ApiKeyHint}, model {status.Model ?? "platform default"}).",
                 Detail = new Dictionary<string, string>
                 {
+                    ["provider"] = provider,
+                    ["endpoint"] = status.Endpoint ?? string.Empty,
                     ["apiKeyHint"] = status.ApiKeyHint ?? string.Empty,
                     ["model"] = status.Model ?? string.Empty
                 }
@@ -83,7 +94,7 @@ public static class AiSettingsEndpoints
                 Detail = []
             }, ct);
 
-            return Results.Ok(new TenantAiSettingsStatus(false, null, null, null, null));
+            return Results.Ok(new TenantAiSettingsStatus(false, null, null, null, null, null, null));
         });
 
         return app;

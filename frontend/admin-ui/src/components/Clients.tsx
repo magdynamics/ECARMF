@@ -74,6 +74,9 @@ export function Clients({ tenant, user }: { tenant: string; user: string }) {
 
   const [newTenant, setNewTenant] = useState({ tenantId: '', name: '', industry: '', contactName: '', contactEmail: '' })
   const [newUser, setNewUser] = useState({ identifier: '', displayName: '', role: 'ExecutiveOwner', email: '', phone: '', jobTitle: '' })
+  const [importJson, setImportJson] = useState('')
+  const [importResult, setImportResult] = useState<{ tenantId: string; status: string; users?: { identifier: string; status: string; accessKey?: string }[] }[] | null>(null)
+  const [importing, setImporting] = useState(false)
 
   const fail = (e: unknown) => setError(e instanceof ApiError ? e.message : String(e))
 
@@ -208,6 +211,28 @@ export function Clients({ tenant, user }: { tenant: string; user: string }) {
     }
   }
 
+  async function bulkImport() {
+    setError(null)
+    setMessage(null)
+    setImporting(true)
+    try {
+      const clients = JSON.parse(importJson)
+      const result = await api.post<{ imported: number; results: typeof importResult }>(
+        '/api/platform/tenants/import',
+        { clients: Array.isArray(clients) ? clients : clients.clients },
+      )
+      setImportResult(result.results)
+      setImportJson('')
+      setMessage(`Import processed ${result.imported} client(s). Copy the issued access keys below — they are shown once.`)
+      await load()
+    } catch (e) {
+      if (e instanceof SyntaxError) setError(`Import is not valid JSON: ${e.message}`)
+      else fail(e)
+    } finally {
+      setImporting(false)
+    }
+  }
+
   const selectedProfile = tenants.find((t) => t.tenantId === selected)
 
   return (
@@ -273,6 +298,45 @@ export function Clients({ tenant, user }: { tenant: string; user: string }) {
             Onboard client
           </button>
         </div>
+
+        <h3>Bulk import your existing client base</h3>
+        <p className="muted small">
+          Paste a JSON array of clients (with their contacts) and onboard them in one operation —
+          tenants created, identities seeded, contacts provisioned, access keys issued. Existing
+          entries are skipped, never overwritten. Runs entirely on this machine.
+        </p>
+        <textarea
+          rows={5}
+          placeholder={'[\n  { "tenantId": "acme-capital", "name": "Acme Capital LLC", "industry": "PrivateEquity",\n    "users": [ { "identifier": "jane@acmecap.com", "displayName": "Jane Chen", "role": "ExecutiveOwner", "email": "jane@acmecap.com" } ] }\n]'}
+          value={importJson}
+          onChange={(e) => setImportJson(e.target.value)}
+        />
+        <div className="form-row">
+          <button onClick={bulkImport} disabled={importing || !importJson.trim()}>
+            {importing ? 'Importing…' : 'Import clients'}
+          </button>
+        </div>
+        {importResult && (
+          <table>
+            <thead><tr><th>Tenant</th><th>Status</th><th>Users &amp; issued keys (copy now — shown once)</th></tr></thead>
+            <tbody>
+              {importResult.map((r) => (
+                <tr key={r.tenantId}>
+                  <td className="mono">{r.tenantId}</td>
+                  <td><span className={`state state-${r.status === 'created' ? 'approved' : 'flagged'}`}>{r.status}</span></td>
+                  <td className="small">
+                    {(r.users ?? []).map((u) => (
+                      <div key={u.identifier}>
+                        {u.identifier}: {u.status}
+                        {u.accessKey && <> — <code className="mono">{u.accessKey}</code></>}
+                      </div>
+                    ))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </section>
 
       {selected && selectedProfile && (

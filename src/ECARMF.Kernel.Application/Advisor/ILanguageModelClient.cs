@@ -32,25 +32,41 @@ public interface ILanguageModelProvider
     Task<ILanguageModelClient> GetForTenantAsync(string tenantId, CancellationToken ct = default);
 }
 
+/// <summary>Supported AI backend providers. "local" is any OpenAI-compatible
+/// server on the operator's own machine (Ollama, LM Studio, llama.cpp,
+/// vLLM) — fully independent, no external key, nothing leaves the premises.</summary>
+public static class AiProviders
+{
+    public const string Anthropic = "anthropic";
+    public const string Local = "local";
+}
+
+/// <summary>A tenant's resolved AI configuration for the runtime provider.</summary>
+public sealed record TenantAiCredentials(string Provider, string? ApiKey, string? Endpoint, string? Model);
+
 /// <summary>Masked, UI-safe view of a tenant's AI settings — the key itself
 /// is write-only and never leaves the store unprotected.</summary>
 public sealed record TenantAiSettingsStatus(
     bool Configured,
+    string? Provider,
+    string? Endpoint,
     string? Model,
     string? ApiKeyHint,
     string? ConfiguredBy,
     DateTimeOffset? UpdatedAt);
 
-/// <summary>Tenant-scoped AI credential store. Keys are stored protected at
-/// rest and are never returned by status reads.</summary>
+/// <summary>Tenant-scoped AI configuration store. Keys are stored protected
+/// at rest and are never returned by status reads.</summary>
 public interface ITenantAiSettingsStore
 {
-    /// <summary>Unprotected credentials for the runtime provider only.</summary>
-    Task<(string? ApiKey, string? Model)> GetCredentialsAsync(string tenantId, CancellationToken ct = default);
+    /// <summary>Unprotected configuration for the runtime provider only.</summary>
+    Task<TenantAiCredentials?> GetCredentialsAsync(string tenantId, CancellationToken ct = default);
 
     Task<TenantAiSettingsStatus> GetStatusAsync(string tenantId, CancellationToken ct = default);
 
-    Task SetAsync(string tenantId, string apiKey, string? model, string configuredBy, CancellationToken ct = default);
+    Task SetAsync(
+        string tenantId, string provider, string? apiKey, string? endpoint, string? model,
+        string configuredBy, CancellationToken ct = default);
 
     Task ClearAsync(string tenantId, CancellationToken ct = default);
 }

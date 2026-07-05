@@ -194,8 +194,10 @@ public class ECARMFDbContext : DbContext
             entity.ToTable("TenantAiSettings");
             entity.HasKey(s => s.Id);
             entity.Property(s => s.TenantId).HasMaxLength(100).IsRequired();
-            entity.Property(s => s.ProtectedApiKey).IsRequired();
-            entity.Property(s => s.ApiKeyHint).HasMaxLength(20).IsRequired();
+            entity.Property(s => s.Provider).HasMaxLength(20).IsRequired().HasDefaultValue("anthropic");
+            entity.Property(s => s.Endpoint).HasMaxLength(500);
+            entity.Property(s => s.ProtectedApiKey);
+            entity.Property(s => s.ApiKeyHint).HasMaxLength(20);
             entity.Property(s => s.Model).HasMaxLength(100);
             entity.Property(s => s.ConfiguredBy).HasMaxLength(400).IsRequired();
             entity.HasIndex(s => s.TenantId).IsUnique();
