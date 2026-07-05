@@ -109,6 +109,15 @@ public class EfUserStore : IUserStore
         await _db.SaveChangesAsync(ct);
     }
 
+    public async Task SetRolesAsync(
+        string tenantId, string identifier, IReadOnlyList<string> roles, CancellationToken ct = default)
+    {
+        var record = await _db.Users.FirstAsync(
+            u => u.TenantId == tenantId && u.Identifier == identifier, ct);
+        record.RolesJson = JsonSerializer.Serialize(roles);
+        await _db.SaveChangesAsync(ct);
+    }
+
     private static UserRecord NewRecord(
         string tenantId, string identifier, string displayName, bool isSystemActor, string[] roles) => new()
     {

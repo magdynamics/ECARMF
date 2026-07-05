@@ -30,6 +30,10 @@ public interface IUserStore
 
     /// <summary>Active | Disabled. A disabled user cannot authenticate.</summary>
     Task SetStatusAsync(string tenantId, string identifier, string status, CancellationToken ct = default);
+
+    /// <summary>Replaces the user's role set — what their bookkeeper may do
+    /// differs from what their owner may do; permissions follow the RoleCatalog.</summary>
+    Task SetRolesAsync(string tenantId, string identifier, IReadOnlyList<string> roles, CancellationToken ct = default);
 }
 
 /// <summary>Well-known seed identities. Each AI agent acts under its own

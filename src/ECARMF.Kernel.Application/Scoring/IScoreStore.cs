@@ -15,4 +15,10 @@ public interface IScoreStore
     /// filtered by score type. Feeds dashboards and KPI queries.</summary>
     Task<IReadOnlyList<ScoreRecord>> GetRecentAsync(
         string tenantId, int limit, string? scoreType = null, CancellationToken ct = default);
+
+    /// <summary>Recent scores of one type across ALL tenants, newest first.
+    /// Used only by anonymized peer benchmarking — callers must aggregate
+    /// before anything leaves the platform boundary.</summary>
+    Task<IReadOnlyList<ScoreRecord>> GetRecentByTypeAllTenantsAsync(
+        string scoreType, int limit, CancellationToken ct = default);
 }

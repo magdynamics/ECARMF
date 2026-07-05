@@ -21,6 +21,18 @@ interface Benchmark {
 const OPERATORS = ['GreaterOrEqual', 'LessOrEqual', 'GreaterThan', 'LessThan', 'Equals', 'NotEquals']
 const ROLES = ['ExecutiveOwner', 'RiskComplianceOfficer', 'TreasuryOfficer', 'PlatformAdministrator', 'Auditor']
 
+interface PeerBenchmark {
+  scoreType: string
+  available: boolean
+  reason: string | null
+  yourAverage: number | null
+  yourLatest: number | null
+  peerCount: number
+  peerMedian: number | null
+  peerP25: number | null
+  peerP75: number | null
+}
+
 /// Tenant expectations with triggers: state what must hold (GP% >= 25%,
 /// amount <= 10,000, violations <= 10) and who gets alarmed when it breaks.
 export function Benchmarks({ tenant, user }: { tenant: string; user: string }) {
@@ -33,7 +45,20 @@ export function Benchmarks({ tenant, user }: { tenant: string; user: string }) {
     notifyRole: 'ExecutiveOwner', createTask: true,
   })
 
+  const [peerType, setPeerType] = useState('GPPercent')
+  const [peer, setPeer] = useState<PeerBenchmark | null>(null)
+
   const fail = (e: unknown) => setError(e instanceof ApiError ? e.message : String(e))
+
+  async function comparePeers() {
+    setError(null)
+    setPeer(null)
+    try {
+      setPeer(await api.get<PeerBenchmark>(`/api/analytics/peer-benchmark?scoreType=${encodeURIComponent(peerType)}`))
+    } catch (e) {
+      fail(e)
+    }
+  }
 
   const load = useCallback(async () => {
     try {
@@ -169,6 +194,31 @@ export function Benchmarks({ tenant, user }: { tenant: string; user: string }) {
           </label>
           <button onClick={create} disabled={!form.name.trim() || !form.expectedValue.trim()}>Activate</button>
         </div>
+      </section>
+
+      <section className="panel">
+        <h2>Peer comparison <span className="state state-approved">OUTPUT</span></h2>
+        <p className="muted small">
+          Your number against the anonymized distribution of comparable businesses on this
+          platform — advice no one else can give. Peer identities never leave the aggregation,
+          and nothing is shown unless at least three peers have the metric.
+        </p>
+        <div className="form-row">
+          <label>Score type<input value={peerType}
+            onChange={(e) => setPeerType(e.target.value)} placeholder="e.g. GPPercent" /></label>
+          <button onClick={comparePeers} disabled={!peerType.trim()}>Compare</button>
+        </div>
+        {peer && !peer.available && <p className="muted small">{peer.reason}</p>}
+        {peer && peer.available && (
+          <div className="kpi-grid">
+            <div className="panel kpi"><div className="kpi-value">{peer.yourAverage ?? '—'}</div>
+              <div className="muted small">your average</div></div>
+            <div className="panel kpi"><div className="kpi-value">{peer.peerMedian}</div>
+              <div className="muted small">peer median ({peer.peerCount} businesses)</div></div>
+            <div className="panel kpi"><div className="kpi-value">{peer.peerP25} – {peer.peerP75}</div>
+              <div className="muted small">peer middle range (P25–P75)</div></div>
+          </div>
+        )}
       </section>
     </div>
   )

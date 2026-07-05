@@ -38,6 +38,12 @@ public class InMemoryUserStore : IUserStore
     { Items.Add(user); return Task.CompletedTask; }
     public Task SetAccessKeyHashAsync(string tenantId, string identifier, string hash, CancellationToken ct = default) => Task.CompletedTask;
     public Task SetStatusAsync(string tenantId, string identifier, string status, CancellationToken ct = default) => Task.CompletedTask;
+    public Task SetRolesAsync(string tenantId, string identifier, IReadOnlyList<string> roles, CancellationToken ct = default)
+    {
+        var user = Items.FirstOrDefault(u => u.TenantId == tenantId && u.Identifier == identifier);
+        if (user is not null) user.Roles = [.. roles];
+        return Task.CompletedTask;
+    }
 }
 
 /// <summary>Declared AI agents: packages ship domain specialists (the IRS

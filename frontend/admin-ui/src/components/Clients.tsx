@@ -354,7 +354,24 @@ export function Clients({ tenant, user }: { tenant: string; user: string }) {
                 <tr key={u.identifier}>
                   <td className="mono">{u.identifier}</td>
                   <td>{u.displayName}{u.jobTitle ? ` — ${u.jobTitle}` : ''}</td>
-                  <td>{u.roles.join(', ')}</td>
+                  <td>
+                    {u.isSystemActor ? u.roles.join(', ') : (
+                      <select
+                        value={u.roles[0] ?? ''}
+                        onChange={async (e) => {
+                          try {
+                            await api.put(`/api/platform/tenants/${selected}/users/${encodeURIComponent(u.identifier)}/roles`,
+                              { roles: [e.target.value] })
+                            setMessage(`Role of ${u.identifier} changed to ${e.target.value}.`)
+                            setTenantUsers(await api.get<TenantUser[]>(`/api/platform/tenants/${selected}/users`))
+                          } catch (err) {
+                            setError(err instanceof ApiError ? err.message : String(err))
+                          }
+                        }}>
+                        {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                      </select>
+                    )}
+                  </td>
                   <td>{u.email ?? '—'} {u.phone ? `· ${u.phone}` : ''}</td>
                   <td><span className={`state state-${u.status.toLowerCase()}`}>{u.status}</span></td>
                   <td>{u.isSystemActor ? 'AI actor' : u.hasCredential ? 'Issued' : 'None'}</td>

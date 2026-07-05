@@ -22,6 +22,7 @@ builder.Services.AddHostedService<ECARMF.Kernel.Api.Hosting.FeedSchedulerHostedS
 builder.Services.AddHostedService<ECARMF.Kernel.Api.Hosting.RenewalMonitorHostedService>();
 builder.Services.AddHostedService<ECARMF.Kernel.Api.Hosting.EmailDispatchHostedService>();
 builder.Services.AddHostedService<ECARMF.Kernel.Api.Hosting.MonthlyReportHostedService>();
+builder.Services.AddHostedService<ECARMF.Kernel.Api.Hosting.MonthlyBillingHostedService>();
 
 // Manifests declare operators and outcomes by name (e.g. "GreaterThan").
 builder.Services.ConfigureHttpJsonOptions(options =>
@@ -79,6 +80,7 @@ app.MapReportEndpoints();
 app.MapBulkImportEndpoints();
 app.MapTemplateEndpoints();
 app.MapHealthBoardEndpoints();
+app.MapHardeningEndpoints();
 app.MapAgentEndpoints();
 
 using (var scope = app.Services.CreateScope())

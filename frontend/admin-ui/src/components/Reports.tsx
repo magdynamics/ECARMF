@@ -95,6 +95,27 @@ export function Reports({ tenant, user }: { tenant: string; user: string }) {
           </label>
         </div>
 
+        <div className="form-row">
+          <label className="small">
+            Audit export (regulator-ready CSV of the append-only trail, last 12 months)
+          </label>
+          <button className="secondary" onClick={async () => {
+            try {
+              const response = await fetch('/api/audit/export', { headers: authHeaders() })
+              if (!response.ok) throw new ApiError(`${response.status} ${response.statusText}`, response.status, null)
+              const blob = await response.blob()
+              const url = URL.createObjectURL(blob)
+              const a = document.createElement('a')
+              a.href = url
+              a.download = `audit-${getTenant() || 'tenant'}.csv`
+              a.click()
+              URL.revokeObjectURL(url)
+            } catch (e) {
+              setError(e instanceof ApiError ? e.message : String(e))
+            }
+          }}>Download audit CSV</button>
+        </div>
+
         <table>
           <thead>
             <tr><th>Report</th><th>Period</th><th>Generated</th><th>By</th><th>Size</th><th></th></tr>

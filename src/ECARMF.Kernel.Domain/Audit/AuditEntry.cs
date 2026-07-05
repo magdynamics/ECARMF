@@ -66,4 +66,5 @@ public static class AuditCategories
     public const string BulkImportCompleted = "BulkImportCompleted";
     public const string TemplateCaptured = "TemplateCaptured";
     public const string TemplateApplied = "TemplateApplied";
+    public const string UserRolesChanged = "UserRolesChanged";
 }
