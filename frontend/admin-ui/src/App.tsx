@@ -5,6 +5,7 @@ import { Advisor } from './components/Advisor'
 import { AiSettings } from './components/AiSettings'
 import { Allocations } from './components/Allocations'
 import { Benchmarks } from './components/Benchmarks'
+import { Billing } from './components/Billing'
 import { Clients } from './components/Clients'
 import { Dashboard } from './components/Dashboard'
 import { DataEntry } from './components/DataEntry'
@@ -19,21 +20,23 @@ const SEEDED_USERS = [
   { id: 'admin@platform', label: 'Platform Administrator' },
 ]
 
-// Navigation grouped by what the user is doing: getting oriented, setting up,
-// putting data IN, reading results OUT — plus the operator-only Platform group.
-const NAV: { tab: string; label: string; group: string }[] = [
-  { tab: 'home', label: 'Start Here', group: '' },
-  { tab: 'packages', label: 'Packages', group: 'Setup' },
-  { tab: 'integrations', label: 'Integrations', group: 'Setup' },
-  { tab: 'benchmarks', label: 'Benchmarks', group: 'Setup' },
-  { tab: 'ai', label: 'AI Backend', group: 'Setup' },
-  { tab: 'dataentry', label: 'Data Entry', group: 'Input' },
-  { tab: 'activity', label: 'Record Activity', group: 'Output' },
-  { tab: 'dashboard', label: 'Dashboard', group: 'Output' },
-  { tab: 'library', label: 'Library', group: 'Output' },
-  { tab: 'allocations', label: 'Allocations', group: 'Output' },
-  { tab: 'advisor', label: 'AI Advisor', group: 'Output' },
-  { tab: 'clients', label: 'Clients', group: 'Platform' },
+// Sidebar navigation, grouped by what the user is doing. The Platform group
+// is the operator console (clients & billing) — it requires the reserved
+// 'platform' tenant, and the gate below offers the switch.
+const NAV: { tab: string; label: string; icon: string; group: string }[] = [
+  { tab: 'home', label: 'Start Here', icon: '🏠', group: '' },
+  { tab: 'packages', label: 'Packages', icon: '📦', group: 'Setup' },
+  { tab: 'integrations', label: 'Integrations', icon: '🔌', group: 'Setup' },
+  { tab: 'benchmarks', label: 'Benchmarks', icon: '🎯', group: 'Setup' },
+  { tab: 'ai', label: 'AI Backend', icon: '🧠', group: 'Setup' },
+  { tab: 'dataentry', label: 'Data Entry', icon: '📥', group: 'Input' },
+  { tab: 'activity', label: 'Record Activity', icon: '📋', group: 'Output' },
+  { tab: 'dashboard', label: 'Dashboard', icon: '📊', group: 'Output' },
+  { tab: 'library', label: 'Library', icon: '🗄️', group: 'Output' },
+  { tab: 'allocations', label: 'Allocations', icon: '💼', group: 'Output' },
+  { tab: 'advisor', label: 'AI Advisor', icon: '🤖', group: 'Output' },
+  { tab: 'clients', label: 'Clients', icon: '🏢', group: 'Platform' },
+  { tab: 'billing', label: 'Billing', icon: '🧾', group: 'Platform' },
 ]
 
 interface Me {
@@ -53,6 +56,12 @@ function App() {
   const [me, setMe] = useState<Me | null>(null)
   const [signedInWithKey, setSignedInWithKey] = useState(!!getApiKey())
   const [tab, setTab] = useState('home')
+  const [navOpen, setNavOpen] = useState(false)
+
+  function openTab(next: string) {
+    setTab(next)
+    setNavOpen(false)
+  }
 
   useEffect(() => {
     if (!signedInWithKey) {
@@ -67,16 +76,17 @@ function App() {
         setUserState(m.identifier)
       })
       .catch(() => {
-        // invalid/revoked key — drop it
         setApiKey('')
         setSignedInWithKey(false)
       })
   }, [signedInWithKey])
 
-  function applyTenant() {
-    const value = tenantInput.trim()
-    setTenant(value)
-    setTenantState(value)
+  function applyTenant(value?: string) {
+    const next = (value ?? tenantInput).trim()
+    if (!next) return
+    setTenant(next)
+    setTenantState(next)
+    setTenantInput(next)
   }
 
   function switchUser(id: string) {
@@ -98,19 +108,46 @@ function App() {
 
   const effectiveTenant = signedInWithKey ? (me?.tenantId ?? '') : tenant
   const effectiveUser = signedInWithKey ? (me?.identifier ?? '') : user
+  const isPlatformTab = tab === 'clients' || tab === 'billing'
+  const onPlatformTenant = effectiveTenant.toLowerCase() === 'platform'
+
+  // Operator gate: the Platform group needs the reserved operator tenant.
+  const OperatorGate = () => (
+    <section className="panel">
+      <h2>Platform operator console</h2>
+      <p className="muted">
+        Clients and Billing are managed from the reserved operator tenant (<code>platform</code>)
+        — client tenants can never see or reach each other's data here. You are currently on
+        tenant <strong>{effectiveTenant}</strong>.
+      </p>
+      {signedInWithKey ? (
+        <p className="muted small">
+          You are signed in with a client access key, which is bound to its own tenant. Sign out
+          and use the operator identity to manage clients.
+        </p>
+      ) : (
+        <button onClick={() => { switchUser('admin@platform'); applyTenant('platform') }}>
+          Switch to the operator tenant
+        </button>
+      )}
+    </section>
+  )
 
   return (
     <div className="app">
-      <header>
-        <h1>
-          ECARMF <span className="accent">Platform Kernel</span>
-        </h1>
+      <header className="topbar">
+        <div className="brand">
+          <button className="menu-toggle" onClick={() => setNavOpen((o) => !o)} aria-label="Menu">☰</button>
+          <h1>
+            ECARMF <span className="accent">Platform Kernel</span>
+          </h1>
+        </div>
         <div className="tenant-bar">
           {signedInWithKey ? (
             <>
               <span className="small">
-                Signed in as <strong>{me?.displayName ?? '…'}</strong>{' '}
-                <span className="muted">({me?.identifier} · tenant {me?.tenantName ?? me?.tenantId})</span>
+                <strong>{me?.displayName ?? '…'}</strong>{' '}
+                <span className="muted">· {me?.tenantName ?? me?.tenantId}</span>
               </span>
               <button onClick={signOut}>Sign out</button>
             </>
@@ -119,27 +156,23 @@ function App() {
               <label>
                 Tenant
                 <input
-                  placeholder="e.g. tenant-alpha or platform"
+                  placeholder="tenant-alpha"
                   value={tenantInput}
                   onChange={(e) => setTenantInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && applyTenant()}
                 />
               </label>
-              <button onClick={applyTenant} disabled={!tenantInput.trim()}>
-                Switch
-              </button>
+              <button onClick={() => applyTenant()} disabled={!tenantInput.trim()}>Switch</button>
               <label>
-                Acting as
+                As
                 <select value={user} onChange={(e) => switchUser(e.target.value)}>
                   {SEEDED_USERS.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.label}
-                    </option>
+                    <option key={u.id} value={u.id}>{u.label}</option>
                   ))}
                 </select>
               </label>
               <label>
-                Access key
+                Key
                 <input
                   type="password"
                   placeholder="ecarmf_…"
@@ -148,37 +181,44 @@ function App() {
                   onKeyDown={(e) => e.key === 'Enter' && apiKeyInput.trim() && signIn()}
                 />
               </label>
-              <button onClick={signIn} disabled={!apiKeyInput.trim()}>
-                Sign in
-              </button>
+              <button onClick={signIn} disabled={!apiKeyInput.trim()}>Sign in</button>
             </>
           )}
         </div>
       </header>
 
-      {!effectiveTenant ? (
-        <section className="panel">
-          <h2>Step 0 — choose your tenant (or sign in)</h2>
-          <p className="muted">
-            The platform serves multiple clients; everything you see belongs to one tenant. Sign in
-            with your issued access key — it identifies both you and your tenant — or, in
-            development mode, type a tenant id above (e.g. <code>tenant-alpha</code>, or{' '}
-            <code>platform</code> for the operator console) and press Switch.
-          </p>
-        </section>
-      ) : (
-        <>
-          <nav className="tabs">
-            {NAV.map((item) => (
-              <span key={item.tab} className="tab-item">
-                {item.group && <span className="tab-group">{item.group}</span>}
-                <button className={tab === item.tab ? 'active' : ''} onClick={() => setTab(item.tab)}>
-                  {item.label}
-                </button>
-              </span>
-            ))}
-          </nav>
-          {tab === 'home' ? (
+      <div className="layout">
+        {navOpen && <div className="backdrop" onClick={() => setNavOpen(false)} />}
+        <aside className={`sidebar ${navOpen ? 'open' : ''}`}>
+          {NAV.map((item, index) => (
+            <span key={item.tab} style={{ display: 'contents' }}>
+              {item.group && (index === 0 || NAV[index - 1].group !== item.group) && (
+                <div className="nav-group">{item.group}</div>
+              )}
+              <button
+                className={tab === item.tab ? 'active' : ''}
+                onClick={() => openTab(item.tab)}
+              >
+                <span>{item.icon}</span> {item.label}
+              </button>
+            </span>
+          ))}
+        </aside>
+
+        <main className="content">
+          {!effectiveTenant ? (
+            <section className="panel">
+              <h2>Step 0 — choose your tenant (or sign in)</h2>
+              <p className="muted">
+                The platform serves multiple clients; everything you see belongs to one tenant.
+                Sign in with your issued access key — it identifies both you and your tenant — or,
+                in development mode, type a tenant id in the top bar (e.g. <code>tenant-alpha</code>,
+                or <code>platform</code> for the operator console) and press Switch.
+              </p>
+            </section>
+          ) : isPlatformTab && !onPlatformTenant ? (
+            <OperatorGate />
+          ) : tab === 'home' ? (
             <Home tenant={effectiveTenant} user={effectiveUser} go={setTab} />
           ) : tab === 'packages' ? (
             <PackageInspector tenant={effectiveTenant} user={effectiveUser} />
@@ -200,11 +240,13 @@ function App() {
             <Allocations tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'advisor' ? (
             <Advisor tenant={effectiveTenant} user={effectiveUser} />
-          ) : (
+          ) : tab === 'clients' ? (
             <Clients tenant={effectiveTenant} user={effectiveUser} />
+          ) : (
+            <Billing tenant={effectiveTenant} user={effectiveUser} />
           )}
-        </>
-      )}
+        </main>
+      </div>
     </div>
   )
 }
