@@ -1,7 +1,9 @@
 using ECARMF.Kernel.Application.Compliance;
 using ECARMF.Kernel.Application.Identity;
+using ECARMF.Kernel.Application.Library;
 using ECARMF.Kernel.Domain.Compliance;
 using ECARMF.Kernel.Domain.Identity;
+using ECARMF.Kernel.Domain.Library;
 
 namespace ECARMF.Kernel.Api.Endpoints;
 
@@ -9,6 +11,8 @@ public record SaveRenewalRequest(
     string Name, string Category, string? Counterparty, string? Reference, string? Notes,
     DateTimeOffset DueDate, int? RecurrenceMonths, int[]? LeadTimeDays,
     string NotifyRole, bool CreateTask);
+
+public record AttachRenewalDocumentRequest(string FileName, string ContentBase64);
 
 /// <summary>
 /// Renewal commitments: dated obligations (licenses, insurance, loans,
@@ -138,6 +142,66 @@ public static class RenewalEndpoints
             return Results.Ok(renewal);
         });
 
+        // Evidence for the commitment: a scan/photo of the license, the
+        // policy PDF, the loan schedule. Archived in the tenant's document
+        // library (hashed, indexed, immutable) and linked to the renewal.
+        group.MapPost("/{id:guid}/documents", async (
+            Guid id, AttachRenewalDocumentRequest request, HttpContext context,
+            IUserStore users, IRenewalStore renewals, IDocumentLibrary library, CancellationToken ct) =>
+        {
+            if (!TenantResolution.TryGetTenant(context, out var tenantId))
+                return TenantResolution.MissingTenantResult();
+            var (error, user) = await AccessGuard.RequireAsync(context, users, tenantId, Permissions.ConnectorConfigure, ct);
+            if (error is not null) return error;
+
+            var renewal = await renewals.GetAsync(tenantId, id, ct);
+            if (renewal is null) return Results.NotFound();
+
+            if (string.IsNullOrWhiteSpace(request.FileName) || string.IsNullOrWhiteSpace(request.ContentBase64))
+                return Results.BadRequest(new { error = "fileName and contentBase64 are required." });
+
+            byte[] bytes;
+            try
+            {
+                bytes = Convert.FromBase64String(request.ContentBase64);
+            }
+            catch (FormatException)
+            {
+                return Results.BadRequest(new { error = "contentBase64 is not valid base64." });
+            }
+
+            var (mediaType, contentType) = ClassifyFile(request.FileName);
+            var document = await library.ArchiveAsync(new SourceDocument
+            {
+                TenantId = tenantId,
+                FileName = request.FileName,
+                MediaType = mediaType,
+                SourceId = $"renewal:{renewal.Id}",
+                SourceCategory = "renewal-attachment",
+                UploadedBy = user!.Identifier,
+                Metadata = new Dictionary<string, string>
+                {
+                    ["contentType"] = contentType,
+                    ["renewalName"] = renewal.Name,
+                    ["renewalCategory"] = renewal.Category,
+                    ["renewalReference"] = renewal.Reference ?? ""
+                }
+            }, bytes, ct);
+
+            return Results.Created($"/api/library/{document.Id}", document);
+        });
+
+        group.MapGet("/{id:guid}/documents", async (
+            Guid id, HttpContext context, IUserStore users, IDocumentLibrary library, CancellationToken ct) =>
+        {
+            if (!TenantResolution.TryGetTenant(context, out var tenantId))
+                return TenantResolution.MissingTenantResult();
+            var (error, _) = await AccessGuard.RequireAsync(context, users, tenantId, Permissions.RecordRead, ct);
+            if (error is not null) return error;
+
+            return Results.Ok(await library.SearchAsync(tenantId, null, $"renewal:{id}", null, null, 100, ct));
+        });
+
         group.MapDelete("/{id:guid}", async (
             Guid id, HttpContext context, IUserStore users, IRenewalStore renewals, CancellationToken ct) =>
         {
@@ -152,6 +216,23 @@ public static class RenewalEndpoints
 
         return app;
     }
+
+    /// <summary>Library media type + HTTP content type from the file name —
+    /// scans and photos of licenses/policies arrive as images or PDFs.</summary>
+    private static (string MediaType, string ContentType) ClassifyFile(string fileName)
+        => Path.GetExtension(fileName).ToLowerInvariant() switch
+        {
+            ".pdf" => ("pdf", "application/pdf"),
+            ".png" => ("image", "image/png"),
+            ".jpg" or ".jpeg" => ("image", "image/jpeg"),
+            ".gif" => ("image", "image/gif"),
+            ".webp" => ("image", "image/webp"),
+            ".bmp" => ("image", "image/bmp"),
+            ".tif" or ".tiff" => ("image", "image/tiff"),
+            ".json" => ("json", "application/json"),
+            ".csv" => ("csv", "text/csv"),
+            _ => ("text", "text/plain")
+        };
 
     private static (bool Valid, string? Message, RenewalCommitment? Renewal) Validate(
         SaveRenewalRequest request, string tenantId, string createdBy)

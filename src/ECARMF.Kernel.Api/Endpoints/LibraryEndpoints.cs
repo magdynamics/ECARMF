@@ -51,13 +51,19 @@ public static class LibraryEndpoints
             var content = await library.GetContentAsync(tenantId, id, ct);
             if (document is null || content is null) return Results.NotFound();
 
-            var contentType = document.MediaType switch
-            {
-                "pdf" => "application/pdf",
-                "json" => "application/json",
-                "csv" => "text/csv",
-                _ => "text/plain"
-            };
+            // Attachments record their exact type at archive time (e.g.
+            // image/png for a scanned license); older documents fall back
+            // to the media-type map.
+            var contentType = document.Metadata.TryGetValue("contentType", out var stored)
+                && !string.IsNullOrWhiteSpace(stored)
+                ? stored
+                : document.MediaType switch
+                {
+                    "pdf" => "application/pdf",
+                    "json" => "application/json",
+                    "csv" => "text/csv",
+                    _ => "text/plain"
+                };
             return Results.File(content, contentType, document.FileName);
         });
 
