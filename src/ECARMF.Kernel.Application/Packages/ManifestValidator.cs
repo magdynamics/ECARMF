@@ -40,6 +40,24 @@ public static class ManifestValidator
         CheckNames(errors, "performance framework", manifest.PerformanceFrameworks.Select(f => f.FrameworkId));
         CheckNames(errors, "workflow", manifest.Workflows.Select(w => w.WorkflowId));
         CheckNames(errors, "agent", manifest.Agents.Select(a => a.AgentId));
+        CheckNames(errors, "reference document", manifest.ReferenceDocuments.Select(r => r.ReferenceId));
+
+        foreach (var reference in manifest.ReferenceDocuments)
+        {
+            var label = string.IsNullOrWhiteSpace(reference.ReferenceId) ? "(unnamed reference)" : reference.ReferenceId;
+            if (string.IsNullOrWhiteSpace(reference.DocKey))
+                errors.Add($"Reference '{label}' has no DocKey (the stable identity across annual versions).");
+            if (string.IsNullOrWhiteSpace(reference.Title))
+                errors.Add($"Reference '{label}' has no Title.");
+            if (string.IsNullOrWhiteSpace(reference.DocType))
+                errors.Add($"Reference '{label}' has no DocType.");
+            // The effective range is the load-bearing feature: tax law changes
+            // annually, and an undated reference silently answers with stale rules.
+            if (reference.EffectiveFrom == default)
+                errors.Add($"Reference '{label}' has no EffectiveFrom — every reference version must be effective-dated.");
+            if (reference.EffectiveTo is { } to && to <= reference.EffectiveFrom)
+                errors.Add($"Reference '{label}' has EffectiveTo on or before EffectiveFrom.");
+        }
 
         foreach (var agent in manifest.Agents)
         {
@@ -49,10 +67,10 @@ public static class ManifestValidator
             foreach (var source in agent.ContextSources)
             {
                 var valid = source.ToLowerInvariant() is "scores" or "deviations" or "benchmarks"
-                    or "tasks" or "allocations" or "library"
+                    or "tasks" or "allocations" or "library" or "references"
                     || source.StartsWith("records:", StringComparison.OrdinalIgnoreCase);
                 if (!valid)
-                    errors.Add($"Agent '{label}' declares invalid context source '{source}' (scores|deviations|benchmarks|tasks|allocations|library|records:{{RecordType}}).");
+                    errors.Add($"Agent '{label}' declares invalid context source '{source}' (scores|deviations|benchmarks|tasks|allocations|library|references|records:{{RecordType}}).");
             }
         }
 

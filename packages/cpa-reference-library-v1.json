@@ -1,0 +1,99 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "CPA Knowledge Reference Library",
+  "version": "1",
+  "status": "Published",
+  "owner": "MAG Dynamics",
+  "description": "The Knowledge Reference Library for CPA practice (MagCPA Requirement 5): IRS guidelines, GAAP/GAAS manuals, IRS segment audit technique guides, and IDOR guidance as retrievable, EFFECTIVE-DATED references - versioned through the package mechanism so a 2027 question never retrieves 2025 rules. Ships both the 2025 and 2026 editions of the IRS small-business guide to exercise the effective-date selection. Content fields hold public-domain summaries/excerpts; licensed texts (FASB ASC) carry pointers, not reproductions. Quantitative IRS corporate tax ratios are deliberately NOT here - they are benchmark data (AI Analytical Source, category 6), set as tenant benchmarks against the Client Tax Risk Indicators framework.",
+
+  "packageId": "ecarmf.cpa-reference",
+  "name": "CPA Knowledge Reference Library",
+  "packageVersion": "1.0.0",
+  "publisher": "MAG Dynamics (sources: IRS, AICPA, FASB, IDOR public guidance)",
+  "dependencies": [],
+
+  "entities": [],
+  "events": [],
+  "rules": [],
+  "capabilities": [
+    { "capabilityId": "RegulatoryReferenceLibrary", "name": "Regulatory Reference Library", "description": "Effective-dated retrieval of tax/accounting/audit references for agent citation." }
+  ],
+  "schemaTemplates": [],
+  "performanceFrameworks": [],
+  "agents": [],
+
+  "referenceDocuments": [
+    {
+      "referenceId": "irs-pub-334-2025",
+      "docKey": "irs-pub-334",
+      "title": "IRS Publication 334, Tax Guide for Small Business - 2025 edition",
+      "docType": "IRSGuideline",
+      "issuer": "IRS",
+      "jurisdiction": "Federal",
+      "effectiveFrom": "2025-01-01T00:00:00Z",
+      "effectiveTo": "2025-12-31T23:59:59Z",
+      "summary": "General federal income tax rules for small business returns, tax year 2025.",
+      "contentText": "2025 edition. Applies to tax year 2025 returns. Flat corporate rate 21% (IRC s11, TCJA). Section 179 expensing limit and standard mileage rates per 2025 revenue procedures. Superseded for tax year 2026 by the 2026 edition."
+    },
+    {
+      "referenceId": "irs-pub-334-2026",
+      "docKey": "irs-pub-334",
+      "title": "IRS Publication 334, Tax Guide for Small Business - 2026 edition",
+      "docType": "IRSGuideline",
+      "issuer": "IRS",
+      "jurisdiction": "Federal",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "effectiveTo": null,
+      "summary": "General federal income tax rules for small business returns, tax year 2026 - current edition.",
+      "contentText": "2026 edition (current). Applies to tax year 2026 returns. Flat corporate rate 21% (IRC s11). Inflation-adjusted thresholds per 2026 revenue procedures. Remains effective until the 2027 edition is published as a new package version."
+    },
+    {
+      "referenceId": "gaap-asc-2026",
+      "docKey": "gaap-asc",
+      "title": "FASB Accounting Standards Codification (GAAP) - 2026 view",
+      "docType": "GAAP",
+      "issuer": "FASB",
+      "jurisdiction": null,
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "effectiveTo": null,
+      "summary": "US GAAP as codified by FASB; authoritative for financial statement preparation.",
+      "contentText": "POINTER (licensed content - not reproduced): FASB ASC via asc.fasb.org, firm subscription. Key active updates for 2026 engagements per ASU effective-date schedule. Cite specific ASC topics (e.g. ASC 606 revenue, ASC 842 leases) from the codification itself."
+    },
+    {
+      "referenceId": "gaas-sas-2026",
+      "docKey": "gaas-sas",
+      "title": "AICPA Statements on Auditing Standards (GAAS) - 2026 compilation",
+      "docType": "GAAS",
+      "issuer": "AICPA",
+      "jurisdiction": null,
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "effectiveTo": null,
+      "summary": "Generally accepted auditing standards for non-issuer audits.",
+      "contentText": "AICPA SAS compilation applicable to 2026 audit engagements (AU-C sections). Includes quality management standards effective for engagements beginning after Dec 15, 2025 (SQMS 1/2, SAS 146)."
+    },
+    {
+      "referenceId": "irs-audit-technique-guides-2026",
+      "docKey": "irs-atg",
+      "title": "IRS Audit Technique Guides (segment audit guidelines) - 2026 set",
+      "docType": "AuditGuideline",
+      "issuer": "IRS",
+      "jurisdiction": "Federal",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "effectiveTo": null,
+      "summary": "Industry-segment examination guides IRS agents use; what examiners look for, by segment.",
+      "contentText": "Public IRS ATG set: cash-intensive businesses, construction, restaurants, attorneys, and other segments. Used to explain WHY a ratio deviation correlates with examination risk in a given segment. Indicators only - selection for examination is an IRS decision, never predictable from ratios alone."
+    },
+    {
+      "referenceId": "idor-guidelines-2026",
+      "docKey": "idor-guidelines",
+      "title": "Illinois Department of Revenue guidance - 2026",
+      "docType": "StateRevenue",
+      "issuer": "IDOR",
+      "jurisdiction": "Illinois",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "effectiveTo": null,
+      "summary": "Illinois income/replacement tax and sales tax guidance for 2026 filings.",
+      "contentText": "IDOR 2026 guidance: IL corporate income tax 7% plus 2.5% personal property replacement tax (9.5% combined for C corps); pass-through entity tax election available. Annual report obligations are with the Illinois Secretary of State, tracked as entity-level renewals."
+    }
+  ]
+}

@@ -1,0 +1,172 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "AI CPA Firm",
+  "version": "1",
+  "status": "Published",
+  "owner": "MAG Dynamics",
+  "description": "AI CPA Firm agent package (MagCPA test case): AGORZ Time & Billing summaries feed the CPA Firm Operations KPI Framework v1 (per-staff utilization/realization, per-location WIP aging, billing cycle, revenue per staff, client retention, CPE compliance rate — the last fed from the kernel's person-level compliance summary). Client return summaries feed the Client Tax Risk Indicators framework, benchmarked against IRS corporate tax ratios by industry segment (AI Analytical Source pattern; targets live in tenant benchmarks, not this manifest). Includes the Tax Preparation & Compliance Agent with a KERNEL-ENFORCED output disclaimer: every answer is framed as a statistical risk indicator, never a tax determination. The AI Communications/Customer Engagement Agent is deliberately NOT in this version: Illinois two-party consent for call recording is an unresolved legal prerequisite (MagCPA Requirement 8) — it ships as a package update once counsel confirms the consent mechanism.",
+
+  "packageId": "ecarmf.ai-cpa-firm",
+  "name": "AI CPA Firm",
+  "packageVersion": "1.0.1",
+  "publisher": "MAG Dynamics",
+  "dependencies": [],
+
+  "entities": [
+    {
+      "entityTypeName": "AgorzStaffPeriod",
+      "description": "One staff member's period summary from the AGORZ Time & Billing system: billable vs available hours, billed amounts, standard rate.",
+      "attributes": [
+        { "name": "staffId", "dataType": "string", "required": true },
+        { "name": "periodEnd", "dataType": "string", "required": true },
+        { "name": "billableHours", "dataType": "number", "required": true },
+        { "name": "availableHours", "dataType": "number", "required": true },
+        { "name": "billedAmount", "dataType": "number", "required": false },
+        { "name": "standardRate", "dataType": "number", "required": false }
+      ]
+    },
+    {
+      "entityTypeName": "AgorzFirmPeriod",
+      "description": "One location's period roll-up from AGORZ (+ QuickBooks revenue): WIP aging, billing cycle, revenue, headcount, retention, CPE-compliant staff count (fed from the person-level compliance summary).",
+      "attributes": [
+        { "name": "locationId", "dataType": "string", "required": true },
+        { "name": "periodEnd", "dataType": "string", "required": true },
+        { "name": "wipOutstanding", "dataType": "number", "required": false },
+        { "name": "wipOver60", "dataType": "number", "required": false },
+        { "name": "avgBillingCycleDays", "dataType": "number", "required": false },
+        { "name": "totalRevenue", "dataType": "number", "required": true },
+        { "name": "headcount", "dataType": "number", "required": true },
+        { "name": "returningClients", "dataType": "number", "required": false },
+        { "name": "totalClients", "dataType": "number", "required": false },
+        { "name": "cpeCompliantStaff", "dataType": "number", "required": false }
+      ]
+    },
+    {
+      "entityTypeName": "ClientReturnSummary",
+      "description": "Ratio-relevant essentials of a client business return, entered per engagement for comparison against IRS segment ratios. A risk INDICATOR input - never a determination.",
+      "attributes": [
+        { "name": "clientCode", "dataType": "string", "required": true },
+        { "name": "industrySegment", "dataType": "string", "required": true },
+        { "name": "taxYear", "dataType": "number", "required": true },
+        { "name": "revenue", "dataType": "number", "required": true },
+        { "name": "cogs", "dataType": "number", "required": false },
+        { "name": "officersComp", "dataType": "number", "required": false },
+        { "name": "netIncome", "dataType": "number", "required": false }
+      ]
+    }
+  ],
+
+  "events": [],
+  "rules": [],
+  "capabilities": [
+    { "capabilityId": "CpaFirmIntelligence", "name": "CPA Firm Intelligence", "description": "Per-staff and per-location professional-services KPIs with deviation monitoring." },
+    { "capabilityId": "TaxRiskIndication", "name": "Tax Risk Indication", "description": "Client return ratios vs IRS segment benchmarks - statistical indicators reviewed by licensed CPAs, never determinations." }
+  ],
+
+  "schemaTemplates": [
+    {
+      "templateId": "agorz-staff-period-json",
+      "name": "AGORZ staff period summary (JSON) - reference until AGORZ connection details arrive",
+      "sourceFormat": "json",
+      "targetEntityType": "AgorzStaffPeriod",
+      "fieldMappings": [
+        { "rawField": "employeeCode", "targetField": "staffId", "transform": "none", "required": true },
+        { "rawField": "periodEnding", "targetField": "periodEnd", "transform": "parseDate", "required": true },
+        { "rawField": "chargeableHours", "targetField": "billableHours", "transform": "none", "required": true },
+        { "rawField": "capacityHours", "targetField": "availableHours", "transform": "none", "required": true },
+        { "rawField": "amountBilled", "targetField": "billedAmount", "transform": "none", "required": false },
+        { "rawField": "standardHourlyRate", "targetField": "standardRate", "transform": "none", "required": false }
+      ]
+    },
+    {
+      "templateId": "agorz-firm-period-json",
+      "name": "AGORZ location period roll-up (JSON) - reference until AGORZ connection details arrive",
+      "sourceFormat": "json",
+      "targetEntityType": "AgorzFirmPeriod",
+      "fieldMappings": [
+        { "rawField": "officeCode", "targetField": "locationId", "transform": "none", "required": true },
+        { "rawField": "periodEnding", "targetField": "periodEnd", "transform": "parseDate", "required": true },
+        { "rawField": "wipBalance", "targetField": "wipOutstanding", "transform": "none", "required": false },
+        { "rawField": "wipOver60Days", "targetField": "wipOver60", "transform": "none", "required": false },
+        { "rawField": "avgDaysToInvoice", "targetField": "avgBillingCycleDays", "transform": "none", "required": false },
+        { "rawField": "periodRevenue", "targetField": "totalRevenue", "transform": "none", "required": true },
+        { "rawField": "staffCount", "targetField": "headcount", "transform": "none", "required": true },
+        { "rawField": "returningClientCount", "targetField": "returningClients", "transform": "none", "required": false },
+        { "rawField": "totalClientCount", "targetField": "totalClients", "transform": "none", "required": false },
+        { "rawField": "cpeCompliantStaffCount", "targetField": "cpeCompliantStaff", "transform": "none", "required": false }
+      ]
+    },
+    {
+      "templateId": "client-return-summary-json",
+      "name": "Client return summary (manual entry per engagement)",
+      "sourceFormat": "json",
+      "targetEntityType": "ClientReturnSummary",
+      "fieldMappings": [
+        { "rawField": "clientCode", "targetField": "clientCode", "transform": "none", "required": true },
+        { "rawField": "industrySegment", "targetField": "industrySegment", "transform": "none", "required": true },
+        { "rawField": "taxYear", "targetField": "taxYear", "transform": "none", "required": true },
+        { "rawField": "revenue", "targetField": "revenue", "transform": "none", "required": true },
+        { "rawField": "cogs", "targetField": "cogs", "transform": "none", "required": false },
+        { "rawField": "officersComp", "targetField": "officersComp", "transform": "none", "required": false },
+        { "rawField": "netIncome", "targetField": "netIncome", "transform": "none", "required": false }
+      ]
+    }
+  ],
+
+  "performanceFrameworks": [
+    {
+      "frameworkId": "cpa-firm-operations-v1",
+      "name": "CPA Firm Operations KPI Framework v1",
+      "industry": "Accounting",
+      "description": "Per-staff and per-location CPA firm KPIs (MagCPA Requirement 6), built on AGORZ Time & Billing data. Targets are AI-seeded professional-services baselines pending partner review.",
+      "kpis": [
+        { "kpiId": "utilization-rate", "name": "Utilization rate", "formula": "billableHours / availableHours", "triggerRecordType": "AgorzStaffPeriod", "subjectField": "staffId", "unit": "ratio", "targetValue": 0.65, "direction": "higher" },
+        { "kpiId": "realization-rate", "name": "Realization rate", "formula": "billedAmount / (billableHours * standardRate)", "triggerRecordType": "AgorzStaffPeriod", "subjectField": "staffId", "unit": "ratio", "targetValue": 0.85, "direction": "higher" },
+        { "kpiId": "wip-over-60", "name": "WIP aged over 60 days", "formula": "wipOver60", "triggerRecordType": "AgorzFirmPeriod", "subjectField": "locationId", "unit": "usd", "targetValue": 25000, "direction": "lower" },
+        { "kpiId": "billing-cycle-days", "name": "Billing cycle time (days)", "formula": "avgBillingCycleDays", "triggerRecordType": "AgorzFirmPeriod", "subjectField": "locationId", "unit": "days", "targetValue": 15, "direction": "lower" },
+        { "kpiId": "revenue-per-staff", "name": "Revenue per staff (period)", "formula": "totalRevenue / headcount", "triggerRecordType": "AgorzFirmPeriod", "subjectField": "locationId", "unit": "usd", "targetValue": 30000, "direction": "higher" },
+        { "kpiId": "client-retention", "name": "Client retention rate", "formula": "returningClients / totalClients", "triggerRecordType": "AgorzFirmPeriod", "subjectField": "locationId", "unit": "ratio", "targetValue": 0.85, "direction": "higher" },
+        { "kpiId": "cpe-compliance-rate", "name": "CPE compliance rate", "formula": "cpeCompliantStaff / headcount", "triggerRecordType": "AgorzFirmPeriod", "subjectField": "locationId", "unit": "ratio", "targetValue": 1.0, "direction": "higher" }
+      ],
+      "okrs": [
+        {
+          "okrId": "firm-economics",
+          "objective": "Healthy leverage and cash discipline at every office",
+          "keyResults": [
+            { "krId": "kr-utilization", "kpiId": "utilization-rate", "targetValue": 0.65 },
+            { "krId": "kr-realization", "kpiId": "realization-rate", "targetValue": 0.85 },
+            { "krId": "kr-retention", "kpiId": "client-retention", "targetValue": 0.85 }
+          ]
+        }
+      ]
+    },
+    {
+      "frameworkId": "client-tax-risk-indicators-v1",
+      "name": "Client Tax Risk Indicators v1",
+      "industry": "Accounting",
+      "description": "Ratio indicators per client return (MagCPA Requirement 5/7). Targets are intentionally null: expectations come from IRS corporate tax ratios BY INDUSTRY SEGMENT, set as tenant benchmarks (AI Analytical Source) - not one-size-fits-all manifest targets. Every flag is a statistical indicator a licensed CPA reviews.",
+      "kpis": [
+        { "kpiId": "officers-comp-ratio", "name": "Officers compensation / revenue", "formula": "officersComp / revenue", "triggerRecordType": "ClientReturnSummary", "subjectField": "clientCode", "unit": "ratio", "targetValue": null, "direction": "lower" },
+        { "kpiId": "gross-margin-ratio", "name": "Gross margin ratio", "formula": "(revenue - cogs) / revenue", "triggerRecordType": "ClientReturnSummary", "subjectField": "clientCode", "unit": "ratio", "targetValue": null, "direction": "higher" },
+        { "kpiId": "net-margin-ratio", "name": "Net margin ratio", "formula": "netIncome / revenue", "triggerRecordType": "ClientReturnSummary", "subjectField": "clientCode", "unit": "ratio", "targetValue": null, "direction": "higher" }
+      ],
+      "okrs": []
+    }
+  ],
+
+  "agents": [
+    {
+      "agentId": "tax-compliance-agent",
+      "name": "Tax Preparation & Compliance Agent",
+      "description": "Flags audit-risk indicators on client returns by comparing ratios against IRS segment benchmarks, citing the effective-dated reference library. Advisory only.",
+      "persona": "You are the Tax Preparation & Compliance Agent for a licensed CPA firm. You compare client return ratios (officers compensation/revenue, gross margin, net margin) against IRS corporate tax ratio benchmarks for the client's industry segment, and you cite the applicable reference (IRS guideline, GAAP/GAAS section, IDOR bulletin) from the reference library when explaining any flag - including which edition/effective period you relied on. Ground every statement in the provided context; if the reference library or benchmarks lack the segment in question, say so plainly. You NEVER conclude that a return is wrong, fraudulent, or non-compliant: you surface statistical deviations for a licensed CPA to evaluate. Phrase every flag as an indicator (e.g. 'deviates from the IRS segment median, which correlates with elevated audit selection risk'), never as a determination.",
+      "contextSources": [ "references", "records:ClientReturnSummary", "scores", "deviations", "benchmarks" ],
+      "sampleQuestions": [
+        "Which client returns deviate most from their IRS segment ratios this year?",
+        "Why was client C-1042's officers compensation ratio flagged, and which IRS guidance applies?",
+        "Which edition of the IRS guidelines applies to a tax year 2025 return?"
+      ],
+      "outputDisclaimer": "This is a statistical risk indicator generated from IRS benchmark ratios - it is NOT a tax determination, audit prediction, or professional advice. A licensed CPA at MagCPA LLC must evaluate every flag before any client communication or filing decision."
+    }
+  ]
+}

@@ -21,6 +21,9 @@ public class RenewalRecord
     /// <summary>Warning ladder as CSV of days, e.g. "90,30,7".</summary>
     public string LeadTimeDaysCsv { get; set; } = string.Empty;
 
+    public decimal? RequiredUnits { get; set; }
+    public decimal CompletedUnits { get; set; }
+    public string? UnitLabel { get; set; }
     public string NotifyRole { get; set; } = string.Empty;
     public bool CreateTask { get; set; }
     public string Status { get; set; } = RenewalStatuses.Active;
@@ -80,6 +83,9 @@ public class EfRenewalStore : IRenewalStore
         record.DueDate = updated.DueDate;
         record.RecurrenceMonths = updated.RecurrenceMonths;
         record.LeadTimeDaysCsv = updated.LeadTimeDaysCsv;
+        record.RequiredUnits = updated.RequiredUnits;
+        record.CompletedUnits = updated.CompletedUnits;
+        record.UnitLabel = updated.UnitLabel;
         record.NotifyRole = updated.NotifyRole;
         record.CreateTask = updated.CreateTask;
         record.Status = updated.Status;
@@ -115,6 +121,9 @@ public class EfRenewalStore : IRenewalStore
         DueDate = renewal.DueDate,
         RecurrenceMonths = renewal.RecurrenceMonths,
         LeadTimeDaysCsv = string.Join(",", renewal.LeadTimeDays),
+        RequiredUnits = renewal.RequiredUnits,
+        CompletedUnits = renewal.CompletedUnits,
+        UnitLabel = renewal.UnitLabel,
         NotifyRole = renewal.NotifyRole,
         CreateTask = renewal.CreateTask,
         Status = renewal.Status,
@@ -142,6 +151,9 @@ public class EfRenewalStore : IRenewalStore
         LeadTimeDays = record.LeadTimeDaysCsv
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Select(int.Parse).ToArray(),
+        RequiredUnits = record.RequiredUnits,
+        CompletedUnits = record.CompletedUnits,
+        UnitLabel = record.UnitLabel,
         NotifyRole = record.NotifyRole,
         CreateTask = record.CreateTask,
         Status = record.Status,

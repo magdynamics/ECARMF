@@ -109,6 +109,9 @@ public class RenewalMonitorService : IRenewalMonitor
             // must not silently shorten the next cycle.
             renewal.DueDate = renewal.DueDate.AddMonths(months);
             renewal.LastAlertedThresholdDays = null;
+            // A unit-accruing obligation (CPE/CLE) starts the next licensing
+            // period from zero.
+            renewal.CompletedUnits = 0;
         }
         else
         {

@@ -34,6 +34,7 @@ public static class AgentEndpoints
                 a.Declaration.Description,
                 a.Declaration.ContextSources,
                 a.Declaration.SampleQuestions,
+                a.Declaration.OutputDisclaimer,
                 a.PackageId,
                 a.PackageVersion
             }));

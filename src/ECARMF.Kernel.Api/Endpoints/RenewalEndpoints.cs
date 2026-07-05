@@ -11,9 +11,12 @@ public record SaveRenewalRequest(
     string Name, string Category, string? SubjectType, string? SubjectId,
     string? Counterparty, string? Reference, string? Notes,
     DateTimeOffset DueDate, int? RecurrenceMonths, int[]? LeadTimeDays,
-    string NotifyRole, bool CreateTask);
+    string NotifyRole, bool CreateTask,
+    decimal? RequiredUnits = null, string? UnitLabel = null);
 
 public record AttachRenewalDocumentRequest(string FileName, string ContentBase64);
+
+public record RecordProgressRequest(decimal Units, string? Note);
 
 /// <summary>
 /// Renewal commitments: dated obligations (licenses, insurance, loans,
@@ -92,6 +95,9 @@ public static class RenewalEndpoints
             updated.Status = existing.Status;
             updated.RenewalCount = existing.RenewalCount;
             updated.LastRenewedAt = existing.LastRenewedAt;
+            // Progress is recorded through its own endpoint; an edit of the
+            // commitment's terms never rewrites the accrued units.
+            updated.CompletedUnits = existing.CompletedUnits;
             // A moved due date restarts the warning ladder.
             updated.LastAlertedThresholdDays =
                 updated.DueDate == existing.DueDate ? existing.LastAlertedThresholdDays : null;
@@ -111,6 +117,98 @@ public static class RenewalEndpoints
             // does the same thing platform-wide.
             var raised = await monitor.EvaluateAsync(tenantId, DateTimeOffset.UtcNow, ct);
             return Results.Ok(new { raised });
+        });
+
+        // Person-level compliance (MagCPA Requirement 3): log units earned
+        // toward an accruing obligation — a CPE course completed, CLE
+        // credits attended. RecordSubmit, not ConnectorConfigure: logging
+        // progress is data entry, not reconfiguring the obligation.
+        group.MapPost("/{id:guid}/progress", async (
+            Guid id, RecordProgressRequest request, HttpContext context,
+            IUserStore users, IRenewalStore renewals, Application.Audit.IAuditLog audit, CancellationToken ct) =>
+        {
+            if (!TenantResolution.TryGetTenant(context, out var tenantId))
+                return TenantResolution.MissingTenantResult();
+            var (error, user) = await AccessGuard.RequireAsync(context, users, tenantId, Permissions.RecordSubmit, ct);
+            if (error is not null) return error;
+
+            if (request.Units <= 0)
+                return Results.BadRequest(new { error = "units must be positive." });
+
+            var renewal = await renewals.GetAsync(tenantId, id, ct);
+            if (renewal is null) return Results.NotFound();
+            if (renewal.Status != RenewalStatuses.Active)
+                return Results.BadRequest(new { error = "Progress can only be recorded on an Active commitment." });
+            if (renewal.RequiredUnits is null)
+                return Results.BadRequest(new { error = "This commitment does not track units; set requiredUnits first." });
+
+            renewal.CompletedUnits += request.Units;
+            renewal.UpdatedAt = DateTimeOffset.UtcNow;
+            await renewals.UpdateAsync(renewal, ct);
+
+            await audit.AppendAsync(new Domain.Audit.AuditEntry
+            {
+                TenantId = tenantId,
+                CorrelationId = renewal.Id,
+                Category = Domain.Audit.AuditCategories.RenewalProgressRecorded,
+                Actor = user!.Identifier,
+                Summary = $"{request.Units} {renewal.UnitLabel ?? "units"} recorded for '{renewal.Name}': " +
+                          $"{renewal.CompletedUnits}/{renewal.RequiredUnits} this cycle.",
+                Detail = new Dictionary<string, string>
+                {
+                    ["renewalId"] = renewal.Id.ToString(),
+                    ["units"] = request.Units.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    ["completedUnits"] = renewal.CompletedUnits.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    ["requiredUnits"] = renewal.RequiredUnits.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    ["note"] = request.Note ?? ""
+                }
+            }, ct);
+
+            return Results.Ok(renewal);
+        });
+
+        // Compliance rate across subjects (feeds the CPE-compliance-rate KPI):
+        // how many people/units carrying this obligation are on requirement.
+        group.MapGet("/compliance-summary", async (
+            string? category, string? subjectType, HttpContext context,
+            IUserStore users, IRenewalStore renewals, CancellationToken ct) =>
+        {
+            if (!TenantResolution.TryGetTenant(context, out var tenantId))
+                return TenantResolution.MissingTenantResult();
+            var (error, _) = await AccessGuard.RequireAsync(context, users, tenantId, Permissions.ScoreRead, ct);
+            if (error is not null) return error;
+
+            var commitments = (await renewals.GetAllAsync(tenantId, ct))
+                .Where(r => r.Status == RenewalStatuses.Active)
+                .Where(r => string.IsNullOrWhiteSpace(category)
+                    || string.Equals(r.Category, category, StringComparison.OrdinalIgnoreCase))
+                .Where(r => string.IsNullOrWhiteSpace(subjectType)
+                    || string.Equals(r.SubjectType, subjectType, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            var perSubject = commitments.Select(r => new
+            {
+                r.SubjectType,
+                r.SubjectId,
+                r.Name,
+                r.Category,
+                r.DueDate,
+                r.RequiredUnits,
+                r.CompletedUnits,
+                r.UnitLabel,
+                // Date-only renewals are compliant while Active and not overdue;
+                // unit-accruing ones must also have the units in hand.
+                Compliant = r.DueDate >= DateTimeOffset.UtcNow
+                    && (r.RequiredUnits is not { } required || r.CompletedUnits >= required)
+            }).ToList();
+
+            return Results.Ok(new
+            {
+                total = perSubject.Count,
+                compliant = perSubject.Count(s => s.Compliant),
+                rate = perSubject.Count == 0 ? 1m : Math.Round((decimal)perSubject.Count(s => s.Compliant) / perSubject.Count, 4),
+                subjects = perSubject
+            });
         });
 
         group.MapPost("/{id:guid}/renewed", async (
@@ -265,11 +363,16 @@ public static class RenewalEndpoints
             string.Equals(c, request.Category, StringComparison.OrdinalIgnoreCase))
             ?? request.Category.Trim();
 
+        if (request.RequiredUnits is <= 0)
+            return (false, "requiredUnits must be positive (or omitted for a date-only renewal).", null);
+
         return (true, null, new RenewalCommitment
         {
             TenantId = tenantId,
             Name = request.Name.Trim(),
             Category = category,
+            RequiredUnits = request.RequiredUnits,
+            UnitLabel = string.IsNullOrWhiteSpace(request.UnitLabel) ? null : request.UnitLabel.Trim(),
             SubjectType = string.IsNullOrWhiteSpace(request.SubjectType) ? null : request.SubjectType.Trim(),
             SubjectId = string.IsNullOrWhiteSpace(request.SubjectId) ? null : request.SubjectId.Trim(),
             Counterparty = request.Counterparty,

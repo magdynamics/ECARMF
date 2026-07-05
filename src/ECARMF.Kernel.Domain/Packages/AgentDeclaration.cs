@@ -23,9 +23,17 @@ public class AgentDeclaration
 
     /// <summary>Tenant data the agent receives as grounding context. Valid:
     /// scores | deviations | benchmarks | tasks | allocations | library |
-    /// records:{RecordType}. Anything not declared is not shown to the agent.</summary>
+    /// references | records:{RecordType}. Anything not declared is not
+    /// shown to the agent.</summary>
     public List<string> ContextSources { get; set; } = [];
 
     /// <summary>Example questions surfaced in the UI.</summary>
     public List<string> SampleQuestions { get; set; } = [];
+
+    /// <summary>Liability framing APPENDED TO EVERY ANSWER at the output
+    /// layer (MagCPA Requirement 5/7): e.g. "statistical risk indicator,
+    /// not a tax determination — a licensed CPA decides". Enforced by the
+    /// consult service, not left as a persona suggestion the model could
+    /// drop.</summary>
+    public string? OutputDisclaimer { get; set; }
 }

@@ -37,4 +37,6 @@ public class KnowledgePackageManifest : UniversalBaseEntity
     public List<WorkflowDeclaration> Workflows { get; set; } = [];
 
     public List<AgentDeclaration> Agents { get; set; } = [];
+
+    public List<ReferenceDocumentDeclaration> ReferenceDocuments { get; set; } = [];
 }

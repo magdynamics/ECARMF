@@ -166,6 +166,15 @@ public class AgentConsultService : IAgentConsultService
             return (false, $"The agent's model backend failed: {ex.Message}", null);
         }
 
+        // Output-layer enforcement (MagCPA Requirement 5/7): a declared
+        // disclaimer is appended by the kernel to every answer — the model
+        // cannot omit it and the UI cannot lose it, because it is part of
+        // the stored answer itself.
+        if (!string.IsNullOrWhiteSpace(agent.OutputDisclaimer))
+        {
+            answer = answer.TrimEnd() + "\n\n---\n⚖ " + agent.OutputDisclaimer.Trim();
+        }
+
         var interaction = new AgentInteraction
         {
             TenantId = tenantId,
@@ -310,6 +319,26 @@ public class AgentConsultService : IAgentConsultService
                 var documents = (await _library.SearchAsync(tenantId, null, null, null, null, 25, ct))
                     .Select(d => new { d.FileName, d.SourceId, d.SourceCategory, d.ArchivedAt, records = d.RecordIds.Count });
                 Append(context, "recentLibraryDocuments", documents);
+            }
+            else if (source.Equals("references", StringComparison.OrdinalIgnoreCase))
+            {
+                // Only currently-effective versions: the agent citing tax
+                // rules must never ground itself in a superseded year.
+                var effective = _registries.GetFor(tenantId).References
+                    .GetEffective(DateTimeOffset.UtcNow)
+                    .Select(r => new
+                    {
+                        r.Declaration.DocKey,
+                        r.Declaration.Title,
+                        r.Declaration.DocType,
+                        r.Declaration.Issuer,
+                        r.Declaration.Jurisdiction,
+                        r.Declaration.EffectiveFrom,
+                        r.Declaration.EffectiveTo,
+                        r.Declaration.Summary,
+                        content = r.Declaration.ContentText
+                    });
+                Append(context, "referenceLibrary (currently effective versions only)", effective);
             }
             else if (source.StartsWith("records:", StringComparison.OrdinalIgnoreCase))
             {

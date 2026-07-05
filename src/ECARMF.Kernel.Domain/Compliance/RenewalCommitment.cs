@@ -50,6 +50,19 @@ public class RenewalCommitment
     /// as Warning, the last rung — and overdue — as Critical.</summary>
     public IReadOnlyList<int> LeadTimeDays { get; set; } = new[] { 90, 30, 7 };
 
+    /// <summary>For unit-accruing obligations (a CPA's CPE hours, an
+    /// attorney's CLE credits, an engineer's PDHs): how many units the
+    /// licensing period requires. Null = a date-only renewal (MagCPA
+    /// Requirement 3, person-level compliance as a first-class pattern).</summary>
+    public decimal? RequiredUnits { get; set; }
+
+    /// <summary>Units completed so far this cycle; resets when the
+    /// commitment renews into its next cycle.</summary>
+    public decimal CompletedUnits { get; set; }
+
+    /// <summary>What a unit is ("CPE hours", "CLE credits").</summary>
+    public string? UnitLabel { get; set; }
+
     /// <summary>Role notified as the due date approaches.</summary>
     public string NotifyRole { get; set; } = "ExecutiveOwner";
 

@@ -85,6 +85,7 @@ app.MapHardeningEndpoints();
 app.MapOrgUnitEndpoints();
 app.MapTreasuryEndpoints();
 app.MapAgentEndpoints();
+app.MapReferenceEndpoints();
 
 using (var scope = app.Services.CreateScope())
 {

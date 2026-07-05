@@ -228,6 +228,9 @@ public class ECARMFDbContext : DbContext
             entity.Property(r => r.Reference).HasMaxLength(200);
             entity.Property(r => r.Notes).HasMaxLength(2000);
             entity.Property(r => r.LeadTimeDaysCsv).HasMaxLength(200).IsRequired();
+            entity.Property(r => r.RequiredUnits).HasPrecision(18, 2);
+            entity.Property(r => r.CompletedUnits).HasPrecision(18, 2);
+            entity.Property(r => r.UnitLabel).HasMaxLength(100);
             entity.Property(r => r.NotifyRole).HasMaxLength(100).IsRequired();
             entity.Property(r => r.Status).HasMaxLength(50).IsRequired();
             entity.Property(r => r.CreatedBy).HasMaxLength(400).IsRequired();
