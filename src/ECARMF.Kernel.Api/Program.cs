@@ -9,6 +9,9 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Lets the app run as a Windows service (no-op when run as a console).
+builder.Host.UseWindowsService();
+
 var connectionString = builder.Configuration.GetConnectionString("ECARMF")
     ?? throw new InvalidOperationException("Connection string 'ECARMF' is not configured.");
 
