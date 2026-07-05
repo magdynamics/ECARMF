@@ -55,16 +55,73 @@ public class EfTransactionStore : ITransactionStore
             .Take(limit)
             .ToListAsync(ct);
 
-        return records.Select(r => new Transaction
-        {
-            EntityId = r.Id,
-            TenantId = r.TenantId,
-            EntityType = nameof(Transaction),
-            EntityName = r.TransactionType,
-            TransactionType = r.TransactionType,
-            SubmittedBy = r.SubmittedBy,
-            Payload = JsonSerializer.Deserialize<Dictionary<string, string>>(r.PayloadJson) ?? [],
-            ReceivedAt = r.ReceivedAt
-        }).ToList();
+        return records.Select(ToDomain).ToList();
     }
+
+    public async Task<(IReadOnlyList<Transaction> Items, int Total)> QueryAsync(
+        TransactionQuery query, CancellationToken ct = default)
+    {
+        var transactions = _db.Transactions.AsNoTracking()
+            .Where(t => t.TenantId == query.TenantId);
+
+        if (!string.IsNullOrWhiteSpace(query.RecordType))
+        {
+            transactions = transactions.Where(t => t.TransactionType == query.RecordType);
+        }
+        if (!string.IsNullOrWhiteSpace(query.SubmittedBy))
+        {
+            transactions = transactions.Where(t => t.SubmittedBy == query.SubmittedBy);
+        }
+        if (query.From is not null)
+        {
+            transactions = transactions.Where(t => t.ReceivedAt >= query.From);
+        }
+        if (query.To is not null)
+        {
+            transactions = transactions.Where(t => t.ReceivedAt <= query.To);
+        }
+        if (!string.IsNullOrWhiteSpace(query.Text))
+        {
+            var term = query.Text.Trim();
+            transactions = transactions.Where(t =>
+                t.TransactionType.Contains(term)
+                || t.SubmittedBy.Contains(term)
+                || t.PayloadJson.Contains(term));
+        }
+        if (!string.IsNullOrWhiteSpace(query.Outcome))
+        {
+            // Outcome lives in the outcome stream; join by transaction id.
+            transactions = transactions.Where(t => _db.TransactionOutcomes.Any(o =>
+                o.TenantId == query.TenantId && o.TransactionId == t.Id && o.Outcome == query.Outcome));
+        }
+
+        var total = await transactions.CountAsync(ct);
+        var records = await transactions
+            .OrderByDescending(t => t.ReceivedAt)
+            .Skip(Math.Max(0, query.Skip))
+            .Take(Math.Clamp(query.Take, 1, 200))
+            .ToListAsync(ct);
+
+        return (records.Select(ToDomain).ToList(), total);
+    }
+
+    public async Task<IReadOnlyList<string>> GetRecordTypesAsync(string tenantId, CancellationToken ct = default) =>
+        await _db.Transactions.AsNoTracking()
+            .Where(t => t.TenantId == tenantId)
+            .Select(t => t.TransactionType)
+            .Distinct()
+            .OrderBy(t => t)
+            .ToListAsync(ct);
+
+    private static Transaction ToDomain(TransactionRecord r) => new()
+    {
+        EntityId = r.Id,
+        TenantId = r.TenantId,
+        EntityType = nameof(Transaction),
+        EntityName = r.TransactionType,
+        TransactionType = r.TransactionType,
+        SubmittedBy = r.SubmittedBy,
+        Payload = JsonSerializer.Deserialize<Dictionary<string, string>>(r.PayloadJson) ?? [],
+        ReceivedAt = r.ReceivedAt
+    };
 }

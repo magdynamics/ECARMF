@@ -92,6 +92,7 @@ public static class ConnectorEndpoints
 
             var documentName = string.IsNullOrWhiteSpace(request.FileName) ? "pasted-text" : request.FileName;
             string documentText;
+            byte[]? originalContent = null;
 
             if (!string.IsNullOrWhiteSpace(request.Text))
             {
@@ -112,6 +113,7 @@ public static class ConnectorEndpoints
                 var (ok, textOrError) = reader.ReadText(documentName, bytes);
                 if (!ok) return Results.BadRequest(new { error = textOrError });
                 documentText = textOrError;
+                originalContent = bytes; // the library archives the file as received
             }
             else
             {
@@ -120,7 +122,7 @@ public static class ConnectorEndpoints
 
             await connectors.EnsureSeedConnectorsAsync(tenantId, ct);
             var result = await extractor.ExtractAndIngestAsync(
-                tenantId, connectorId, documentName, documentText, user!.Identifier, ct);
+                tenantId, connectorId, documentName, documentText, user!.Identifier, originalContent, ct);
             return result.Success ? Results.Ok(result) : Results.BadRequest(result);
         });
 

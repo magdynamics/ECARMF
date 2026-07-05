@@ -30,8 +30,19 @@ public static class DependencyInjection
         services.AddScoped<Application.Workflow.ITaskStore, EfTaskStore>();
         services.AddScoped<Application.Workflow.INotificationStore, EfNotificationStore>();
         services.AddScoped<Application.Advisor.IAdvisorStore, EfAdvisorStore>();
-        services.AddSingleton<Application.Advisor.ILanguageModelClient, Ai.AnthropicLanguageModelClient>();
+        services.AddScoped<Application.Identity.ITenantDirectory, EfTenantDirectory>();
+        services.AddScoped<Application.Advisor.ITenantAiSettingsStore, EfTenantAiSettingsStore>();
+        services.AddScoped<Application.Advisor.ILanguageModelProvider, Ai.AnthropicLanguageModelProvider>();
         services.AddSingleton<Application.Ingestion.IDocumentTextReader, Ai.DocumentTextReader>();
+        services.AddScoped<Application.Library.IDocumentLibrary, EfDocumentLibrary>();
+        services.AddScoped<Application.Integrations.IIntegrationStore, EfIntegrationStore>();
+        services.AddScoped<Application.Integrations.IFeedPuller, Ai.HttpFeedPuller>();
+        services.AddScoped<Application.Analytics.IBenchmarkStore, EfBenchmarkStore>();
+        services.AddScoped<Application.Billing.IBillingPlanStore, EfBillingPlanStore>();
+        services.AddScoped<Application.Billing.IBillingStatementStore, EfBillingStatementStore>();
+        services.AddScoped<Application.Billing.IUsageMeter, EfUsageMeter>();
+        services.AddHttpClient("integration-feeds", client => client.Timeout = TimeSpan.FromSeconds(60));
+        services.AddDataProtection();
 
         return services;
     }

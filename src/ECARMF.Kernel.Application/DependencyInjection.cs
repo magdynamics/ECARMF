@@ -28,6 +28,9 @@ public static class DependencyInjection
         services.AddScoped<Workflow.IWorkflowEngine, Workflow.WorkflowEngine>();
         services.AddScoped<Advisor.IExecutiveAdvisor, Advisor.ExecutiveAdvisorService>();
         services.AddScoped<Ingestion.IDocumentExtractor, Ingestion.DocumentExtractionService>();
+        services.AddScoped<Integrations.IIntegrationFeedService, Integrations.IntegrationFeedService>();
+        services.AddScoped<Analytics.IBenchmarkMonitor, Analytics.BenchmarkMonitorService>();
+        services.AddScoped<Billing.IBillingService, Billing.BillingService>();
 
         return services;
     }

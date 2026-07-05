@@ -15,6 +15,7 @@ var connectionString = builder.Configuration.GetConnectionString("ECARMF")
 builder.Services.AddECARMFApplication();
 builder.Services.AddECARMFInfrastructure(connectionString);
 builder.Services.AddHostedService<EventProcessingHostedService>();
+builder.Services.AddHostedService<ECARMF.Kernel.Api.Hosting.FeedSchedulerHostedService>();
 
 // Manifests declare operators and outcomes by name (e.g. "GreaterThan").
 builder.Services.ConfigureHttpJsonOptions(options =>
@@ -39,6 +40,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Credential-first authentication: an access key derives tenant + identity
+// (headers are overwritten); suspended tenants are locked out platform-wide.
+app.UseMiddleware<ECARMF.Kernel.Api.Hosting.ApiKeyAuthenticationMiddleware>();
+
 app.MapRecordEndpoints();
 app.MapAuditEndpoints();
 app.MapPackageEndpoints();
@@ -51,6 +56,12 @@ app.MapAnalyticsEndpoints();
 app.MapDashboardEndpoints();
 app.MapTaskEndpoints();
 app.MapAdvisorEndpoints();
+app.MapAiSettingsEndpoints();
+app.MapPlatformEndpoints();
+app.MapBillingEndpoints();
+app.MapLibraryEndpoints();
+app.MapIntegrationEndpoints();
+app.MapBenchmarkEndpoints();
 
 using (var scope = app.Services.CreateScope())
 {

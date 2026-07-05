@@ -1,0 +1,92 @@
+using ECARMF.Kernel.Application.Identity;
+using ECARMF.Kernel.Domain.Tenancy;
+using Microsoft.EntityFrameworkCore;
+
+namespace ECARMF.Kernel.Infrastructure.Persistence;
+
+public class TenantProfileRecord
+{
+    public Guid Id { get; set; }
+    public string TenantId { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string? Industry { get; set; }
+    public string? ContactName { get; set; }
+    public string? ContactEmail { get; set; }
+    public string Status { get; set; } = TenantStatus.Active;
+    public string? BillingPlanId { get; set; }
+    public string? Notes { get; set; }
+    public string CreatedBy { get; set; } = string.Empty;
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset? UpdatedAt { get; set; }
+}
+
+public class EfTenantDirectory : ITenantDirectory
+{
+    private readonly ECARMFDbContext _db;
+
+    public EfTenantDirectory(ECARMFDbContext db) => _db = db;
+
+    public async Task<TenantProfile?> GetAsync(string tenantId, CancellationToken ct = default)
+    {
+        var record = await _db.Tenants.AsNoTracking()
+            .FirstOrDefaultAsync(t => t.TenantId == tenantId, ct);
+        return record is null ? null : ToDomain(record);
+    }
+
+    public async Task<IReadOnlyList<TenantProfile>> GetAllAsync(CancellationToken ct = default)
+    {
+        var records = await _db.Tenants.AsNoTracking()
+            .OrderBy(t => t.Name)
+            .ToListAsync(ct);
+        return records.Select(ToDomain).ToList();
+    }
+
+    public async Task AddAsync(TenantProfile profile, CancellationToken ct = default)
+    {
+        _db.Tenants.Add(new TenantProfileRecord
+        {
+            Id = profile.Id,
+            TenantId = profile.TenantId,
+            Name = profile.Name,
+            Industry = profile.Industry,
+            ContactName = profile.ContactName,
+            ContactEmail = profile.ContactEmail,
+            Status = profile.Status,
+            BillingPlanId = profile.BillingPlanId,
+            Notes = profile.Notes,
+            CreatedBy = profile.CreatedBy,
+            CreatedAt = profile.CreatedAt
+        });
+        await _db.SaveChangesAsync(ct);
+    }
+
+    public async Task UpdateAsync(TenantProfile profile, CancellationToken ct = default)
+    {
+        var record = await _db.Tenants.FirstAsync(t => t.TenantId == profile.TenantId, ct);
+        record.Name = profile.Name;
+        record.Industry = profile.Industry;
+        record.ContactName = profile.ContactName;
+        record.ContactEmail = profile.ContactEmail;
+        record.Status = profile.Status;
+        record.BillingPlanId = profile.BillingPlanId;
+        record.Notes = profile.Notes;
+        record.UpdatedAt = DateTimeOffset.UtcNow;
+        await _db.SaveChangesAsync(ct);
+    }
+
+    private static TenantProfile ToDomain(TenantProfileRecord record) => new()
+    {
+        Id = record.Id,
+        TenantId = record.TenantId,
+        Name = record.Name,
+        Industry = record.Industry,
+        ContactName = record.ContactName,
+        ContactEmail = record.ContactEmail,
+        Status = record.Status,
+        BillingPlanId = record.BillingPlanId,
+        Notes = record.Notes,
+        CreatedBy = record.CreatedBy,
+        CreatedAt = record.CreatedAt,
+        UpdatedAt = record.UpdatedAt
+    };
+}

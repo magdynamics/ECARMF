@@ -18,4 +18,13 @@ public class UserRecord
     public string RolesJson { get; set; } = string.Empty;
 
     public DateTimeOffset CreatedAt { get; set; }
+
+    // Contact profile of the client's person.
+    public string? Email { get; set; }
+    public string? Phone { get; set; }
+    public string? JobTitle { get; set; }
+
+    /// <summary>SHA-256 hash of the user's access key; the key itself is
+    /// shown once at issue time and never stored.</summary>
+    public string? AccessKeyHash { get; set; }
 }

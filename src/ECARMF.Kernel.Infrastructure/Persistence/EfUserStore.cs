@@ -62,6 +62,53 @@ public class EfUserStore : IUserStore
         }
     }
 
+    public async Task<User?> GetByAccessKeyHashAsync(string accessKeyHash, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(accessKeyHash))
+        {
+            return null;
+        }
+
+        var record = await _db.Users.AsNoTracking().FirstOrDefaultAsync(
+            u => u.AccessKeyHash == accessKeyHash && u.Status == "Active", ct);
+        return record is null ? null : ToDomain(record);
+    }
+
+    public async Task CreateUserAsync(User user, string? accessKeyHash, CancellationToken ct = default)
+    {
+        if (await _db.Users.AnyAsync(u => u.TenantId == user.TenantId && u.Identifier == user.Identifier, ct))
+        {
+            throw new InvalidOperationException(
+                $"User '{user.Identifier}' already exists in tenant '{user.TenantId}'.");
+        }
+
+        var record = NewRecord(user.TenantId, user.Identifier, user.DisplayName, user.IsSystemActor, [.. user.Roles]);
+        record.Email = user.Email;
+        record.Phone = user.Phone;
+        record.JobTitle = user.JobTitle;
+        record.AccessKeyHash = accessKeyHash;
+        _db.Users.Add(record);
+        await _db.SaveChangesAsync(ct);
+    }
+
+    public async Task SetAccessKeyHashAsync(
+        string tenantId, string identifier, string accessKeyHash, CancellationToken ct = default)
+    {
+        var record = await _db.Users.FirstAsync(
+            u => u.TenantId == tenantId && u.Identifier == identifier, ct);
+        record.AccessKeyHash = accessKeyHash;
+        await _db.SaveChangesAsync(ct);
+    }
+
+    public async Task SetStatusAsync(
+        string tenantId, string identifier, string status, CancellationToken ct = default)
+    {
+        var record = await _db.Users.FirstAsync(
+            u => u.TenantId == tenantId && u.Identifier == identifier, ct);
+        record.Status = status;
+        await _db.SaveChangesAsync(ct);
+    }
+
     private static UserRecord NewRecord(
         string tenantId, string identifier, string displayName, bool isSystemActor, string[] roles) => new()
     {
@@ -85,6 +132,10 @@ public class EfUserStore : IUserStore
         DisplayName = record.DisplayName,
         IsSystemActor = record.IsSystemActor,
         Status = record.Status,
-        Roles = JsonSerializer.Deserialize<List<string>>(record.RolesJson) ?? []
+        Roles = JsonSerializer.Deserialize<List<string>>(record.RolesJson) ?? [],
+        Email = record.Email,
+        Phone = record.Phone,
+        JobTitle = record.JobTitle,
+        HasCredential = !string.IsNullOrEmpty(record.AccessKeyHash)
     };
 }

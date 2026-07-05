@@ -51,7 +51,8 @@ public class DocumentExtractionTests
         await _connectors.EnsureSeedConnectorsAsync(Tenant);
         var intake = new TransactionIntakeService(_records, _bus, _registries, _audit);
         var ingestion = new ConnectorIngestionService(_connectors, _registries, intake);
-        return new DocumentExtractionService(_connectors, _registries, ingestion, _llm, _audit);
+        return new DocumentExtractionService(
+            _connectors, _registries, ingestion, new FakeLanguageModelProvider(_llm), _audit);
     }
 
     [Fact]
@@ -117,7 +118,7 @@ public class DocumentExtractionTests
             Tenant, SeedConnectors.ManualEntry, "email.txt", "some deal text", "owner@platform");
 
         Assert.False(result.Success);
-        Assert.Contains(result.Errors, e => e.Contains("ANTHROPIC_API_KEY"));
+        Assert.Contains(result.Errors, e => e.Contains("tenant's Anthropic API key"));
         Assert.Empty(_records.Items);
     }
 

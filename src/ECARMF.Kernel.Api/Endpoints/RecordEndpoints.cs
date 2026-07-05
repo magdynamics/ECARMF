@@ -103,6 +103,70 @@ public static class RecordEndpoints
             return Results.Ok(feed);
         });
 
+        // Metadata query built for thousands of records: filter by type,
+        // outcome, submitter, time range, and free text — with paging.
+        group.MapGet("/search", async (
+            string? recordType, string? outcome, string? submittedBy, string? search,
+            DateTimeOffset? from, DateTimeOffset? to, int? page, int? pageSize,
+            HttpContext context,
+            ITransactionStore records,
+            IOutcomeStore outcomes,
+            IUserStore users,
+            CancellationToken ct) =>
+        {
+            if (!TenantResolution.TryGetTenant(context, out var tenantId))
+                return TenantResolution.MissingTenantResult();
+
+            var (error, _) = await AccessGuard.RequireAsync(
+                context, users, tenantId, Permissions.RecordRead, ct);
+            if (error is not null) return error;
+
+            var take = Math.Clamp(pageSize ?? 25, 1, 200);
+            var currentPage = Math.Max(1, page ?? 1);
+
+            var (items, total) = await records.QueryAsync(new TransactionQuery(
+                tenantId, recordType, outcome, submittedBy, search, from, to,
+                (currentPage - 1) * take, take), ct);
+
+            var ids = items.Select(t => t.TransactionId).ToList();
+            var outcomesById = (await outcomes.GetForTransactionsAsync(tenantId, ids, ct))
+                .GroupBy(o => o.TransactionId)
+                .ToDictionary(g => g.Key, g => g.OrderBy(o => o.ProcessedAt).ToList());
+
+            return Results.Ok(new
+            {
+                total,
+                page = currentPage,
+                pageSize = take,
+                items = items.Select(t => new
+                {
+                    RecordId = t.TransactionId,
+                    RecordType = t.TransactionType,
+                    t.SubmittedBy,
+                    t.ReceivedAt,
+                    t.Payload,
+                    Outcomes = outcomesById.TryGetValue(t.TransactionId, out var list)
+                        ? list.Select(o => new
+                        {
+                            o.Outcome, o.Reason, o.RuleId, o.PackageId, o.PackageVersion, o.EventName, o.ProcessedAt
+                        })
+                        : []
+                })
+            });
+        });
+
+        // Distinct record types — drives the metadata filter dropdowns.
+        group.MapGet("/types", async (
+            HttpContext context, ITransactionStore records, IUserStore users, CancellationToken ct) =>
+        {
+            if (!TenantResolution.TryGetTenant(context, out var tenantId))
+                return TenantResolution.MissingTenantResult();
+            var (error, _) = await AccessGuard.RequireAsync(context, users, tenantId, Permissions.RecordRead, ct);
+            if (error is not null) return error;
+
+            return Results.Ok(await records.GetRecordTypesAsync(tenantId, ct));
+        });
+
         // Dual approval: a second approver releases or rejects a flagged record.
         group.MapPost("/{recordId:guid}/approvals", async (
             Guid recordId,

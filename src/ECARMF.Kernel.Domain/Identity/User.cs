@@ -20,4 +20,16 @@ public class User : UniversalBaseEntity
 
     /// <summary>Assigned role names, resolved against the RoleCatalog.</summary>
     public List<string> Roles { get; set; } = [];
+
+    // Contact profile — a tenant's users are the client's people.
+
+    public string? Email { get; set; }
+
+    public string? Phone { get; set; }
+
+    public string? JobTitle { get; set; }
+
+    /// <summary>True when an access key has been issued (the key itself is
+    /// stored only as a hash and never returned).</summary>
+    public bool HasCredential { get; set; }
 }

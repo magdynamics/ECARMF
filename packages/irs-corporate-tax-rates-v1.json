@@ -1,0 +1,120 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "IRS Corporate Tax Rates (Reference)",
+  "version": "1",
+  "status": "Published",
+  "owner": "ECARMF Standards Committee",
+  "description": "Public IRS reference data as an executable package: the published flat corporate rate (21%, IRC §11 as amended by the TCJA, tax years 2018+) becomes a KPI target. Client tax returns and financial statements flow in as records (typed, ingested, or extracted from PDFs); each return's effective tax rate is computed and compared to the published rate, and material variances raise deviation alerts automatically. When the IRS publishes new rates, that is a new package version - reference data is never edited in place.",
+
+  "packageId": "ecarmf.irs-corporate-tax-rates",
+  "name": "IRS Corporate Tax Rates (Reference)",
+  "packageVersion": "1.0.0",
+  "publisher": "ECARMF (source: IRS public data)",
+  "dependencies": [
+    { "packageId": "ecarmf.treasury-controls", "minimumVersion": "1.0.0" }
+  ],
+
+  "entities": [
+    {
+      "entityTypeName": "CorporateTaxReturn",
+      "description": "A client's corporate income tax return (Form 1120-shaped essentials) submitted for comparison against published rates.",
+      "attributes": [
+        { "name": "returnId", "dataType": "string", "required": true },
+        { "name": "entityName", "dataType": "string", "required": true },
+        { "name": "taxYear", "dataType": "number", "required": true },
+        { "name": "taxableIncome", "dataType": "number", "required": true },
+        { "name": "reportedTax", "dataType": "number", "required": true }
+      ]
+    }
+  ],
+
+  "events": [],
+
+  "rules": [
+    {
+      "ruleId": "IRS-R-020",
+      "name": "Route pre-TCJA years to manual review",
+      "description": "Tax years before 2018 used graduated rates (15%-35% brackets); the flat-rate comparison in this package does not apply, so those returns are flagged for manual review instead of being mis-compared.",
+      "triggerEvent": "RecordReceived",
+      "priority": 72,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "CorporateTaxReturn" },
+        { "field": "taxYear", "operator": "LessThan", "value": "2018" }
+      ],
+      "outcomeOnMatch": "Flagged",
+      "reasonTemplate": "Return {returnId} ({entityName}) is for tax year {taxYear}, before the TCJA flat rate; graduated pre-2018 brackets apply and require manual comparison."
+    },
+    {
+      "ruleId": "IRS-R-025",
+      "name": "Flag tax reported against non-positive income",
+      "description": "A return reporting tax due on zero or negative taxable income is structurally inconsistent.",
+      "triggerEvent": "RecordReceived",
+      "priority": 74,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "CorporateTaxReturn" },
+        { "field": "taxableIncome", "operator": "LessOrEqual", "value": "0" },
+        { "field": "reportedTax", "operator": "GreaterThan", "value": "0" }
+      ],
+      "outcomeOnMatch": "Flagged",
+      "reasonTemplate": "Return {returnId} ({entityName}) reports {reportedTax} tax on non-positive taxable income {taxableIncome}; structural inconsistency requires review."
+    },
+    {
+      "ruleId": "IRS-R-030",
+      "name": "Accept returns for rate comparison",
+      "description": "Structurally valid post-2017 returns are recorded; the effective-tax-rate KPI computes in the same pass and any material variance from the published 21% raises a deviation alert.",
+      "triggerEvent": "RecordReceived",
+      "priority": 78,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "CorporateTaxReturn" }
+      ],
+      "outcomeOnMatch": "Approved",
+      "reasonTemplate": "Return {returnId} ({entityName}, TY{taxYear}) recorded: taxable income {taxableIncome}, reported tax {reportedTax}. Effective rate compared against the published 21% corporate rate."
+    }
+  ],
+
+  "capabilities": [
+    {
+      "capabilityId": "ReferenceRateComparison",
+      "name": "Reference Rate Comparison",
+      "description": "Compare client filings against published public reference rates."
+    }
+  ],
+
+  "schemaTemplates": [
+    {
+      "templateId": "irs-tax-return-json",
+      "name": "Corporate tax return essentials (JSON)",
+      "sourceFormat": "json",
+      "targetEntityType": "CorporateTaxReturn",
+      "fieldMappings": [
+        { "rawField": "returnId", "targetField": "returnId", "transform": "none", "required": true },
+        { "rawField": "entityName", "targetField": "entityName", "transform": "none", "required": true },
+        { "rawField": "taxYear", "targetField": "taxYear", "transform": "none", "required": true },
+        { "rawField": "taxableIncome", "targetField": "taxableIncome", "transform": "none", "required": true },
+        { "rawField": "reportedTax", "targetField": "reportedTax", "transform": "absoluteValue", "required": true }
+      ]
+    }
+  ],
+
+  "performanceFrameworks": [
+    {
+      "frameworkId": "irs-corporate-rates-2018",
+      "name": "IRS Corporate Rate Comparison (2018+)",
+      "industry": "Tax",
+      "description": "Published IRC §11 flat corporate rate as the KPI target: effective rate = reportedTax / taxableIncome, target 0.21. The deviation monitor alarms when a return's effective rate departs materially from the published rate.",
+      "kpis": [
+        {
+          "kpiId": "effective-tax-rate",
+          "name": "Effective corporate tax rate vs published 21%",
+          "formula": "reportedTax / taxableIncome",
+          "triggerRecordType": "CorporateTaxReturn",
+          "subjectField": "returnId",
+          "unit": "ratio",
+          "targetValue": 0.21,
+          "direction": "higher"
+        }
+      ],
+      "okrs": []
+    }
+  ]
+}

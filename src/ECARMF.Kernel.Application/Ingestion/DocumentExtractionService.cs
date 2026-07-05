@@ -2,8 +2,10 @@ using System.Text;
 using System.Text.Json;
 using ECARMF.Kernel.Application.Advisor;
 using ECARMF.Kernel.Application.Audit;
+using ECARMF.Kernel.Application.Library;
 using ECARMF.Kernel.Application.Registries;
 using ECARMF.Kernel.Domain.Audit;
+using ECARMF.Kernel.Domain.Library;
 using ECARMF.Kernel.Domain.Packages;
 
 namespace ECARMF.Kernel.Application.Ingestion;
@@ -26,10 +28,11 @@ public interface IDocumentExtractor
 {
     /// <summary>Extracts structured fields from an unstructured document and
     /// hands them to the connector's normal ingestion path — mapping,
-    /// stamping, and intake are the same mechanism every source uses.</summary>
+    /// stamping, and intake are the same mechanism every source uses. The
+    /// original upload (when provided) is archived verbatim in the library.</summary>
     Task<DocumentExtractionResult> ExtractAndIngestAsync(
         string tenantId, string connectorId, string documentName, string documentText,
-        string actorIdentifier, CancellationToken ct = default);
+        string actorIdentifier, byte[]? originalContent = null, CancellationToken ct = default);
 }
 
 /// <summary>
@@ -48,26 +51,29 @@ public class DocumentExtractionService : IDocumentExtractor
     private readonly IConnectorStore _connectors;
     private readonly ITenantRegistryProvider _registries;
     private readonly IDataSourceConnector _ingestion;
-    private readonly ILanguageModelClient _llm;
+    private readonly ILanguageModelProvider _llmProvider;
     private readonly IAuditLog _audit;
+    private readonly IDocumentLibrary? _library;
 
     public DocumentExtractionService(
         IConnectorStore connectors,
         ITenantRegistryProvider registries,
         IDataSourceConnector ingestion,
-        ILanguageModelClient llm,
-        IAuditLog audit)
+        ILanguageModelProvider llmProvider,
+        IAuditLog audit,
+        IDocumentLibrary? library = null)
     {
         _connectors = connectors;
         _registries = registries;
         _ingestion = ingestion;
-        _llm = llm;
+        _llmProvider = llmProvider;
         _audit = audit;
+        _library = library;
     }
 
     public async Task<DocumentExtractionResult> ExtractAndIngestAsync(
         string tenantId, string connectorId, string documentName, string documentText,
-        string actorIdentifier, CancellationToken ct = default)
+        string actorIdentifier, byte[]? originalContent = null, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(documentText))
         {
@@ -98,12 +104,23 @@ public class DocumentExtractionService : IDocumentExtractor
             rawPayload = documentText;
             backend = "regex-template";
         }
-        else if (_llm.IsConfigured)
+        else
         {
+            // Tenant-specific credential: extraction runs on this tenant's
+            // configured AI backend, never on another tenant's key.
+            var llm = await _llmProvider.GetForTenantAsync(tenantId, ct);
+
+            if (!llm.IsConfigured)
+            {
+                return new DocumentExtractionResult(false, null, "none", null,
+                    [$"Template '{template.TemplateId}' is {template.SourceFormat}-format, so document extraction needs the AI backend. " +
+                     "Configure this tenant's Anthropic API key (Setup → AI Backend), or use a connector whose template is text-format with regex patterns."]);
+            }
+
             string? extracted;
             try
             {
-                var response = await _llm.CompleteAsync(
+                var response = await llm.CompleteAsync(
                     ExtractionSystemPrompt, BuildExtractionPrompt(template, documentName, documentText), ct);
                 extracted = ExtractPayload(response, template.SourceFormat);
             }
@@ -120,16 +137,35 @@ public class DocumentExtractionService : IDocumentExtractor
             }
 
             rawPayload = extracted;
-            backend = $"llm:{_llm.ModelReference}";
-        }
-        else
-        {
-            return new DocumentExtractionResult(false, null, "none", null,
-                [$"Template '{template.TemplateId}' is {template.SourceFormat}-format, so document extraction needs the AI backend. " +
-                 "Configure Anthropic:ApiKey (or the ANTHROPIC_API_KEY environment variable), or use a connector whose template is text-format with regex patterns."]);
+            backend = $"llm:{llm.ModelReference}";
         }
 
         var ingestion = await _ingestion.IngestAsync(tenantId, connectorId, rawPayload, actorIdentifier, ct);
+
+        // Archive the ORIGINAL upload (the PDF/email as received), separate
+        // from the extracted payload the ingestion path archives — the
+        // library keeps both ends of the lineage.
+        if (_library is not null)
+        {
+            await _library.ArchiveAsync(new SourceDocument
+            {
+                TenantId = tenantId,
+                FileName = documentName,
+                MediaType = Path.GetExtension(documentName).TrimStart('.').ToLowerInvariant() is "pdf" ? "pdf" : "text",
+                SourceId = connectorId,
+                SourceCategory = connector.SourceCategory,
+                UploadedBy = actorIdentifier,
+                ExtractionBackend = backend,
+                SchemaTemplateId = template.TemplateId,
+                RecordIds = [.. ingestion.RecordIds],
+                Metadata = new Dictionary<string, string>
+                {
+                    ["kind"] = "original-document",
+                    ["accepted"] = ingestion.Success.ToString(),
+                    ["errors"] = string.Join("; ", ingestion.Errors)
+                }
+            }, originalContent ?? Encoding.UTF8.GetBytes(documentText), ct);
+        }
 
         await _audit.AppendAsync(new AuditEntry
         {

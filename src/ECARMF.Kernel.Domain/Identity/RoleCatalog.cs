@@ -16,6 +16,10 @@ public static class Permissions
     public const string ConnectorIngest = "Connector:Ingest";
     public const string DualApprove = "Capability:RequireDualApproval:Approve";
 
+    /// <summary>Onboard/manage client tenants and their users. Only honored
+    /// when the actor belongs to the reserved platform-operator tenant.</summary>
+    public const string TenantManage = "Tenant:Manage";
+
     /// <summary>Wildcard: every permission. Reserved for Executive/Owner.</summary>
     public const string All = "*";
 }
@@ -46,7 +50,8 @@ public static class RoleCatalog
             [
                 Permissions.PackageManage, Permissions.ConnectorConfigure,
                 Permissions.RegistryRead, Permissions.RecordRead,
-                Permissions.AuditRead, Permissions.ScoreRead
+                Permissions.AuditRead, Permissions.ScoreRead,
+                Permissions.TenantManage
             ],
             // Submits for their ventures; cannot approve their own submissions
             // (segregation of duties enforced at the capability, not here).

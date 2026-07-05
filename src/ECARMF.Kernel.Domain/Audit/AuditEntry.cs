@@ -42,6 +42,17 @@ public static class AuditCategories
     public const string AdvisorBriefGenerated = "AdvisorBriefGenerated";
     public const string AdvisorFeedbackRecorded = "AdvisorFeedbackRecorded";
     public const string DocumentExtracted = "DocumentExtracted";
+    public const string AiSettingsUpdated = "AiSettingsUpdated";
+    public const string TenantCreated = "TenantCreated";
+    public const string TenantStatusChanged = "TenantStatusChanged";
+    public const string UserProvisioned = "UserProvisioned";
+    public const string CredentialIssued = "CredentialIssued";
+    public const string UserStatusChanged = "UserStatusChanged";
+    public const string IntegrationConfigured = "IntegrationConfigured";
+    public const string IntegrationFeedRun = "IntegrationFeedRun";
+    public const string BenchmarkBreached = "BenchmarkBreached";
+    public const string BillingStatementGenerated = "BillingStatementGenerated";
+    public const string BillingPlanAssigned = "BillingPlanAssigned";
     public const string PackageLoaded = "PackageLoaded";
     public const string PackageActivated = "PackageActivated";
     public const string PackageDeactivated = "PackageDeactivated";

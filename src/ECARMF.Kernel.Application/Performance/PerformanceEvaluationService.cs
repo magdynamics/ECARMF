@@ -33,15 +33,18 @@ public class PerformanceEvaluationService : IPerformanceEvaluator, IFrameworkRec
     private readonly IScoreStore _scores;
     private readonly IAuditLog _audit;
     private readonly Analytics.IDeviationMonitor? _deviations;
+    private readonly Analytics.IBenchmarkMonitor? _benchmarks;
 
     public PerformanceEvaluationService(
         ITenantRegistryProvider registries, IScoreStore scores, IAuditLog audit,
-        Analytics.IDeviationMonitor? deviations = null)
+        Analytics.IDeviationMonitor? deviations = null,
+        Analytics.IBenchmarkMonitor? benchmarks = null)
     {
         _registries = registries;
         _scores = scores;
         _audit = audit;
         _deviations = deviations;
+        _benchmarks = benchmarks;
     }
 
     public IReadOnlyList<Registered<PerformanceFrameworkDeclaration>> Recommend(string tenantId, string industry)
@@ -90,6 +93,12 @@ public class PerformanceEvaluationService : IPerformanceEvaluator, IFrameworkRec
                 if (_deviations is not null)
                 {
                     await _deviations.CheckAsync(kernelEvent.TenantId, actualScore, kpi.TargetValue, kernelEvent.CorrelationId, ct);
+                }
+
+                // Tenant-set expectations (e.g. "GP% must stay >= 25%") watch KPIs too.
+                if (_benchmarks is not null)
+                {
+                    await _benchmarks.CheckScoreAsync(actualScore, ct);
                 }
 
                 if (kpi.TargetValue is { } target && target != 0)

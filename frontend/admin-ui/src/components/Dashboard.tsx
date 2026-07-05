@@ -29,8 +29,40 @@ interface DeviationAlert {
   acknowledgedBy: string | null
 }
 
+interface BenchmarkDto {
+  id: string
+  name: string
+  kind: string
+  metricType: string
+  recordType: string | null
+  field: string | null
+  expectationOperator: string
+  expectedValue: number
+  severity: string
+  enabled: boolean
+}
+
+interface IntegrationDto {
+  integrationId: string
+  name: string
+  applicationType: string
+  status: string
+  lastFeedAt: string | null
+  lastFeedStatus: string | null
+}
+
+interface TaskDto {
+  id: string
+  title: string
+  assignee: string
+  severity: string
+  status: string
+  createdAt: string
+}
+
 const WIDGET_TYPES = [
   'kpiTiles', 'outcomeBreakdown', 'scoreAverages', 'okrAttainment', 'deviationFeed', 'recentScores',
+  'benchmarks', 'integrationHealth', 'taskInbox',
 ]
 
 /// Widget-driven dashboard: the layout is live, editable configuration
@@ -42,23 +74,32 @@ export function Dashboard({ tenant, user }: { tenant: string; user: string }) {
   const [records, setRecords] = useState<ActivityItem[]>([])
   const [audit, setAudit] = useState<AuditEntryDto[]>([])
   const [deviations, setDeviations] = useState<DeviationAlert[]>([])
+  const [benchmarks, setBenchmarks] = useState<BenchmarkDto[]>([])
+  const [integrations, setIntegrations] = useState<IntegrationDto[]>([])
+  const [tasks, setTasks] = useState<TaskDto[]>([])
   const [error, setError] = useState<string | null>(null)
   const [newType, setNewType] = useState('kpiTiles')
 
   const refresh = useCallback(async () => {
     try {
-      const [dashboards, s, r, a, d] = await Promise.all([
+      const [dashboards, s, r, a, d, b, t] = await Promise.all([
         api.get<DashboardConfig[]>('/api/dashboards'),
         api.get<ScoreRecord[]>('/api/scores?limit=500'),
         api.get<ActivityItem[]>('/api/records?limit=200'),
         api.get<AuditEntryDto[]>('/api/audit'),
         api.get<DeviationAlert[]>('/api/deviations?limit=25'),
+        api.get<BenchmarkDto[]>('/api/benchmarks').catch(() => [] as BenchmarkDto[]),
+        api.get<TaskDto[]>('/api/tasks?limit=15').catch(() => [] as TaskDto[]),
       ])
       setConfig(dashboards[0] ?? null)
       setScores(s)
       setRecords(r)
       setAudit(a)
       setDeviations(d)
+      setBenchmarks(b)
+      setTasks(t)
+      // integrations list needs configure permission; degrade silently.
+      setIntegrations(await api.get<IntegrationDto[]>('/api/integrations').catch(() => [] as IntegrationDto[]))
       setError(null)
     } catch (e) {
       setError(e instanceof ApiError ? e.message : String(e))
@@ -75,21 +116,10 @@ export function Dashboard({ tenant, user }: { tenant: string; user: string }) {
     if (!config) return
     setConfig({ ...config, widgets })
     try {
-      await fetchPut(config.id, widgets)
+      await api.put(`/api/dashboards/${config.id}/widgets`, { widgets })
     } catch (e) {
       setError(e instanceof ApiError ? e.message : String(e))
     }
-  }
-
-  async function fetchPut(id: string, widgets: Widget[]) {
-    const tenantId = localStorage.getItem('ecarmf.tenantId') ?? ''
-    const userId = localStorage.getItem('ecarmf.userId') ?? ''
-    const response = await fetch(`/api/dashboards/${id}/widgets`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Tenant-Id': tenantId, 'X-User-Id': userId },
-      body: JSON.stringify({ widgets }),
-    })
-    if (!response.ok) throw new ApiError(`Save failed (${response.status})`, response.status, null)
   }
 
   function addWidget() {
@@ -240,6 +270,73 @@ export function Dashboard({ tenant, user }: { tenant: string; user: string }) {
             </tbody>
           </table>
         )
+      case 'benchmarks': {
+        const breaches = deviations.filter((d) => d.expectedValueSource === 'Benchmark')
+        return benchmarks.length === 0 ? (
+          <p className="muted small">No expectations set — define them under Setup → Benchmarks.</p>
+        ) : (
+          <table>
+            <tbody>
+              {benchmarks.map((b) => {
+                const breachCount = breaches.filter((x) =>
+                  x.metricType === (b.kind === 'score' ? b.metricType : `${b.recordType}.${b.field}`)).length
+                return (
+                  <tr key={b.id}>
+                    <td><strong>{b.name}</strong></td>
+                    <td className="small">{b.expectationOperator} {b.expectedValue}</td>
+                    <td>{b.enabled ? <span className="state state-active">watching</span> : <span className="state state-deactivated">off</span>}</td>
+                    <td>
+                      {breachCount > 0
+                        ? <span className={`state state-${b.severity.toLowerCase() === 'critical' ? 'rejected' : 'flagged'}`}>{breachCount} breach(es)</span>
+                        : <span className="state state-approved">holding</span>}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        )
+      }
+      case 'integrationHealth':
+        return integrations.length === 0 ? (
+          <p className="muted small">No integrations configured — add them under Setup → Integrations.</p>
+        ) : (
+          <table>
+            <tbody>
+              {integrations.map((i) => (
+                <tr key={i.integrationId}>
+                  <td><strong>{i.name}</strong> <span className="muted small">{i.applicationType}</span></td>
+                  <td><span className={`state state-${i.status.toLowerCase()}`}>{i.status}</span></td>
+                  <td className="small">
+                    {i.lastFeedAt
+                      ? <>last feed {new Date(i.lastFeedAt).toLocaleString()} — {i.lastFeedStatus === 'Succeeded'
+                          ? <span className="state state-approved">ok</span>
+                          : <span className="state state-rejected">failed</span>}</>
+                      : <span className="muted">no feeds yet</span>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )
+      case 'taskInbox': {
+        const open = tasks.filter((t) => t.status === 'Open')
+        return open.length === 0 ? (
+          <p className="muted small">No open tasks — workflows and benchmarks will queue work here.</p>
+        ) : (
+          <table>
+            <tbody>
+              {open.map((t) => (
+                <tr key={t.id}>
+                  <td><span className={`state state-${t.severity.toLowerCase() === 'critical' ? 'rejected' : 'flagged'}`}>{t.severity}</span></td>
+                  <td>{t.title}</td>
+                  <td className="muted small">{t.assignee} · {new Date(t.createdAt).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )
+      }
       default:
         return <p className="muted small">Unknown widget type '{widget.type}'.</p>
     }

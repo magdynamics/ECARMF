@@ -81,6 +81,34 @@ public class InMemoryTransactionStore : ITransactionStore
         Task.FromResult(Items.FirstOrDefault(t =>
             string.Equals(t.TenantId, tenantId, StringComparison.OrdinalIgnoreCase)
             && t.TransactionId == transactionId));
+
+    public Task<(IReadOnlyList<Transaction> Items, int Total)> QueryAsync(
+        TransactionQuery query, CancellationToken ct = default)
+    {
+        // Outcome filtering requires the outcome store and is exercised via
+        // the EF implementation; the in-memory fake covers the other filters.
+        var filtered = Items
+            .Where(t => string.Equals(t.TenantId, query.TenantId, StringComparison.OrdinalIgnoreCase))
+            .Where(t => query.RecordType is null || string.Equals(t.TransactionType, query.RecordType, StringComparison.OrdinalIgnoreCase))
+            .Where(t => query.SubmittedBy is null || string.Equals(t.SubmittedBy, query.SubmittedBy, StringComparison.OrdinalIgnoreCase))
+            .Where(t => query.From is null || t.ReceivedAt >= query.From)
+            .Where(t => query.To is null || t.ReceivedAt <= query.To)
+            .Where(t => string.IsNullOrWhiteSpace(query.Text)
+                || t.TransactionType.Contains(query.Text, StringComparison.OrdinalIgnoreCase)
+                || t.SubmittedBy.Contains(query.Text, StringComparison.OrdinalIgnoreCase)
+                || t.Payload.Any(kv => kv.Value.Contains(query.Text, StringComparison.OrdinalIgnoreCase)))
+            .OrderByDescending(t => t.ReceivedAt)
+            .ToList();
+
+        return Task.FromResult<(IReadOnlyList<Transaction>, int)>(
+            (filtered.Skip(query.Skip).Take(query.Take).ToList(), filtered.Count));
+    }
+
+    public Task<IReadOnlyList<string>> GetRecordTypesAsync(string tenantId, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<string>>(
+            Items.Where(t => string.Equals(t.TenantId, tenantId, StringComparison.OrdinalIgnoreCase))
+                .Select(t => t.TransactionType).Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(t => t).ToList());
 }
 
 public class InMemoryScoreStore : IScoreStore

@@ -59,7 +59,7 @@ public class ExecutiveAdvisorService : IExecutiveAdvisor
     private readonly IAllocationStore _allocations;
     private readonly ITaskStore _tasks;
     private readonly IAdvisorStore _briefs;
-    private readonly ILanguageModelClient _llm;
+    private readonly ILanguageModelProvider _llmProvider;
     private readonly IAILearningFeedbackService _feedback;
     private readonly IAuditLog _audit;
 
@@ -69,7 +69,7 @@ public class ExecutiveAdvisorService : IExecutiveAdvisor
         IAllocationStore allocations,
         ITaskStore tasks,
         IAdvisorStore briefs,
-        ILanguageModelClient llm,
+        ILanguageModelProvider llmProvider,
         IAILearningFeedbackService feedback,
         IAuditLog audit)
     {
@@ -78,7 +78,7 @@ public class ExecutiveAdvisorService : IExecutiveAdvisor
         _allocations = allocations;
         _tasks = tasks;
         _briefs = briefs;
-        _llm = llm;
+        _llmProvider = llmProvider;
         _feedback = feedback;
         _audit = audit;
     }
@@ -88,12 +88,16 @@ public class ExecutiveAdvisorService : IExecutiveAdvisor
     {
         var snapshot = await BuildSnapshotAsync(tenantId, ct);
 
+        // Tenant-specific credential: each client's AI usage runs on its own
+        // configured backend, never on another tenant's key.
+        var llm = await _llmProvider.GetForTenantAsync(tenantId, ct);
+
         AdvisorBrief brief;
         string backend;
 
-        if (_llm.IsConfigured)
+        if (llm.IsConfigured)
         {
-            (brief, backend) = await ComposeWithModelAsync(snapshot, ct);
+            (brief, backend) = await ComposeWithModelAsync(llm, snapshot, ct);
         }
         else
         {
@@ -358,7 +362,7 @@ public class ExecutiveAdvisorService : IExecutiveAdvisor
     }
 
     private async Task<(AdvisorBrief Brief, string Backend)> ComposeWithModelAsync(
-        AdvisorSnapshot snapshot, CancellationToken ct)
+        ILanguageModelClient llm, AdvisorSnapshot snapshot, CancellationToken ct)
     {
         const string systemPrompt =
             "You are the Executive Advisor agent of the ECARMF platform kernel — an enterprise " +
@@ -376,7 +380,7 @@ public class ExecutiveAdvisorService : IExecutiveAdvisor
 
         try
         {
-            var raw = await _llm.CompleteAsync(systemPrompt, userPrompt, ct);
+            var raw = await llm.CompleteAsync(systemPrompt, userPrompt, ct);
             var payload = ParseBriefJson(raw);
             if (payload is not null
                 && !string.IsNullOrWhiteSpace(payload.ExecutiveSummary)
@@ -389,7 +393,7 @@ public class ExecutiveAdvisorService : IExecutiveAdvisor
                         : payload.Title,
                     ExecutiveSummary = payload.ExecutiveSummary,
                     Recommendations = payload.Recommendations,
-                    ModelReference = $"advisor:{_llm.ModelReference}"
+                    ModelReference = $"advisor:{llm.ModelReference}"
                 }, "llm");
             }
         }

@@ -35,6 +35,22 @@ public class InMemoryAdvisorStore : IAdvisorStore
         Task.FromResult<IReadOnlyList<AdvisorBrief>>(Items.Where(b => b.TenantId == tenantId).Take(limit).ToList());
 }
 
+/// <summary>Per-tenant provider that hands every tenant the same scripted
+/// client; records which tenant asked, so tests can assert isolation.</summary>
+public class FakeLanguageModelProvider : ILanguageModelProvider
+{
+    private readonly ILanguageModelClient _client;
+    public List<string> RequestedTenants { get; } = [];
+
+    public FakeLanguageModelProvider(ILanguageModelClient client) => _client = client;
+
+    public Task<ILanguageModelClient> GetForTenantAsync(string tenantId, CancellationToken ct = default)
+    {
+        RequestedTenants.Add(tenantId);
+        return Task.FromResult(_client);
+    }
+}
+
 /// <summary>Scripted language model backend for tests.</summary>
 public class FakeLanguageModelClient : ILanguageModelClient
 {
@@ -68,8 +84,12 @@ public class ExecutiveAdvisorTests
     private readonly InMemoryAuditLog _audit = new();
     private readonly FakeLanguageModelClient _llm = new();
 
+    private readonly FakeLanguageModelProvider _llmProvider;
+
+    public ExecutiveAdvisorTests() => _llmProvider = new FakeLanguageModelProvider(_llm);
+
     private ExecutiveAdvisorService CreateAdvisor() => new(
-        _scores, _deviations, _allocations, _tasks, _briefs, _llm,
+        _scores, _deviations, _allocations, _tasks, _briefs, _llmProvider,
         new AILearningFeedbackService(_scores, _audit), _audit);
 
     private static User Human(string identifier = "owner@platform") => new()
@@ -131,6 +151,8 @@ public class ExecutiveAdvisorTests
         Assert.Equal("Q3 Posture", brief.Title);
         Assert.Equal("Two risks dominate.", brief.ExecutiveSummary);
         Assert.Equal("advisor:fake-model", brief.ModelReference);
+        // The backend was resolved for THIS tenant — credentials never cross tenants.
+        Assert.Equal(Tenant, Assert.Single(_llmProvider.RequestedTenants));
         // The snapshot, not free text, is what the model reasons over.
         Assert.Contains("scoreAverages", _llm.LastUserPrompt, StringComparison.OrdinalIgnoreCase);
         var audit = Assert.Single(_audit.Items, a => a.Category == AuditCategories.AdvisorBriefGenerated);

@@ -46,6 +46,7 @@ public class EventProcessor : IEventProcessor
     private readonly IAuditLog _audit;
     private readonly Performance.IPerformanceEvaluator _performance;
     private readonly Workflow.IWorkflowEngine? _workflows;
+    private readonly Analytics.IBenchmarkMonitor? _benchmarks;
 
     public EventProcessor(
         ITenantRegistryProvider registries,
@@ -54,7 +55,8 @@ public class EventProcessor : IEventProcessor
         IKernelEventBus bus,
         IAuditLog audit,
         Performance.IPerformanceEvaluator performance,
-        Workflow.IWorkflowEngine? workflows = null)
+        Workflow.IWorkflowEngine? workflows = null,
+        Analytics.IBenchmarkMonitor? benchmarks = null)
     {
         _registries = registries;
         _outcomes = outcomes;
@@ -63,6 +65,7 @@ public class EventProcessor : IEventProcessor
         _audit = audit;
         _performance = performance;
         _workflows = workflows;
+        _benchmarks = benchmarks;
     }
 
     public async Task<ProcessingResult> ProcessAsync(KernelEvent kernelEvent, CancellationToken ct = default)
@@ -101,6 +104,13 @@ public class EventProcessor : IEventProcessor
         foreach (var score in emittedScores)
         {
             await _scores.AppendAsync(score, ct);
+
+            // Tenant expectations watch every number that flows: a score that
+            // breaks a benchmark raises the alarm chain immediately.
+            if (_benchmarks is not null)
+            {
+                await _benchmarks.CheckScoreAsync(score, ct);
+            }
             await _audit.AppendAsync(new AuditEntry
             {
                 TenantId = kernelEvent.TenantId,
@@ -150,6 +160,16 @@ public class EventProcessor : IEventProcessor
         if (isIntakeEvent)
         {
             await _performance.EvaluateAsync(kernelEvent, ct);
+
+            // recordField benchmarks watch the incoming payload itself
+            // (e.g. "no single movement above 10,000").
+            if (_benchmarks is not null)
+            {
+                var recordType = kernelEvent.Payload.FirstOrDefault(kv =>
+                    string.Equals(kv.Key, "recordType", StringComparison.OrdinalIgnoreCase)).Value ?? "Record";
+                await _benchmarks.CheckRecordAsync(
+                    kernelEvent.TenantId, recordType, kernelEvent.Payload, kernelEvent.CorrelationId, ct);
+            }
         }
 
         // An outcome is recorded whenever a rule fires, and always for the
