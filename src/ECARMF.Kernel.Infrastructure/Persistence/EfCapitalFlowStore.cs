@@ -1,35 +1,35 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using ECARMF.Kernel.Application.Capital;
 using ECARMF.Kernel.Domain.Capital;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECARMF.Kernel.Infrastructure.Persistence;
 
-public class EfAllocationStore : IAllocationStore
+public class EfCapitalFlowStore : ICapitalFlowStore
 {
     private readonly ECARMFDbContext _db;
 
-    public EfAllocationStore(ECARMFDbContext db)
+    public EfCapitalFlowStore(ECARMFDbContext db)
     {
         _db = db;
     }
 
-    public async Task AddAsync(AllocationRecommendation recommendation, CancellationToken ct = default)
+    public async Task AddAsync(CapitalFlow recommendation, CancellationToken ct = default)
     {
-        _db.Allocations.Add(ToRecord(recommendation));
+        _db.CapitalFlows.Add(ToRecord(recommendation));
         await _db.SaveChangesAsync(ct);
     }
 
-    public async Task<AllocationRecommendation?> GetAsync(string tenantId, Guid id, CancellationToken ct = default)
+    public async Task<CapitalFlow?> GetAsync(string tenantId, Guid id, CancellationToken ct = default)
     {
-        var record = await _db.Allocations.AsNoTracking()
+        var record = await _db.CapitalFlows.AsNoTracking()
             .FirstOrDefaultAsync(a => a.TenantId == tenantId && a.Id == id, ct);
         return record is null ? null : ToDomain(record);
     }
 
-    public async Task UpdateDecisionAsync(AllocationRecommendation recommendation, CancellationToken ct = default)
+    public async Task UpdateDecisionAsync(CapitalFlow recommendation, CancellationToken ct = default)
     {
-        var record = await _db.Allocations.FirstOrDefaultAsync(
+        var record = await _db.CapitalFlows.FirstOrDefaultAsync(
             a => a.TenantId == recommendation.TenantId && a.Id == recommendation.Id, ct)
             ?? throw new InvalidOperationException($"Allocation '{recommendation.Id}' is not persisted.");
 
@@ -41,9 +41,9 @@ public class EfAllocationStore : IAllocationStore
         await _db.SaveChangesAsync(ct);
     }
 
-    public async Task<IReadOnlyList<AllocationRecommendation>> GetRecentAsync(string tenantId, int limit, CancellationToken ct = default)
+    public async Task<IReadOnlyList<CapitalFlow>> GetRecentAsync(string tenantId, int limit, CancellationToken ct = default)
     {
-        var records = await _db.Allocations.AsNoTracking()
+        var records = await _db.CapitalFlows.AsNoTracking()
             .Where(a => a.TenantId == tenantId)
             .OrderByDescending(a => a.CreatedAt)
             .Take(limit)
@@ -51,13 +51,16 @@ public class EfAllocationStore : IAllocationStore
         return records.Select(ToDomain).ToList();
     }
 
-    private static AllocationRecord ToRecord(AllocationRecommendation r) => new()
+    private static CapitalFlowRecord ToRecord(CapitalFlow r) => new()
     {
         Id = r.Id,
         TenantId = r.TenantId,
+        Direction = r.Direction,
+        SourceId = r.SourceId,
+        MilestoneReference = r.MilestoneReference,
         TargetReference = r.TargetReference,
         TargetAssetClass = r.TargetAssetClass,
-        RecommendedAmount = r.RecommendedAmount,
+        Amount = r.Amount,
         TargetInstitution = r.TargetInstitution,
         TargetJurisdiction = r.TargetJurisdiction,
         ConfidenceScore = r.ConfidenceScore,
@@ -76,13 +79,16 @@ public class EfAllocationStore : IAllocationStore
         ModifiedAmount = r.ModifiedAmount
     };
 
-    private static AllocationRecommendation ToDomain(AllocationRecord r) => new()
+    private static CapitalFlow ToDomain(CapitalFlowRecord r) => new()
     {
         Id = r.Id,
         TenantId = r.TenantId,
+        Direction = r.Direction,
+        SourceId = r.SourceId,
+        MilestoneReference = r.MilestoneReference,
         TargetReference = r.TargetReference,
         TargetAssetClass = r.TargetAssetClass,
-        RecommendedAmount = r.RecommendedAmount,
+        Amount = r.Amount,
         TargetInstitution = r.TargetInstitution,
         TargetJurisdiction = r.TargetJurisdiction,
         ConfidenceScore = r.ConfidenceScore,

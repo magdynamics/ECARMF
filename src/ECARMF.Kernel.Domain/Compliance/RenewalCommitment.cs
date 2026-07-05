@@ -19,8 +19,17 @@ public class RenewalCommitment
     /// <summary>What lapses, e.g. "CPA license — Jane", "GL insurance policy".</summary>
     public string Name { get; set; } = string.Empty;
 
-    /// <summary>License | Insurance | Loan | Lease | Corporate | Contract | Other.</summary>
+    /// <summary>Open renewal type (Batch 1, Refinement 1): License,
+    /// Insurance, AnnualReport, CPE, COI, LeaseContract — or any future
+    /// type. Never a closed enum; RenewalCategories.All is UI suggestions.</summary>
     public string Category { get; set; } = RenewalCategories.License;
+
+    /// <summary>What the obligation belongs to (polymorphic): an
+    /// OrganizationalUnit (a practice's license), a User (a CPA's CPE),
+    /// a Subcontractor (a COI) — or any future subject type.</summary>
+    public string? SubjectType { get; set; }
+
+    public string? SubjectId { get; set; }
 
     /// <summary>Who the obligation is with (state board, insurer, lender...).</summary>
     public string? Counterparty { get; set; }

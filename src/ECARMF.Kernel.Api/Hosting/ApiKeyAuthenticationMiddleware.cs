@@ -75,6 +75,23 @@ public class ApiKeyAuthenticationMiddleware
                 });
                 return;
             }
+
+            // Sensitivity enforcement (Batch 1, Refinement 6): for
+            // HighSensitivity and Regulated tenants, header-asserted
+            // identity is refused even where the deployment allows it —
+            // a real credential is mandatory for this tenant's data.
+            if (profile is not null
+                && string.IsNullOrWhiteSpace(apiKey)
+                && SensitivityTiers.AtLeast(profile.SensitivityTier, SensitivityTiers.HighSensitivity)
+                && context.Request.Path.StartsWithSegments("/api"))
+            {
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                await context.Response.WriteAsJsonAsync(new
+                {
+                    error = $"Tenant '{tenantId}' is {profile.SensitivityTier}: an access key (X-Api-Key) is required."
+                });
+                return;
+            }
         }
 
         await _next(context);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import './App.css'
 import { api, getApiKey, getTenant, getUser, setApiKey, setTenant, setUser } from './api'
 import { Advisor } from './components/Advisor'
@@ -43,7 +43,7 @@ const NAV: { tab: string; label: string; icon: string; group: string }[] = [
   { tab: 'dashboard', label: 'Dashboard', icon: '📊', group: 'Output' },
   { tab: 'reports', label: 'Reports', icon: '📑', group: 'Output' },
   { tab: 'library', label: 'Library', icon: '🗄️', group: 'Output' },
-  { tab: 'allocations', label: 'Allocations', icon: '💼', group: 'Output' },
+  { tab: 'allocations', label: 'Capital Flows', icon: '💼', group: 'Output' },
   { tab: 'advisor', label: 'AI Advisor', icon: '🤖', group: 'Output' },
   { tab: 'health', label: 'Health Board', icon: '🩺', group: 'Platform' },
   { tab: 'clients', label: 'Clients', icon: '🏢', group: 'Platform' },

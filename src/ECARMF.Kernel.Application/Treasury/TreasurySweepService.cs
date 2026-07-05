@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using ECARMF.Kernel.Application.Audit;
 using ECARMF.Kernel.Application.Capital;
 using ECARMF.Kernel.Application.Scoring;
@@ -47,7 +47,7 @@ public interface ITreasurySweepService
 
     /// <summary>A balance observation (from a bank feed or manual entry).
     /// Operating account above its APPROVED threshold → the overage becomes
-    /// an Autonomous-tier AllocationRecommendation (sweep to destination),
+    /// an Autonomous-tier CapitalFlow (sweep to destination),
     /// fully reasoned and audited. Payroll account above threshold → a
     /// Recommend-Only alert, never a sweep.</summary>
     Task<SweepObservationResult> ObserveBalanceAsync(
@@ -82,12 +82,12 @@ public class TreasurySweepService : ITreasurySweepService
 
     private readonly ISweepAccountStore _accounts;
     private readonly IScoreStore _scores;
-    private readonly IAllocationStore _allocations;
+    private readonly ICapitalFlowStore _allocations;
     private readonly INotificationStore _notifications;
     private readonly IAuditLog _audit;
 
     public TreasurySweepService(
-        ISweepAccountStore accounts, IScoreStore scores, IAllocationStore allocations,
+        ISweepAccountStore accounts, IScoreStore scores, ICapitalFlowStore allocations,
         INotificationStore notifications, IAuditLog audit)
     {
         _accounts = accounts;
@@ -317,12 +317,14 @@ public class TreasurySweepService : ITreasurySweepService
             .OrderByDescending(s => s.ComputedAt)
             .FirstOrDefault();
 
-        var recommendation = new AllocationRecommendation
+        var recommendation = new CapitalFlow
         {
             TenantId = tenantId,
+            Direction = CapitalFlowDirections.Outbound,
+            SourceId = account.AccountId,
             TargetReference = account.DestinationAccountId ?? "corporate-operating",
             TargetAssetClass = "Cash",
-            RecommendedAmount = overage,
+            Amount = overage,
             TargetInstitution = account.Institution,
             ConfidenceScore = 0.9m,
             Reasoning =

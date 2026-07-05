@@ -64,7 +64,7 @@ app.MapRegistryEndpoints();
 app.MapScoreEndpoints();
 app.MapUserEndpoints();
 app.MapConnectorEndpoints();
-app.MapAllocationEndpoints();
+app.MapCapitalFlowEndpoints();
 app.MapAnalyticsEndpoints();
 app.MapDashboardEndpoints();
 app.MapTaskEndpoints();

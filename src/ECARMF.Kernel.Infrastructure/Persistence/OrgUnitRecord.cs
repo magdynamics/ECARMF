@@ -16,6 +16,7 @@ public class OrgUnitRecord
     public string? Industry { get; set; }
     public string AttachedPackageIdsJson { get; set; } = "[]";
     public string? Notes { get; set; }
+    public string LifecycleState { get; set; } = "Operating";
     public string Status { get; set; } = "Active";
     public string CreatedBy { get; set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; set; }
@@ -58,6 +59,7 @@ public class EfOrgUnitStore : IOrgUnitStore
         record.Industry = unit.Industry;
         record.AttachedPackageIdsJson = JsonSerializer.Serialize(unit.AttachedPackageIds);
         record.Notes = unit.Notes;
+        record.LifecycleState = unit.LifecycleState;
         record.Status = unit.Status;
         record.UpdatedAt = unit.UpdatedAt ?? DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(ct);
@@ -85,6 +87,7 @@ public class EfOrgUnitStore : IOrgUnitStore
         Industry = unit.Industry,
         AttachedPackageIdsJson = JsonSerializer.Serialize(unit.AttachedPackageIds),
         Notes = unit.Notes,
+        LifecycleState = unit.LifecycleState,
         Status = unit.Status,
         CreatedBy = unit.CreatedBy,
         CreatedAt = unit.CreatedAt,
@@ -102,6 +105,7 @@ public class EfOrgUnitStore : IOrgUnitStore
         Industry = record.Industry,
         AttachedPackageIds = JsonSerializer.Deserialize<List<string>>(record.AttachedPackageIdsJson) ?? [],
         Notes = record.Notes,
+        LifecycleState = record.LifecycleState,
         Status = record.Status,
         CreatedBy = record.CreatedBy,
         CreatedAt = record.CreatedAt,

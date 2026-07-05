@@ -1,4 +1,4 @@
-using ECARMF.Kernel.Application.Capital;
+﻿using ECARMF.Kernel.Application.Capital;
 using ECARMF.Kernel.Domain.Capital;
 using ECARMF.Kernel.Domain.Identity;
 using ECARMF.Kernel.Domain.Scoring;
@@ -6,24 +6,24 @@ using ECARMF.Kernel.Tests.Fakes;
 
 namespace ECARMF.Kernel.Tests;
 
-public class InMemoryAllocationStore : IAllocationStore
+public class InMemoryCapitalFlowStore : ICapitalFlowStore
 {
-    public List<AllocationRecommendation> Items { get; } = [];
+    public List<CapitalFlow> Items { get; } = [];
 
-    public Task AddAsync(AllocationRecommendation recommendation, CancellationToken ct = default)
+    public Task AddAsync(CapitalFlow recommendation, CancellationToken ct = default)
     {
         Items.Add(recommendation);
         return Task.CompletedTask;
     }
 
-    public Task<AllocationRecommendation?> GetAsync(string tenantId, Guid id, CancellationToken ct = default) =>
+    public Task<CapitalFlow?> GetAsync(string tenantId, Guid id, CancellationToken ct = default) =>
         Task.FromResult(Items.FirstOrDefault(a => a.TenantId == tenantId && a.Id == id));
 
-    public Task UpdateDecisionAsync(AllocationRecommendation recommendation, CancellationToken ct = default) =>
+    public Task UpdateDecisionAsync(CapitalFlow recommendation, CancellationToken ct = default) =>
         Task.CompletedTask;
 
-    public Task<IReadOnlyList<AllocationRecommendation>> GetRecentAsync(string tenantId, int limit, CancellationToken ct = default) =>
-        Task.FromResult<IReadOnlyList<AllocationRecommendation>>(
+    public Task<IReadOnlyList<CapitalFlow>> GetRecentAsync(string tenantId, int limit, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<CapitalFlow>>(
             Items.Where(a => a.TenantId == tenantId).OrderByDescending(a => a.CreatedAt).Take(limit).ToList());
 }
 
@@ -34,7 +34,7 @@ public class CapitalAllocationTests
     private const string Tenant = "tenant-a";
 
     private readonly InMemoryScoreStore _scores = new();
-    private readonly InMemoryAllocationStore _allocations = new();
+    private readonly InMemoryCapitalFlowStore _allocations = new();
     private readonly InMemoryAuditLog _audit = new();
 
     private CapitalAllocationEngine CreateEngine() => new(_scores, _allocations, _audit);
@@ -60,7 +60,7 @@ public class CapitalAllocationTests
 
         Assert.NotNull(recommendation);
         Assert.Equal("OPP-A", recommendation!.TargetReference);
-        Assert.Equal(800_000m, recommendation.RecommendedAmount);
+        Assert.Equal(800_000m, recommendation.Amount);
         Assert.Equal(0.9m, recommendation.ConfidenceScore);
         Assert.NotEmpty(recommendation.Reasoning);
         Assert.NotEmpty(recommendation.Assumptions);

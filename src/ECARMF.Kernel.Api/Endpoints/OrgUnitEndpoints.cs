@@ -10,6 +10,8 @@ public record SaveOrgUnitRequest(
 
 public record AttachUnitPackageRequest(string PackageId);
 
+public record SetLifecycleRequest(string LifecycleState);
+
 /// <summary>
 /// The tenant's organizational shape: any hierarchy, any depth, all data.
 /// Packages attach per unit; industry classification drives framework
@@ -101,6 +103,24 @@ public static class OrgUnitEndpoints
             }
         });
 
+        group.MapPost("/{unitId}/lifecycle", async (
+            string unitId, SetLifecycleRequest request, HttpContext context,
+            IUserStore users, IOrgUnitService service, CancellationToken ct) =>
+        {
+            if (!TenantResolution.TryGetTenant(context, out var tenantId))
+                return TenantResolution.MissingTenantResult();
+            var (error, user) = await AccessGuard.RequireAsync(context, users, tenantId, Permissions.ConnectorConfigure, ct);
+            if (error is not null) return error;
+
+            try
+            {
+                return Results.Ok(await service.SetLifecycleStateAsync(
+                    tenantId, unitId, request.LifecycleState, user!.Identifier, ct));
+            }
+            catch (KeyNotFoundException) { return Results.NotFound(); }
+            catch (ArgumentException ex) { return Results.BadRequest(new { error = ex.Message }); }
+        });
+
         group.MapPost("/{unitId}/packages", async (
             string unitId, AttachUnitPackageRequest request, HttpContext context,
             IUserStore users, IOrgUnitService service, CancellationToken ct) =>
@@ -139,11 +159,15 @@ public static class OrgUnitEndpoints
             catch (KeyNotFoundException) { return Results.NotFound(); }
         });
 
-        // Industry-driven suggestions: the same recommender that powers the
-        // KPI layer, applied to a unit's declared industry.
+        // Industry-driven suggestions (Batch 1, Refinement 5): frameworks
+        // from the recommender, PLUS existing packages and starter packs the
+        // operator may have forgotten exist — discovery, not memory.
         group.MapGet("/{unitId}/suggestions", async (
             string unitId, HttpContext context, IUserStore users,
-            IOrgUnitStore units, IFrameworkRecommender recommender, CancellationToken ct) =>
+            IOrgUnitStore units, IFrameworkRecommender recommender,
+            Application.Packages.IPackageStore packages,
+            Application.Onboarding.IOnboardingTemplateService templates,
+            CancellationToken ct) =>
         {
             if (!TenantResolution.TryGetTenant(context, out var tenantId))
                 return TenantResolution.MissingTenantResult();
@@ -153,7 +177,14 @@ public static class OrgUnitEndpoints
             var unit = await units.GetAsync(tenantId, unitId, ct);
             if (unit is null) return Results.NotFound();
             if (string.IsNullOrWhiteSpace(unit.Industry))
-                return Results.Ok(new { unitId, industry = (string?)null, frameworks = Array.Empty<object>() });
+                return Results.Ok(new
+                {
+                    unitId,
+                    industry = (string?)null,
+                    frameworks = Array.Empty<object>(),
+                    packages = Array.Empty<object>(),
+                    starterPacks = Array.Empty<object>()
+                });
 
             var frameworks = recommender.Recommend(tenantId, unit.Industry!)
                 .Select(f => new
@@ -165,7 +196,27 @@ public static class OrgUnitEndpoints
                     alreadyAttached = unit.AttachedPackageIds.Contains(f.PackageId, StringComparer.OrdinalIgnoreCase)
                 })
                 .ToList();
-            return Results.Ok(new { unitId, industry = unit.Industry, frameworks });
+
+            // Active packages not yet attached to this unit — "it already
+            // exists" surfaces instead of relying on someone remembering.
+            var activePackages = (await packages.GetByStateAsync(
+                    tenantId, Domain.Packages.PackageLoadState.Active, ct))
+                .Where(p => !unit.AttachedPackageIds.Contains(p.Manifest.PackageId, StringComparer.OrdinalIgnoreCase))
+                .Select(p => new
+                {
+                    packageId = p.Manifest.PackageId,
+                    name = p.Manifest.Name,
+                    version = p.Manifest.PackageVersion,
+                    description = p.Manifest.Description
+                })
+                .ToList();
+
+            var starterPacks = (await templates.GetAllAsync(ct))
+                .Where(t => string.Equals(t.Industry, unit.Industry, StringComparison.OrdinalIgnoreCase))
+                .Select(t => new { t.TemplateId, t.Name, t.PackageCount, t.BenchmarkCount, t.RenewalCount })
+                .ToList();
+
+            return Results.Ok(new { unitId, industry = unit.Industry, frameworks, packages = activePackages, starterPacks });
         });
 
         return app;

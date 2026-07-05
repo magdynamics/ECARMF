@@ -10,6 +10,8 @@ public class RenewalRecord
     public string TenantId { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
+    public string? SubjectType { get; set; }
+    public string? SubjectId { get; set; }
     public string? Counterparty { get; set; }
     public string? Reference { get; set; }
     public string? Notes { get; set; }
@@ -70,6 +72,8 @@ public class EfRenewalStore : IRenewalStore
         var updated = ToRecord(renewal);
         record.Name = updated.Name;
         record.Category = updated.Category;
+        record.SubjectType = updated.SubjectType;
+        record.SubjectId = updated.SubjectId;
         record.Counterparty = updated.Counterparty;
         record.Reference = updated.Reference;
         record.Notes = updated.Notes;
@@ -103,6 +107,8 @@ public class EfRenewalStore : IRenewalStore
         TenantId = renewal.TenantId,
         Name = renewal.Name,
         Category = renewal.Category,
+        SubjectType = renewal.SubjectType,
+        SubjectId = renewal.SubjectId,
         Counterparty = renewal.Counterparty,
         Reference = renewal.Reference,
         Notes = renewal.Notes,
@@ -126,6 +132,8 @@ public class EfRenewalStore : IRenewalStore
         TenantId = record.TenantId,
         Name = record.Name,
         Category = record.Category,
+        SubjectType = record.SubjectType,
+        SubjectId = record.SubjectId,
         Counterparty = record.Counterparty,
         Reference = record.Reference,
         Notes = record.Notes,

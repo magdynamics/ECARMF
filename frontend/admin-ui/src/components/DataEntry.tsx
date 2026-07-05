@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState } from 'react'
+﻿import { useCallback, useEffect, useState } from 'react'
 import { api, ApiError } from '../api'
 
 interface Connector {
   connectorId: string
   name: string
-  sourceCategory: string
+  domainTag: string
   ingestionMode: string
   schemaTemplateId: string
   reliabilityRating: number
@@ -194,7 +194,7 @@ export function DataEntry({ tenant, user }: { tenant: string; user: string }) {
               {connectors.length === 0 && <option value="manual-entry">manual-entry</option>}
               {connectors.map((c) => (
                 <option key={c.connectorId} value={c.connectorId}>
-                  {c.name} ({c.sourceCategory}, maps via {c.schemaTemplateId})
+                  {c.name} ({c.domainTag}, maps via {c.schemaTemplateId})
                 </option>
               ))}
             </select>
@@ -225,7 +225,7 @@ export function DataEntry({ tenant, user }: { tenant: string; user: string }) {
               {connectors.length === 0 && <option value="manual-entry">manual-entry</option>}
               {connectors.map((c) => (
                 <option key={c.connectorId} value={c.connectorId}>
-                  {c.name} ({c.sourceCategory}, maps via {c.schemaTemplateId})
+                  {c.name} ({c.domainTag}, maps via {c.schemaTemplateId})
                 </option>
               ))}
             </select>

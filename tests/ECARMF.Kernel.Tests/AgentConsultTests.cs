@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using ECARMF.Kernel.Application.Agents;
 using ECARMF.Kernel.Application.Flywheel;
@@ -71,7 +71,7 @@ public class AgentConsultTests
         _registries, new FakeLanguageModelProvider(_llm), _interactions, _users,
         new AILearningFeedbackService(_scores, _audit), _audit,
         _scores, _deviations, new InMemoryBenchmarkStore(), new InMemoryTaskStore(),
-        new InMemoryAllocationStore(), new InMemoryDocumentLibrary(), _records);
+        new InMemoryCapitalFlowStore(), new InMemoryDocumentLibrary(), _records);
 
     private void RegisterAgent(params string[] contextSources) =>
         _registries.GetFor(Tenant).Agents.Register(new AgentDeclaration

@@ -1,4 +1,4 @@
-using ECARMF.Kernel.Application.Identity;
+﻿using ECARMF.Kernel.Application.Identity;
 using ECARMF.Kernel.Domain.Tenancy;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +14,7 @@ public class TenantProfileRecord
     public string? ContactEmail { get; set; }
     public string Status { get; set; } = TenantStatus.Active;
     public string? BillingPlanId { get; set; }
+    public string SensitivityTier { get; set; } = "Standard";
     public string? Notes { get; set; }
     public string CreatedBy { get; set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; set; }
@@ -53,6 +54,7 @@ public class EfTenantDirectory : ITenantDirectory
             ContactEmail = profile.ContactEmail,
             Status = profile.Status,
             BillingPlanId = profile.BillingPlanId,
+            SensitivityTier = profile.SensitivityTier,
             Notes = profile.Notes,
             CreatedBy = profile.CreatedBy,
             CreatedAt = profile.CreatedAt
@@ -69,6 +71,7 @@ public class EfTenantDirectory : ITenantDirectory
         record.ContactEmail = profile.ContactEmail;
         record.Status = profile.Status;
         record.BillingPlanId = profile.BillingPlanId;
+        record.SensitivityTier = profile.SensitivityTier;
         record.Notes = profile.Notes;
         record.UpdatedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(ct);
@@ -84,6 +87,7 @@ public class EfTenantDirectory : ITenantDirectory
         ContactEmail = record.ContactEmail,
         Status = record.Status,
         BillingPlanId = record.BillingPlanId,
+        SensitivityTier = record.SensitivityTier,
         Notes = record.Notes,
         CreatedBy = record.CreatedBy,
         CreatedAt = record.CreatedAt,

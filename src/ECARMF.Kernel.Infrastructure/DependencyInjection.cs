@@ -1,4 +1,4 @@
-using ECARMF.Kernel.Application.Audit;
+﻿using ECARMF.Kernel.Application.Audit;
 using ECARMF.Kernel.Application.Packages;
 using ECARMF.Kernel.Application.Scoring;
 using ECARMF.Kernel.Application.Transactions;
@@ -24,7 +24,7 @@ public static class DependencyInjection
         services.AddScoped<IScoreStore, EfScoreStore>();
         services.AddScoped<Application.Identity.IUserStore, EfUserStore>();
         services.AddScoped<Application.Ingestion.IConnectorStore, EfConnectorStore>();
-        services.AddScoped<Application.Capital.IAllocationStore, EfAllocationStore>();
+        services.AddScoped<Application.Capital.ICapitalFlowStore, EfCapitalFlowStore>();
         services.AddScoped<Application.Analytics.IDeviationStore, EfDeviationStore>();
         services.AddScoped<IDashboardStore, EfDashboardStore>();
         services.AddScoped<Application.Workflow.ITaskStore, EfTaskStore>();

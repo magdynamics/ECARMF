@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 using ECARMF.Kernel.Application.Advisor;
 using ECARMF.Kernel.Application.Analytics;
@@ -91,7 +91,7 @@ public class AgentConsultService : IAgentConsultService
     private readonly IDeviationStore _deviations;
     private readonly IBenchmarkStore _benchmarks;
     private readonly ITaskStore _tasks;
-    private readonly IAllocationStore _allocations;
+    private readonly ICapitalFlowStore _allocations;
     private readonly IDocumentLibrary _library;
     private readonly ITransactionStore _records;
 
@@ -106,7 +106,7 @@ public class AgentConsultService : IAgentConsultService
         IDeviationStore deviations,
         IBenchmarkStore benchmarks,
         ITaskStore tasks,
-        IAllocationStore allocations,
+        ICapitalFlowStore allocations,
         IDocumentLibrary library,
         ITransactionStore records)
     {
@@ -302,7 +302,7 @@ public class AgentConsultService : IAgentConsultService
             {
                 var pending = (await _allocations.GetRecentAsync(tenantId, 20, ct))
                     .Where(a => a.Status == "Pending")
-                    .Select(a => new { a.TargetReference, a.RecommendedAmount, Tier = a.Tier.ToString(), a.ConfidenceScore });
+                    .Select(a => new { a.TargetReference, a.Amount, Tier = a.Tier.ToString(), a.ConfidenceScore });
                 Append(context, "pendingAllocations", pending);
             }
             else if (source.Equals("library", StringComparison.OrdinalIgnoreCase))

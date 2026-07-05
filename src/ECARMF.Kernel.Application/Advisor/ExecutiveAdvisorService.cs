@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.Json;
 using ECARMF.Kernel.Application.Analytics;
 using ECARMF.Kernel.Application.Audit;
@@ -56,7 +56,7 @@ public class ExecutiveAdvisorService : IExecutiveAdvisor
 
     private readonly IScoreStore _scores;
     private readonly IDeviationStore _deviations;
-    private readonly IAllocationStore _allocations;
+    private readonly ICapitalFlowStore _allocations;
     private readonly ITaskStore _tasks;
     private readonly IAdvisorStore _briefs;
     private readonly ILanguageModelProvider _llmProvider;
@@ -66,7 +66,7 @@ public class ExecutiveAdvisorService : IExecutiveAdvisor
     public ExecutiveAdvisorService(
         IScoreStore scores,
         IDeviationStore deviations,
-        IAllocationStore allocations,
+        ICapitalFlowStore allocations,
         ITaskStore tasks,
         IAdvisorStore briefs,
         ILanguageModelProvider llmProvider,
@@ -189,7 +189,7 @@ public class ExecutiveAdvisorService : IExecutiveAdvisor
 
     internal sealed record DeviationSummary(string EntityReference, string MetricType, string Severity, decimal VarianceMagnitude);
 
-    internal sealed record AllocationSummary(string TargetReference, decimal RecommendedAmount, string Tier, decimal ConfidenceScore);
+    internal sealed record AllocationSummary(string TargetReference, decimal Amount, string Tier, decimal ConfidenceScore);
 
     internal sealed record AdvisorSnapshot(
         string TenantId,
@@ -225,9 +225,9 @@ public class ExecutiveAdvisorService : IExecutiveAdvisor
         var pendingAllocations = allocations
             .Where(a => a.Status == "Pending")
             .OrderByDescending(a => a.Tier == Domain.Capital.AutonomyTier.Escalated)
-            .ThenByDescending(a => a.RecommendedAmount)
+            .ThenByDescending(a => a.Amount)
             .Take(10)
-            .Select(a => new AllocationSummary(a.TargetReference, a.RecommendedAmount, a.Tier.ToString(), a.ConfidenceScore))
+            .Select(a => new AllocationSummary(a.TargetReference, a.Amount, a.Tier.ToString(), a.ConfidenceScore))
             .ToList();
 
         var accuracy = recentScores.Where(s => s.ScoreType == "ModelAccuracy").ToList();
@@ -285,7 +285,7 @@ public class ExecutiveAdvisorService : IExecutiveAdvisor
             {
                 recommendations.Add(new AdvisorRecommendation
                 {
-                    Recommendation = $"Decide the escalated allocation of {allocation.RecommendedAmount:N0} to '{allocation.TargetReference}'.",
+                    Recommendation = $"Decide the escalated allocation of {allocation.Amount:N0} to '{allocation.TargetReference}'.",
                     Rationale = $"The AI flagged and stopped (confidence {allocation.ConfidenceScore:P0}); by policy it can never self-approve an escalation.",
                     Priority = "High"
                 });

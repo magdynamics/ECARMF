@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 using ECARMF.Kernel.Application.Advisor;
 using ECARMF.Kernel.Application.Audit;
@@ -153,7 +153,7 @@ public class DocumentExtractionService : IDocumentExtractor
                 FileName = documentName,
                 MediaType = Path.GetExtension(documentName).TrimStart('.').ToLowerInvariant() is "pdf" ? "pdf" : "text",
                 SourceId = connectorId,
-                SourceCategory = connector.SourceCategory,
+                SourceCategory = connector.DomainTag,
                 UploadedBy = actorIdentifier,
                 ExtractionBackend = backend,
                 SchemaTemplateId = template.TemplateId,

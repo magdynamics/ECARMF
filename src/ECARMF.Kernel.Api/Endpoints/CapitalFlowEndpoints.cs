@@ -1,16 +1,16 @@
-using ECARMF.Kernel.Application.Capital;
+﻿using ECARMF.Kernel.Application.Capital;
 using ECARMF.Kernel.Application.Identity;
 using ECARMF.Kernel.Domain.Identity;
 
 namespace ECARMF.Kernel.Api.Endpoints;
 
-public static class AllocationEndpoints
+public static class CapitalFlowEndpoints
 {
     public record DecisionRequest(string Action, decimal? ModifiedAmount, string? Comment);
 
-    public static IEndpointRouteBuilder MapAllocationEndpoints(this IEndpointRouteBuilder app)
+    public static IEndpointRouteBuilder MapCapitalFlowEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/allocations");
+        var group = app.MapGroup("/api/capital-flows");
 
         // The AI actor (and the Owner) can generate recommendations.
         group.MapPost("/generate", async (
@@ -28,7 +28,7 @@ public static class AllocationEndpoints
         });
 
         group.MapGet("/", async (
-            int? limit, HttpContext context, IUserStore users, IAllocationStore store, CancellationToken ct) =>
+            int? limit, HttpContext context, IUserStore users, ICapitalFlowStore store, CancellationToken ct) =>
         {
             if (!TenantResolution.TryGetTenant(context, out var tenantId))
                 return TenantResolution.MissingTenantResult();

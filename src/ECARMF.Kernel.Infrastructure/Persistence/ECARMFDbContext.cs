@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace ECARMF.Kernel.Infrastructure.Persistence;
 
@@ -25,7 +25,7 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<ConnectorRecord> Connectors => Set<ConnectorRecord>();
 
-    public DbSet<AllocationRecord> Allocations => Set<AllocationRecord>();
+    public DbSet<CapitalFlowRecord> CapitalFlows => Set<CapitalFlowRecord>();
 
     public DbSet<DeviationRecord> Deviations => Set<DeviationRecord>();
 
@@ -195,6 +195,7 @@ public class ECARMFDbContext : DbContext
             entity.Property(u => u.ParentUnitId).HasMaxLength(100);
             entity.Property(u => u.Industry).HasMaxLength(100);
             entity.Property(u => u.Notes).HasMaxLength(2000);
+            entity.Property(u => u.LifecycleState).HasMaxLength(100).IsRequired();
             entity.Property(u => u.Status).HasMaxLength(50).IsRequired();
             entity.Property(u => u.CreatedBy).HasMaxLength(400).IsRequired();
             entity.HasIndex(u => new { u.TenantId, u.UnitId }).IsUnique();
@@ -220,7 +221,9 @@ public class ECARMFDbContext : DbContext
             entity.HasKey(r => r.Id);
             entity.Property(r => r.TenantId).HasMaxLength(100).IsRequired();
             entity.Property(r => r.Name).HasMaxLength(400).IsRequired();
-            entity.Property(r => r.Category).HasMaxLength(50).IsRequired();
+            entity.Property(r => r.Category).HasMaxLength(100).IsRequired();
+            entity.Property(r => r.SubjectType).HasMaxLength(100);
+            entity.Property(r => r.SubjectId).HasMaxLength(200);
             entity.Property(r => r.Counterparty).HasMaxLength(400);
             entity.Property(r => r.Reference).HasMaxLength(200);
             entity.Property(r => r.Notes).HasMaxLength(2000);
@@ -360,14 +363,17 @@ public class ECARMFDbContext : DbContext
             entity.HasIndex(d => new { d.TenantId, d.DetectedAt });
         });
 
-        modelBuilder.Entity<AllocationRecord>(entity =>
+        modelBuilder.Entity<CapitalFlowRecord>(entity =>
         {
-            entity.ToTable("Allocations");
+            entity.ToTable("CapitalFlows");
             entity.HasKey(a => a.Id);
             entity.Property(a => a.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(a => a.Direction).HasMaxLength(20).IsRequired();
+            entity.Property(a => a.SourceId).HasMaxLength(400);
+            entity.Property(a => a.MilestoneReference).HasMaxLength(400);
             entity.Property(a => a.TargetReference).HasMaxLength(400).IsRequired();
             entity.Property(a => a.TargetAssetClass).HasMaxLength(200);
-            entity.Property(a => a.RecommendedAmount).HasPrecision(18, 2);
+            entity.Property(a => a.Amount).HasPrecision(18, 2);
             entity.Property(a => a.ModifiedAmount).HasPrecision(18, 2);
             entity.Property(a => a.ConfidenceScore).HasPrecision(5, 4);
             entity.Property(a => a.TargetInstitution).HasMaxLength(400);
@@ -385,8 +391,8 @@ public class ECARMFDbContext : DbContext
             entity.Property(c => c.TenantId).HasMaxLength(100).IsRequired();
             entity.Property(c => c.ConnectorId).HasMaxLength(200).IsRequired();
             entity.Property(c => c.Name).HasMaxLength(400).IsRequired();
-            entity.Property(c => c.SourceCategory).HasMaxLength(100).IsRequired();
-            entity.Property(c => c.IngestionMode).HasMaxLength(50).IsRequired();
+            entity.Property(c => c.DomainTag).HasMaxLength(100).IsRequired();
+            entity.Property(c => c.ArrivalMode).HasMaxLength(50).IsRequired();
             entity.Property(c => c.SchemaTemplateId).HasMaxLength(200).IsRequired();
             entity.Property(c => c.ReliabilityRating).HasPrecision(5, 4);
             entity.Property(c => c.ProvenanceClass).HasMaxLength(50).IsRequired();

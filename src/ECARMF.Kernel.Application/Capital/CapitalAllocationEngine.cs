@@ -1,4 +1,4 @@
-using ECARMF.Kernel.Application.Audit;
+﻿using ECARMF.Kernel.Application.Audit;
 using ECARMF.Kernel.Application.Scoring;
 using ECARMF.Kernel.Domain.Audit;
 using ECARMF.Kernel.Domain.Capital;
@@ -8,12 +8,12 @@ using ECARMF.Kernel.Domain.Scoring;
 namespace ECARMF.Kernel.Application.Capital;
 
 /// <summary>Persistence port for allocation recommendations.</summary>
-public interface IAllocationStore
+public interface ICapitalFlowStore
 {
-    Task AddAsync(AllocationRecommendation recommendation, CancellationToken ct = default);
-    Task<AllocationRecommendation?> GetAsync(string tenantId, Guid id, CancellationToken ct = default);
-    Task UpdateDecisionAsync(AllocationRecommendation recommendation, CancellationToken ct = default);
-    Task<IReadOnlyList<AllocationRecommendation>> GetRecentAsync(string tenantId, int limit, CancellationToken ct = default);
+    Task AddAsync(CapitalFlow recommendation, CancellationToken ct = default);
+    Task<CapitalFlow?> GetAsync(string tenantId, Guid id, CancellationToken ct = default);
+    Task UpdateDecisionAsync(CapitalFlow recommendation, CancellationToken ct = default);
+    Task<IReadOnlyList<CapitalFlow>> GetRecentAsync(string tenantId, int limit, CancellationToken ct = default);
 }
 
 public sealed record AllocationDecision(
@@ -25,9 +25,9 @@ public interface ICapitalAllocationEngine
 {
     /// <summary>Generates one worked recommendation from the tenant's score
     /// history (simple explainable rule, not portfolio optimization math).</summary>
-    Task<AllocationRecommendation?> GenerateAsync(string tenantId, string actorIdentifier, CancellationToken ct = default);
+    Task<CapitalFlow?> GenerateAsync(string tenantId, string actorIdentifier, CancellationToken ct = default);
 
-    Task<(bool Success, string? Error, AllocationRecommendation? Recommendation)> DecideAsync(
+    Task<(bool Success, string? Error, CapitalFlow? Recommendation)> DecideAsync(
         string tenantId, Guid recommendationId, User decider, AllocationDecision decision, CancellationToken ct = default);
 }
 
@@ -42,17 +42,17 @@ public interface ICapitalAllocationEngine
 public class CapitalAllocationEngine : ICapitalAllocationEngine
 {
     private readonly IScoreStore _scores;
-    private readonly IAllocationStore _allocations;
+    private readonly ICapitalFlowStore _allocations;
     private readonly IAuditLog _audit;
 
-    public CapitalAllocationEngine(IScoreStore scores, IAllocationStore allocations, IAuditLog audit)
+    public CapitalAllocationEngine(IScoreStore scores, ICapitalFlowStore allocations, IAuditLog audit)
     {
         _scores = scores;
         _allocations = allocations;
         _audit = audit;
     }
 
-    public async Task<AllocationRecommendation?> GenerateAsync(
+    public async Task<CapitalFlow?> GenerateAsync(
         string tenantId, string actorIdentifier, CancellationToken ct = default)
     {
         var recent = await _scores.GetRecentAsync(tenantId, 500, null, ct);
@@ -89,12 +89,12 @@ public class CapitalAllocationEngine : ICapitalAllocationEngine
         if (confidence is not null) supporting.Add(confidence.Id);
         if (okr is not null) supporting.Add(okr.Id);
 
-        var recommendation = new AllocationRecommendation
+        var recommendation = new CapitalFlow
         {
             TenantId = tenantId,
             TargetReference = top.SubjectId,
             TargetAssetClass = top.SubjectType,
-            RecommendedAmount = amount,
+            Amount = amount,
             TargetInstitution = "treasury-primary",
             TargetJurisdiction = "US-DE",
             ConfidenceScore = confidenceValue,
@@ -149,7 +149,7 @@ public class CapitalAllocationEngine : ICapitalAllocationEngine
         return recommendation;
     }
 
-    public async Task<(bool Success, string? Error, AllocationRecommendation? Recommendation)> DecideAsync(
+    public async Task<(bool Success, string? Error, CapitalFlow? Recommendation)> DecideAsync(
         string tenantId, Guid recommendationId, User decider, AllocationDecision decision, CancellationToken ct = default)
     {
         var recommendation = await _allocations.GetAsync(tenantId, recommendationId, ct);

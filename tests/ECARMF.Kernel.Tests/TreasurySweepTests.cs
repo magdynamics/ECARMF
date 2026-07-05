@@ -1,4 +1,4 @@
-using ECARMF.Kernel.Application.Capital;
+﻿using ECARMF.Kernel.Application.Capital;
 using ECARMF.Kernel.Application.Treasury;
 using ECARMF.Kernel.Domain.Audit;
 using ECARMF.Kernel.Domain.Capital;
@@ -43,7 +43,7 @@ public class TreasurySweepTests
 
     private readonly InMemorySweepAccountStore _accounts = new();
     private readonly InMemoryScoreStore _scores = new();
-    private readonly InMemoryAllocationStore _allocations = new();
+    private readonly InMemoryCapitalFlowStore _allocations = new();
     private readonly InMemoryNotificationStore _notifications = new();
     private readonly InMemoryAuditLog _audit = new();
     private readonly TreasurySweepService _service;
@@ -129,7 +129,7 @@ public class TreasurySweepTests
         Assert.Equal(AutonomyTier.Autonomous, sweep.Tier);
         Assert.Equal("AutoExecuted", sweep.Status);
         Assert.Equal("corporate-operating", sweep.TargetReference);
-        Assert.Equal(7500m, sweep.RecommendedAmount);
+        Assert.Equal(7500m, sweep.Amount);
         Assert.Contains("20,000", sweep.Reasoning); // threshold in effect is stated
         Assert.NotEmpty(sweep.SupportingScoreRecordIds);
         Assert.Contains(_audit.Items, a => a.Category == AuditCategories.TreasurySweepExecuted);

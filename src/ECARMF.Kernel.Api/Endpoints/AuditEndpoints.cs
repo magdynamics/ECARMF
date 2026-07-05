@@ -1,4 +1,5 @@
 using ECARMF.Kernel.Application.Audit;
+using ECARMF.Kernel.Application.Identity;
 using ECARMF.Kernel.Domain.Identity;
 
 namespace ECARMF.Kernel.Api.Endpoints;
@@ -14,9 +15,13 @@ public static class AuditEndpoints
             Guid transactionId,
             HttpContext context,
             IAuditLog audit,
+            IUserStore users,
+            ITenantDirectory tenants,
             CancellationToken ct) =>
         {
             TenantResolution.TryGetTenant(context, out var tenantId);
+            if (await SensitivityGuard.RequireAuditVisibilityAsync(context, users, tenants, tenantId, ct) is { } denied)
+                return denied;
             var entries = await audit.GetByCorrelationAsync(tenantId, transactionId, ct);
             return Results.Ok(entries);
         });
@@ -27,9 +32,13 @@ public static class AuditEndpoints
             Guid correlationId,
             HttpContext context,
             IAuditLog audit,
+            IUserStore users,
+            ITenantDirectory tenants,
             CancellationToken ct) =>
         {
             TenantResolution.TryGetTenant(context, out var tenantId);
+            if (await SensitivityGuard.RequireAuditVisibilityAsync(context, users, tenants, tenantId, ct) is { } denied)
+                return denied;
             var entries = await audit.GetByCorrelationAsync(tenantId, correlationId, ct);
             return Results.Ok(entries);
         });
@@ -39,9 +48,13 @@ public static class AuditEndpoints
             DateTimeOffset? to,
             HttpContext context,
             IAuditLog audit,
+            IUserStore users,
+            ITenantDirectory tenants,
             CancellationToken ct) =>
         {
             TenantResolution.TryGetTenant(context, out var tenantId);
+            if (await SensitivityGuard.RequireAuditVisibilityAsync(context, users, tenants, tenantId, ct) is { } denied)
+                return denied;
 
             var rangeEnd = to ?? DateTimeOffset.UtcNow;
             var rangeStart = from ?? rangeEnd.AddHours(-24);

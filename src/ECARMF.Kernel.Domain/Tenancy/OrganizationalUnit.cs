@@ -37,6 +37,13 @@ public class OrganizationalUnit
 
     public string? Notes { get; set; }
 
+    /// <summary>Open lifecycle state (Batch 1, Refinement 4):
+    /// PreDevelopment, Construction, Stabilization, Operating, Closed,
+    /// Sold — or any future state. A state change on ANY unit type triggers
+    /// a framework/package review suggestion generically, never
+    /// special-cased per unit type.</summary>
+    public string LifecycleState { get; set; } = "Operating";
+
     /// <summary>Active | Archived.</summary>
     public string Status { get; set; } = "Active";
 

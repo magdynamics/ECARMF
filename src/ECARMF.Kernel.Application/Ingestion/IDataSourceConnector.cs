@@ -9,17 +9,45 @@ public static class Provenance
     public const string AIGenerated = "AIGenerated";
 }
 
+/// <summary>How data physically arrives (Batch 1, Refinement 3): the FIXED
+/// small set — unlike the domain tag, a new arrival mode is genuinely new
+/// kernel transport capability, not just a new label.</summary>
+public static class ArrivalModes
+{
+    public const string Push = "Push";
+    public const string Pull = "Pull";
+    public const string Manual = "Manual";
+    public const string File = "File";
+    public const string Stream = "Stream";
+
+    public static readonly string[] All = [Push, Pull, Manual, File, Stream];
+
+    /// <summary>Canonicalizes legacy lowercase values ("manual", "internal")
+    /// so pre-refinement connector rows read back cleanly.</summary>
+    public static string Normalize(string? value) => value?.Trim().ToLowerInvariant() switch
+    {
+        "push" or "internal" => Push, // internal flywheel re-entry is a push
+        "pull" => Pull,
+        "manual" => Manual,
+        "file" => File,
+        "stream" => Stream,
+        _ => value ?? Manual
+    };
+}
+
 /// <summary>
-/// A configured data source connector instance: source category + ingestion
-/// mode + SchemaTemplate reference + reliability tier + provenance class.
-/// Adding a second bank is a new connector instance reusing an existing
-/// template — not new code.
+/// A configured data source connector instance (Batch 1, Refinement 3):
+/// arrival mode (fixed small set) + domain tag (OPEN string — Banking,
+/// AccountingSystem, POS, Communications, or any future tag; the original
+/// six categories are tag values, never structure) + SchemaTemplate
+/// reference + reliability tier + provenance class. Adding a second bank
+/// is a new connector instance reusing an existing template — not new code.
 /// </summary>
 public sealed record ConnectorDefinition(
     string ConnectorId,
     string Name,
-    string SourceCategory,
-    string IngestionMode,   // manual | push | pull | file | internal
+    string DomainTag,
+    string ArrivalMode,
     string SchemaTemplateId,
     decimal ReliabilityRating,
     string ProvenanceClass,

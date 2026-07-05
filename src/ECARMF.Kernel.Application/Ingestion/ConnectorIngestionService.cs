@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using ECARMF.Kernel.Application.Library;
 using ECARMF.Kernel.Application.Registries;
 using ECARMF.Kernel.Application.Transactions;
@@ -73,8 +73,9 @@ public class ConnectorIngestionService : IDataSourceConnector
             // connector defaults (e.g. a form-supplied reliabilityRating).
             var payload = new Dictionary<string, string>(mapped.Payload, StringComparer.OrdinalIgnoreCase);
             payload["sourceId"] = connector.ConnectorId;
-            payload["sourceCategory"] = connector.SourceCategory;
-            payload.TryAdd("sourceType", connector.SourceCategory);
+            payload["sourceCategory"] = connector.DomainTag; // legacy key kept for rule compatibility
+            payload["domainTag"] = connector.DomainTag;
+            payload.TryAdd("sourceType", connector.DomainTag);
             payload["provenance"] = connector.ProvenanceClass;
             payload.TryAdd("reliabilityRating", connector.ReliabilityRating.ToString(System.Globalization.CultureInfo.InvariantCulture));
             payload["ingestedAt"] = DateTimeOffset.UtcNow.ToString("O");
@@ -112,7 +113,8 @@ public class ConnectorIngestionService : IDataSourceConnector
 
         var metadata = new Dictionary<string, string>
         {
-            ["ingestionMode"] = connector.IngestionMode,
+            ["ingestionMode"] = connector.ArrivalMode, // legacy key kept
+            ["arrivalMode"] = connector.ArrivalMode,
             ["provenance"] = connector.ProvenanceClass,
             ["accepted"] = (errors.Count == 0).ToString()
         };
@@ -127,7 +129,7 @@ public class ConnectorIngestionService : IDataSourceConnector
             FileName = $"{connector.ConnectorId}-{DateTimeOffset.UtcNow:yyyyMMdd-HHmmss}.{sourceFormat}",
             MediaType = sourceFormat,
             SourceId = connector.ConnectorId,
-            SourceCategory = connector.SourceCategory,
+            SourceCategory = connector.DomainTag,
             UploadedBy = actor,
             SchemaTemplateId = templateId,
             RecordIds = [.. recordIds],

@@ -1,19 +1,25 @@
-namespace ECARMF.Kernel.Infrastructure.Persistence;
+﻿namespace ECARMF.Kernel.Infrastructure.Persistence;
 
-/// <summary>Persistence record for an AllocationRecommendation. The ranked
+/// <summary>Persistence record for a CapitalFlow. The ranked
 /// alternatives, assumptions, risk factors, and supporting score ids are
 /// stored as JSON documents.</summary>
-public class AllocationRecord
+public class CapitalFlowRecord
 {
     public Guid Id { get; set; }
 
     public string TenantId { get; set; } = string.Empty;
 
+    public string Direction { get; set; } = "Outbound";
+
+    public string? SourceId { get; set; }
+
+    public string? MilestoneReference { get; set; }
+
     public string TargetReference { get; set; } = string.Empty;
 
     public string? TargetAssetClass { get; set; }
 
-    public decimal RecommendedAmount { get; set; }
+    public decimal Amount { get; set; }
 
     public string? TargetInstitution { get; set; }
 

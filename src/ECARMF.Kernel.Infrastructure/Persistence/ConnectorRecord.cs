@@ -1,4 +1,4 @@
-namespace ECARMF.Kernel.Infrastructure.Persistence;
+﻿namespace ECARMF.Kernel.Infrastructure.Persistence;
 
 public class ConnectorRecord
 {
@@ -10,9 +10,9 @@ public class ConnectorRecord
 
     public string Name { get; set; } = string.Empty;
 
-    public string SourceCategory { get; set; } = string.Empty;
+    public string DomainTag { get; set; } = string.Empty;
 
-    public string IngestionMode { get; set; } = string.Empty;
+    public string ArrivalMode { get; set; } = string.Empty;
 
     public string SchemaTemplateId { get; set; } = string.Empty;
 

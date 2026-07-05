@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+﻿import { useCallback, useEffect, useState } from 'react'
 import { api, ApiError } from '../api'
 
 interface Alternative {
@@ -11,7 +11,8 @@ interface Recommendation {
   id: string
   targetReference: string
   targetAssetClass: string | null
-  recommendedAmount: number
+  amount: number
+  direction: string
   targetInstitution: string | null
   targetJurisdiction: string | null
   confidenceScore: number
@@ -35,7 +36,7 @@ export function Allocations({ tenant, user }: { tenant: string; user: string }) 
 
   const refresh = useCallback(async () => {
     try {
-      setItems(await api.get<Recommendation[]>('/api/allocations?limit=20'))
+      setItems(await api.get<Recommendation[]>('/api/capital-flows?limit=20'))
       setError(null)
     } catch (e) {
       setError(e instanceof ApiError ? e.message : String(e))
@@ -50,7 +51,7 @@ export function Allocations({ tenant, user }: { tenant: string; user: string }) 
     setError(null)
     setMessage(null)
     try {
-      const result = await api.post<Recommendation | { message: string }>('/api/allocations/generate')
+      const result = await api.post<Recommendation | { message: string }>('/api/capital-flows/generate')
       if ('message' in result) setMessage(result.message)
       await refresh()
     } catch (e) {
@@ -61,7 +62,7 @@ export function Allocations({ tenant, user }: { tenant: string; user: string }) 
   async function decide(id: string, action: 'Approve' | 'Modify' | 'Reject') {
     setError(null)
     try {
-      await api.post(`/api/allocations/${id}/decision`, {
+      await api.post(`/api/capital-flows/${id}/decision`, {
         action,
         modifiedAmount: action === 'Modify' && modifyAmount ? Number(modifyAmount) : null,
         comment: null,
@@ -77,7 +78,7 @@ export function Allocations({ tenant, user }: { tenant: string; user: string }) 
   return (
     <div>
       <section className="panel">
-        <h2>Capital Allocation Recommendations</h2>
+        <h2>Capital Flows <span className="muted small">(outbound allocations &amp; sweeps; inbound draws &amp; capital calls)</span></h2>
         {error && <div className="banner banner-error">{error}</div>}
         {message && <div className="banner banner-ok">{message}</div>}
         <div className="form-row">
@@ -92,7 +93,7 @@ export function Allocations({ tenant, user }: { tenant: string; user: string }) 
       {items.map((r) => (
         <section key={r.id} className="panel">
           <h2>
-            {fmt(r.recommendedAmount)} → <span className="accent">{r.targetReference}</span>{' '}
+            {r.direction === 'Inbound' ? '⬅ ' : ''}{fmt(r.amount)} → <span className="accent">{r.targetReference}</span>{' '}
             <span className={`state state-${r.tier.toLowerCase()}`}>{r.tier}</span>{' '}
             <span className={`state state-${r.status.toLowerCase()}`}>{r.status}</span>
           </h2>

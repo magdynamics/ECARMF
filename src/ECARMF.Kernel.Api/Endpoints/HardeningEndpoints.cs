@@ -9,6 +9,8 @@ namespace ECARMF.Kernel.Api.Endpoints;
 
 public record SetUserRolesRequest(string[] Roles);
 
+public record SetSensitivityRequest(string Tier);
+
 /// <summary>
 /// Platform hardening batch: month-close billing for the whole portfolio,
 /// regulator-ready audit export, per-user role management, and anonymized
@@ -33,12 +35,15 @@ public static class HardeningEndpoints
         // The audit trail as CSV — for an examiner, verbatim.
         app.MapGet("/api/audit/export", async (
             DateTimeOffset? from, DateTimeOffset? to, string? category,
-            HttpContext context, IUserStore users, IAuditLog audit, CancellationToken ct) =>
+            HttpContext context, IUserStore users, ITenantDirectory tenants,
+            IAuditLog audit, CancellationToken ct) =>
         {
             if (!TenantResolution.TryGetTenant(context, out var tenantId))
                 return TenantResolution.MissingTenantResult();
             var (error, _) = await AccessGuard.RequireAsync(context, users, tenantId, Permissions.AuditRead, ct);
             if (error is not null) return error;
+            if (await SensitivityGuard.RequireAuditVisibilityAsync(context, users, tenants, tenantId, ct) is { } denied)
+                return denied;
 
             var start = from ?? DateTimeOffset.UtcNow.AddMonths(-12);
             var end = to ?? DateTimeOffset.UtcNow;
@@ -68,6 +73,43 @@ public static class HardeningEndpoints
                 return Results.BadRequest(new { error = "scoreType is required." });
 
             return Results.Ok(await peers.CompareAsync(tenantId, scoreType.Trim(), ct));
+        });
+
+        // Operator: set a client's sensitivity tier; protections apply
+        // automatically from the next request onward.
+        app.MapPut("/api/platform/tenants/{tenantId}/sensitivity", async (
+            string tenantId, SetSensitivityRequest request,
+            HttpContext context, IUserStore users, ITenantDirectory tenants,
+            IAuditLog audit, CancellationToken ct) =>
+        {
+            var (error, op) = await PlatformOperator.RequireAsync(context, users, ct);
+            if (error is not null) return error;
+
+            if (!Domain.Tenancy.SensitivityTiers.Ordered.Contains(request.Tier, StringComparer.OrdinalIgnoreCase))
+                return Results.BadRequest(new
+                {
+                    error = "tier must be one of: " + string.Join(", ", Domain.Tenancy.SensitivityTiers.Ordered)
+                });
+
+            var profile = await tenants.GetAsync(tenantId, ct);
+            if (profile is null) return Results.NotFound();
+
+            var previous = profile.SensitivityTier;
+            profile.SensitivityTier = Domain.Tenancy.SensitivityTiers.Ordered.First(t =>
+                string.Equals(t, request.Tier, StringComparison.OrdinalIgnoreCase));
+            await tenants.UpdateAsync(profile, ct);
+
+            await audit.AppendAsync(new AuditEntry
+            {
+                TenantId = tenantId,
+                CorrelationId = Guid.NewGuid(),
+                Category = AuditCategories.TenantSensitivityChanged,
+                Actor = op!.Identifier,
+                Summary = $"Sensitivity tier changed from {previous} to {profile.SensitivityTier}.",
+                Detail = new Dictionary<string, string> { ["previous"] = previous, ["current"] = profile.SensitivityTier }
+            }, ct);
+
+            return Results.Ok(new { tenantId, sensitivityTier = profile.SensitivityTier });
         });
 
         // Operator: change what a client user may do.

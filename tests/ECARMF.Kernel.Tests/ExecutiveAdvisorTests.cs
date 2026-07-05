@@ -1,4 +1,4 @@
-using ECARMF.Kernel.Application.Advisor;
+﻿using ECARMF.Kernel.Application.Advisor;
 using ECARMF.Kernel.Application.Analytics;
 using ECARMF.Kernel.Application.Capital;
 using ECARMF.Kernel.Application.Flywheel;
@@ -78,7 +78,7 @@ public class ExecutiveAdvisorTests
 
     private readonly InMemoryScoreStore _scores = new();
     private readonly InMemoryDeviationStore _deviations = new();
-    private readonly InMemoryAllocationStore _allocations = new();
+    private readonly InMemoryCapitalFlowStore _allocations = new();
     private readonly InMemoryTaskStore _tasks = new();
     private readonly InMemoryAdvisorStore _briefs = new();
     private readonly InMemoryAuditLog _audit = new();
@@ -106,9 +106,9 @@ public class ExecutiveAdvisorTests
             TenantId = Tenant, EntityReference = "occupancy@site-1", MetricType = "KPIActual",
             Severity = "Critical", VarianceMagnitude = -0.55m
         });
-        _allocations.Items.Add(new AllocationRecommendation
+        _allocations.Items.Add(new CapitalFlow
         {
-            TenantId = Tenant, TargetReference = "venture-9", RecommendedAmount = 2_000_000m,
+            TenantId = Tenant, TargetReference = "venture-9", Amount = 2_000_000m,
             ConfidenceScore = 0.4m, Tier = AutonomyTier.Escalated, Status = "Pending"
         });
 

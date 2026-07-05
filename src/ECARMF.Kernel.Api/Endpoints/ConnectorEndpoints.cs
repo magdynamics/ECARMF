@@ -9,8 +9,8 @@ public static class ConnectorEndpoints
     public record CreateConnectorRequest(
         string ConnectorId,
         string Name,
-        string SourceCategory,
-        string IngestionMode,
+        string DomainTag,
+        string ArrivalMode,
         string SchemaTemplateId,
         decimal ReliabilityRating,
         string ProvenanceClass);
@@ -46,11 +46,17 @@ public static class ConnectorEndpoints
 
             if (string.IsNullOrWhiteSpace(request.ConnectorId) || string.IsNullOrWhiteSpace(request.SchemaTemplateId))
                 return Results.BadRequest(new { error = "connectorId and schemaTemplateId are required." });
+            // The arrival mode is the FIXED small set; the domain tag is open.
+            var arrivalMode = ArrivalModes.Normalize(request.ArrivalMode);
+            if (!ArrivalModes.All.Contains(arrivalMode))
+                return Results.BadRequest(new { error = "arrivalMode must be one of: " + string.Join(", ", ArrivalModes.All) });
+            if (string.IsNullOrWhiteSpace(request.DomainTag))
+                return Results.BadRequest(new { error = "domainTag is required (open tag, e.g. Banking, AccountingSystem, POS, Communications)." });
             if (await connectors.GetAsync(tenantId, request.ConnectorId, ct) is not null)
                 return Results.BadRequest(new { error = $"Connector '{request.ConnectorId}' already exists." });
 
             var definition = new ConnectorDefinition(
-                request.ConnectorId, request.Name, request.SourceCategory, request.IngestionMode,
+                request.ConnectorId, request.Name, request.DomainTag.Trim(), arrivalMode,
                 request.SchemaTemplateId, request.ReliabilityRating,
                 string.IsNullOrWhiteSpace(request.ProvenanceClass) ? Provenance.ExternalSystemVerified : request.ProvenanceClass,
                 "Active");

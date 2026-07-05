@@ -1,4 +1,4 @@
-using ECARMF.Kernel.Application.Ingestion;
+﻿using ECARMF.Kernel.Application.Ingestion;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECARMF.Kernel.Infrastructure.Persistence;
@@ -45,7 +45,7 @@ public class EfConnectorStore : IConnectorStore
             SeedConnectors.ManualEntry,
             "Manual Entry (admin UI form)",
             "Manual",
-            "manual",
+            ArrivalModes.Manual,
             "manual-opportunity-json",
             0.5m,
             Provenance.HumanEntered,
@@ -60,8 +60,8 @@ public class EfConnectorStore : IConnectorStore
         TenantId = tenantId,
         ConnectorId = c.ConnectorId,
         Name = c.Name,
-        SourceCategory = c.SourceCategory,
-        IngestionMode = c.IngestionMode,
+        DomainTag = c.DomainTag,
+        ArrivalMode = c.ArrivalMode,
         SchemaTemplateId = c.SchemaTemplateId,
         ReliabilityRating = c.ReliabilityRating,
         ProvenanceClass = c.ProvenanceClass,
@@ -70,6 +70,6 @@ public class EfConnectorStore : IConnectorStore
     };
 
     private static ConnectorDefinition ToDomain(ConnectorRecord r) => new(
-        r.ConnectorId, r.Name, r.SourceCategory, r.IngestionMode,
+        r.ConnectorId, r.Name, r.DomainTag, ArrivalModes.Normalize(r.ArrivalMode),
         r.SchemaTemplateId, r.ReliabilityRating, r.ProvenanceClass, r.Status);
 }

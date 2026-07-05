@@ -35,6 +35,13 @@ public interface IOrgUnitService
 
     Task<OrganizationalUnit> DetachPackageAsync(
         string tenantId, string unitId, string packageId, string actor, CancellationToken ct = default);
+
+    /// <summary>Moves a unit to a new lifecycle state (Construction →
+    /// Operating, Operating → Sold, ...). Audited, and generically raises a
+    /// framework/package review notification — a stabilizing hotel and a
+    /// closing dental practice use the exact same mechanism.</summary>
+    Task<OrganizationalUnit> SetLifecycleStateAsync(
+        string tenantId, string unitId, string lifecycleState, string actor, CancellationToken ct = default);
 }
 
 /// <summary>
@@ -49,12 +56,61 @@ public class OrgUnitService : IOrgUnitService
     private readonly IOrgUnitStore _units;
     private readonly IPackageStore _packages;
     private readonly IAuditLog _audit;
+    private readonly Workflow.INotificationStore? _notifications;
 
-    public OrgUnitService(IOrgUnitStore units, IPackageStore packages, IAuditLog audit)
+    public OrgUnitService(
+        IOrgUnitStore units, IPackageStore packages, IAuditLog audit,
+        Workflow.INotificationStore? notifications = null)
     {
         _units = units;
         _packages = packages;
         _audit = audit;
+        _notifications = notifications;
+    }
+
+    public async Task<OrganizationalUnit> SetLifecycleStateAsync(
+        string tenantId, string unitId, string lifecycleState, string actor, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(lifecycleState))
+        {
+            throw new ArgumentException("lifecycleState is required (e.g. Construction, Operating, Sold).");
+        }
+
+        var unit = await _units.GetAsync(tenantId, unitId, ct)
+            ?? throw new KeyNotFoundException($"Unit '{unitId}' does not exist.");
+
+        var previous = unit.LifecycleState;
+        if (string.Equals(previous, lifecycleState.Trim(), StringComparison.OrdinalIgnoreCase))
+        {
+            return unit;
+        }
+
+        unit.LifecycleState = lifecycleState.Trim();
+        unit.UpdatedAt = DateTimeOffset.UtcNow;
+        await _units.UpdateAsync(unit, ct);
+
+        await AuditAsync(tenantId, actor, AuditCategories.OrgUnitChanged,
+            $"Unit '{unit.Name}' lifecycle changed: {previous} → {unit.LifecycleState}.", unit, ct);
+
+        // The generic reaction: a lifecycle change means the attached
+        // frameworks/packages may no longer fit — surface a review, for ANY
+        // unit type, never special-cased.
+        if (_notifications is not null)
+        {
+            await _notifications.AddAsync(new Domain.Workflow.NotificationItem
+            {
+                TenantId = tenantId,
+                WorkflowId = $"org-unit:{unit.UnitId}",
+                Target = "ExecutiveOwner",
+                Message = $"'{unit.Name}' moved from {previous} to {unit.LifecycleState} — review its attached " +
+                          $"packages and frameworks ({(unit.AttachedPackageIds.Count == 0 ? "none attached" : string.Join(", ", unit.AttachedPackageIds))}); " +
+                          "a unit's intelligence should match its lifecycle stage.",
+                Severity = "Info",
+                CorrelationId = Guid.NewGuid()
+            }, ct);
+        }
+
+        return unit;
     }
 
     public async Task<OrganizationalUnit> CreateAsync(

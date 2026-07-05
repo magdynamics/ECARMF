@@ -1,4 +1,10 @@
-namespace ECARMF.Kernel.Domain.Capital;
+﻿namespace ECARMF.Kernel.Domain.Capital;
+
+public static class CapitalFlowDirections
+{
+    public const string Outbound = "Outbound";
+    public const string Inbound = "Inbound";
+}
 
 /// <summary>Decision authority tiers. The AI never self-approves its own
 /// escalated outcomes — the same rule as RequireDualApproval, generalized
@@ -27,16 +33,27 @@ public class AllocationAlternative
 }
 
 /// <summary>
-/// What "Out" produces when the decision is investment-shaped rather than
-/// approve/reject-shaped — the Capital Intelligence output (ECARMF-011
-/// series). Reasoning, confidence, assumptions, and risk factors are
-/// required on every recommendation, no exceptions.
+/// One entity for capital moving in either direction (Batch 1, Refinement
+/// 2): an outbound treasury sweep and an inbound construction draw or
+/// investor capital call are the same shape with Direction flipped.
+/// Reasoning, confidence, assumptions, and risk factors are required on
+/// every flow, both directions, no exceptions.
 /// </summary>
-public class AllocationRecommendation
+public class CapitalFlow
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 
     public string TenantId { get; set; } = string.Empty;
+
+    /// <summary>Outbound | Inbound.</summary>
+    public string Direction { get; set; } = CapitalFlowDirections.Outbound;
+
+    /// <summary>Lender/investor identity the capital comes FROM (Inbound).</summary>
+    public string? SourceId { get; set; }
+
+    /// <summary>For Inbound draws tied to verified progress (e.g. a
+    /// construction milestone); null for most Outbound flows.</summary>
+    public string? MilestoneReference { get; set; }
 
     /// <summary>Where: the venture/opportunity the capital would go to.</summary>
     public string TargetReference { get; set; } = string.Empty;
@@ -44,7 +61,7 @@ public class AllocationRecommendation
     public string? TargetAssetClass { get; set; }
 
     /// <summary>How much.</summary>
-    public decimal RecommendedAmount { get; set; }
+    public decimal Amount { get; set; }
 
     /// <summary>Which bank/custodian/broker it would route through.</summary>
     public string? TargetInstitution { get; set; }

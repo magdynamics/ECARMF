@@ -8,7 +8,8 @@ using ECARMF.Kernel.Domain.Library;
 namespace ECARMF.Kernel.Api.Endpoints;
 
 public record SaveRenewalRequest(
-    string Name, string Category, string? Counterparty, string? Reference, string? Notes,
+    string Name, string Category, string? SubjectType, string? SubjectId,
+    string? Counterparty, string? Reference, string? Notes,
     DateTimeOffset DueDate, int? RecurrenceMonths, int[]? LeadTimeDays,
     string NotifyRole, bool CreateTask);
 
@@ -203,12 +204,15 @@ public static class RenewalEndpoints
         });
 
         group.MapDelete("/{id:guid}", async (
-            Guid id, HttpContext context, IUserStore users, IRenewalStore renewals, CancellationToken ct) =>
+            Guid id, HttpContext context, IUserStore users, ITenantDirectory tenants,
+            IRenewalStore renewals, CancellationToken ct) =>
         {
             if (!TenantResolution.TryGetTenant(context, out var tenantId))
                 return TenantResolution.MissingTenantResult();
             var (error, _) = await AccessGuard.RequireAsync(context, users, tenantId, Permissions.ConnectorConfigure, ct);
             if (error is not null) return error;
+            if (await SensitivityGuard.RequireDeletionAllowedAsync(tenants, tenantId, "a watched obligation", ct) is { } denied)
+                return denied;
 
             await renewals.DeleteAsync(tenantId, id, ct);
             return Results.NoContent();
@@ -239,8 +243,11 @@ public static class RenewalEndpoints
     {
         if (string.IsNullOrWhiteSpace(request.Name))
             return (false, "name is required.", null);
-        if (!RenewalCategories.All.Contains(request.Category, StringComparer.OrdinalIgnoreCase))
-            return (false, "category must be one of: " + string.Join(", ", RenewalCategories.All), null);
+        // Open renewal type (Batch 1, Refinement 1): CPE, COI, LeaseContract,
+        // or anything a future tenant needs — the known list is suggestions,
+        // never a gate.
+        if (string.IsNullOrWhiteSpace(request.Category))
+            return (false, "category is required (e.g. " + string.Join(", ", RenewalCategories.All) + ", CPE, COI — any type).", null);
         if (request.DueDate == default)
             return (false, "dueDate is required.", null);
         if (request.RecurrenceMonths is <= 0)
@@ -253,14 +260,18 @@ public static class RenewalEndpoints
         if (ladder.Length == 0)
             return (false, "leadTimeDays must contain at least one non-negative day count.", null);
 
-        var category = RenewalCategories.All.First(c =>
-            string.Equals(c, request.Category, StringComparison.OrdinalIgnoreCase));
+        // Normalize casing for known types; unknown types pass through as-is.
+        var category = RenewalCategories.All.FirstOrDefault(c =>
+            string.Equals(c, request.Category, StringComparison.OrdinalIgnoreCase))
+            ?? request.Category.Trim();
 
         return (true, null, new RenewalCommitment
         {
             TenantId = tenantId,
             Name = request.Name.Trim(),
             Category = category,
+            SubjectType = string.IsNullOrWhiteSpace(request.SubjectType) ? null : request.SubjectType.Trim(),
+            SubjectId = string.IsNullOrWhiteSpace(request.SubjectId) ? null : request.SubjectId.Trim(),
             Counterparty = request.Counterparty,
             Reference = request.Reference,
             Notes = request.Notes,
