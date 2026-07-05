@@ -17,12 +17,33 @@ public class ApiKeyAuthenticationMiddleware
     public const string ApiKeyHeader = "X-Api-Key";
 
     private readonly RequestDelegate _next;
+    private readonly bool _allowHeaderIdentity;
 
-    public ApiKeyAuthenticationMiddleware(RequestDelegate next) => _next = next;
+    public ApiKeyAuthenticationMiddleware(RequestDelegate next, IConfiguration configuration)
+    {
+        _next = next;
+        // Development convenience only: header-asserted identity (X-Tenant-Id
+        // + X-User-Id without a credential). Set Security:AllowHeaderIdentity
+        // to false when the app is shared on a network — then every /api
+        // request must carry a real access key.
+        _allowHeaderIdentity = configuration.GetValue("Security:AllowHeaderIdentity", true);
+    }
 
     public async Task InvokeAsync(HttpContext context, IUserStore users, ITenantDirectory tenants)
     {
         var apiKey = context.Request.Headers[ApiKeyHeader].FirstOrDefault()?.Trim();
+
+        if (string.IsNullOrWhiteSpace(apiKey)
+            && !_allowHeaderIdentity
+            && context.Request.Path.StartsWithSegments("/api"))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            await context.Response.WriteAsJsonAsync(new
+            {
+                error = "An access key is required (X-Api-Key). Header-asserted identity is disabled on this deployment."
+            });
+            return;
+        }
 
         if (!string.IsNullOrWhiteSpace(apiKey))
         {
