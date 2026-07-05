@@ -62,4 +62,5 @@ public static class AuditCategories
     public const string RenewalCompleted = "RenewalCompleted";
     public const string NotificationEmailed = "NotificationEmailed";
     public const string MailSettingsUpdated = "MailSettingsUpdated";
+    public const string ReportGenerated = "ReportGenerated";
 }

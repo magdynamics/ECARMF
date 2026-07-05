@@ -7,7 +7,10 @@ namespace ECARMF.Kernel.Application.Notifications;
 
 /// <summary>An outbound email, provider-agnostic.</summary>
 public record EmailMessage(
-    IReadOnlyList<string> To, string Subject, string Body);
+    IReadOnlyList<string> To, string Subject, string Body,
+    IReadOnlyList<EmailAttachment>? Attachments = null);
+
+public record EmailAttachment(string FileName, byte[] Content, string ContentType);
 
 /// <summary>Transport port: SMTP in production, a fake in tests. The
 /// platform stays independent — mail goes through whatever SMTP server the

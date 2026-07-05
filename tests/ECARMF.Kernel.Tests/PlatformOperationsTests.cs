@@ -36,7 +36,10 @@ public class InMemoryDocumentLibrary : IDocumentLibrary
         string tenantId, string? query, string? sourceId,
         DateTimeOffset? from, DateTimeOffset? to, int limit, CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<SourceDocument>>(
-            Items.Select(i => i.Document).Where(d => d.TenantId == tenantId).Take(limit).ToList());
+            Items.Select(i => i.Document)
+                .Where(d => d.TenantId == tenantId
+                    && (sourceId is null || d.SourceId == sourceId))
+                .Take(limit).ToList());
 
     public Task<SourceDocument?> GetAsync(string tenantId, Guid id, CancellationToken ct = default) =>
         Task.FromResult(Items.Select(i => i.Document).FirstOrDefault(d => d.TenantId == tenantId && d.Id == id));

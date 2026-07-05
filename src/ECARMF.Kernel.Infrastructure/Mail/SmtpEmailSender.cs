@@ -38,6 +38,12 @@ public class SmtpEmailSender : IEmailSender
             mail.To.Add(recipient);
         }
 
+        foreach (var attachment in message.Attachments ?? Array.Empty<EmailAttachment>())
+        {
+            mail.Attachments.Add(new Attachment(
+                new MemoryStream(attachment.Content), attachment.FileName, attachment.ContentType));
+        }
+
         ct.ThrowIfCancellationRequested();
         await client.SendMailAsync(mail, ct);
     }

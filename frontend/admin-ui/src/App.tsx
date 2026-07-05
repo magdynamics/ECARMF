@@ -16,6 +16,7 @@ import { Library } from './components/Library'
 import { PackageInspector } from './components/PackageInspector'
 import { RecordActivity } from './components/RecordActivity'
 import { Renewals } from './components/Renewals'
+import { Reports } from './components/Reports'
 
 const SEEDED_USERS = [
   { id: 'owner@platform', label: 'Owner / Executive' },
@@ -35,6 +36,7 @@ const NAV: { tab: string; label: string; icon: string; group: string }[] = [
   { tab: 'dataentry', label: 'Data Entry', icon: '📥', group: 'Input' },
   { tab: 'activity', label: 'Record Activity', icon: '📋', group: 'Output' },
   { tab: 'dashboard', label: 'Dashboard', icon: '📊', group: 'Output' },
+  { tab: 'reports', label: 'Reports', icon: '📑', group: 'Output' },
   { tab: 'library', label: 'Library', icon: '🗄️', group: 'Output' },
   { tab: 'allocations', label: 'Allocations', icon: '💼', group: 'Output' },
   { tab: 'advisor', label: 'AI Advisor', icon: '🤖', group: 'Output' },
@@ -250,6 +252,8 @@ function App() {
             <RecordActivity tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'dashboard' ? (
             <Dashboard tenant={effectiveTenant} user={effectiveUser} />
+          ) : tab === 'reports' ? (
+            <Reports tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'library' ? (
             <Library tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'allocations' ? (
