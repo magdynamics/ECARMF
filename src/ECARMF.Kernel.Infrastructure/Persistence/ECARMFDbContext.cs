@@ -63,6 +63,8 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<OrgUnitRecord> OrgUnits => Set<OrgUnitRecord>();
 
+    public DbSet<SweepAccountRecord> SweepAccounts => Set<SweepAccountRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AgentInteractionRecord>(entity =>
@@ -160,6 +162,26 @@ public class ECARMFDbContext : DbContext
             entity.Property(m => m.FromAddress).HasMaxLength(400).IsRequired();
             entity.Property(m => m.MinSeverity).HasMaxLength(20).IsRequired();
             entity.Property(m => m.ConfiguredBy).HasMaxLength(400).IsRequired();
+        });
+
+        modelBuilder.Entity<SweepAccountRecord>(entity =>
+        {
+            entity.ToTable("SweepAccounts");
+            entity.HasKey(a => a.Id);
+            entity.Property(a => a.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(a => a.AccountId).HasMaxLength(100).IsRequired();
+            entity.Property(a => a.Name).HasMaxLength(400).IsRequired();
+            entity.Property(a => a.UnitId).HasMaxLength(100);
+            entity.Property(a => a.Institution).HasMaxLength(200).IsRequired();
+            entity.Property(a => a.Kind).HasMaxLength(50).IsRequired();
+            entity.Property(a => a.DestinationAccountId).HasMaxLength(100);
+            entity.Property(a => a.ApprovedThreshold).HasPrecision(18, 2);
+            entity.Property(a => a.ProposedThreshold).HasPrecision(18, 2);
+            entity.Property(a => a.LastObservedBalance).HasPrecision(18, 2);
+            entity.Property(a => a.ApprovedBy).HasMaxLength(400);
+            entity.Property(a => a.ProposalReasoning).HasMaxLength(2000);
+            entity.Property(a => a.CreatedBy).HasMaxLength(400).IsRequired();
+            entity.HasIndex(a => new { a.TenantId, a.AccountId }).IsUnique();
         });
 
         modelBuilder.Entity<OrgUnitRecord>(entity =>

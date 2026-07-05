@@ -69,4 +69,8 @@ public static class AuditCategories
     public const string UserRolesChanged = "UserRolesChanged";
     public const string OrgUnitChanged = "OrgUnitChanged";
     public const string OrgUnitPackagesChanged = "OrgUnitPackagesChanged";
+    public const string TreasuryThresholdProposed = "TreasuryThresholdProposed";
+    public const string TreasuryThresholdApproved = "TreasuryThresholdApproved";
+    public const string TreasurySweepExecuted = "TreasurySweepExecuted";
+    public const string PayrollBalanceFlagged = "PayrollBalanceFlagged";
 }
