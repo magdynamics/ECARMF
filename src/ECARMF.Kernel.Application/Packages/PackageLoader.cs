@@ -63,10 +63,22 @@ public class PackageLoader : IPackageLoader
                 $"Package '{packageId}' version '{packageVersion}' is not loaded.");
         }
 
-        if (stored.State is not (PackageLoadState.Staged or PackageLoadState.Deactivated))
+        // Failed is retryable ONLY when the failure came from activation (a
+        // registry conflict with whatever else was active at the time) — that
+        // is environmental and may have been resolved since. A validation
+        // failure at load time is permanent for the version: fix the manifest
+        // and publish a new version.
+        if (stored.State is not (PackageLoadState.Staged or PackageLoadState.Deactivated or PackageLoadState.Failed))
         {
             return PackageOperationResult.Fail(stored.State,
                 $"Package '{packageId}' version '{packageVersion}' cannot be activated from state '{stored.State}'.");
+        }
+
+        if (stored.State == PackageLoadState.Failed
+            && ManifestValidator.Validate(stored.Manifest, _registries.GetFor(tenantId).Events).Count > 0)
+        {
+            return PackageOperationResult.Fail(stored.State,
+                $"Package '{packageId}' version '{packageVersion}' failed validation; publish a corrected version.");
         }
 
         var dependencyErrors = await ResolveDependenciesAsync(tenantId, stored.Manifest, ct);

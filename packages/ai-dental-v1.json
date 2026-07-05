@@ -1,0 +1,131 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "AI Dental",
+  "version": "1",
+  "status": "Published",
+  "owner": "MAG Dynamics",
+  "description": "AI Dental agent package: dental practice operations for multi-location groups. Eaglesoft-style daily activity and QuickBooks-style payroll summaries feed the Dental Practice Operations KPI Framework v1 (per-location KPIActuals, deviation monitoring, group rollup via subject scoping). KPI targets in this version are AI-seeded baselines (provenance: package-declared starting points); adjust per location by publishing a new version - the human number is then authoritative. First package of the AI Agent Package Library shelf (Universal Dental test case, Requirement 7).",
+
+  "packageId": "ecarmf.ai-dental",
+  "name": "AI Dental",
+  "packageVersion": "1.0.1",
+  "publisher": "MAG Dynamics",
+  "dependencies": [],
+
+  "entities": [
+    {
+      "entityTypeName": "EaglesoftDailyActivity",
+      "description": "One practice location's daily operational summary from the practice management system (Eaglesoft-style).",
+      "attributes": [
+        { "name": "locationId", "dataType": "string", "required": true },
+        { "name": "activityDate", "dataType": "string", "required": true },
+        { "name": "production", "dataType": "number", "required": true },
+        { "name": "collections", "dataType": "number", "required": true },
+        { "name": "newPatients", "dataType": "number", "required": false },
+        { "name": "providerCount", "dataType": "number", "required": true },
+        { "name": "arOver90", "dataType": "number", "required": false }
+      ]
+    },
+    {
+      "entityTypeName": "PayrollSummary",
+      "description": "One location's payroll period summary (QuickBooks Payroll-style): headcount, hours, overtime, gross pay.",
+      "attributes": [
+        { "name": "locationId", "dataType": "string", "required": true },
+        { "name": "periodEnd", "dataType": "string", "required": true },
+        { "name": "headcount", "dataType": "number", "required": true },
+        { "name": "laborHours", "dataType": "number", "required": true },
+        { "name": "overtimeHours", "dataType": "number", "required": false },
+        { "name": "grossPay", "dataType": "number", "required": false }
+      ]
+    }
+  ],
+
+  "events": [
+    {
+      "eventName": "RecordReceived",
+      "description": "A record has been durably persisted and is ready for KPI evaluation.",
+      "payloadFields": [
+        { "name": "locationId", "dataType": "string", "required": true }
+      ]
+    }
+  ],
+  "rules": [],
+  "capabilities": [
+    { "capabilityId": "DentalPracticeIntelligence", "name": "Dental Practice Intelligence", "description": "Per-location dental operations KPIs with deviation monitoring." }
+  ],
+
+  "schemaTemplates": [
+    {
+      "templateId": "eaglesoft-daily-json",
+      "name": "Eaglesoft daily activity export (JSON)",
+      "sourceFormat": "json",
+      "targetEntityType": "EaglesoftDailyActivity",
+      "fieldMappings": [
+        { "rawField": "locationId", "targetField": "locationId", "transform": "none", "required": true },
+        { "rawField": "date", "targetField": "activityDate", "transform": "parseDate", "required": true },
+        { "rawField": "grossProduction", "targetField": "production", "transform": "none", "required": true },
+        { "rawField": "collections", "targetField": "collections", "transform": "none", "required": true },
+        { "rawField": "newPatients", "targetField": "newPatients", "transform": "none", "required": false },
+        { "rawField": "activeProviders", "targetField": "providerCount", "transform": "none", "required": true },
+        { "rawField": "arOver90Days", "targetField": "arOver90", "transform": "none", "required": false }
+      ]
+    },
+    {
+      "templateId": "quickbooks-payroll-json",
+      "name": "QuickBooks Payroll period summary (JSON) - reference until live credentials exist",
+      "sourceFormat": "json",
+      "targetEntityType": "PayrollSummary",
+      "fieldMappings": [
+        { "rawField": "location", "targetField": "locationId", "transform": "none", "required": true },
+        { "rawField": "payPeriodEnd", "targetField": "periodEnd", "transform": "parseDate", "required": true },
+        { "rawField": "employeeCount", "targetField": "headcount", "transform": "none", "required": true },
+        { "rawField": "totalHours", "targetField": "laborHours", "transform": "none", "required": true },
+        { "rawField": "overtimeHours", "targetField": "overtimeHours", "transform": "none", "required": false },
+        { "rawField": "grossPay", "targetField": "grossPay", "transform": "none", "required": false }
+      ]
+    }
+  ],
+
+  "performanceFrameworks": [
+    {
+      "frameworkId": "dental-practice-operations-v1",
+      "name": "Dental Practice Operations KPI Framework v1",
+      "industry": "Dental",
+      "description": "Per-location dental practice KPIs (Universal Dental Requirement 7). Targets are AI-seeded baselines pending per-location review; headcount and labor hours are tracked without targets (informational).",
+      "kpis": [
+        { "kpiId": "daily-production", "name": "Daily production", "formula": "production", "triggerRecordType": "EaglesoftDailyActivity", "subjectField": "locationId", "unit": "usd", "targetValue": 9000, "direction": "higher" },
+        { "kpiId": "daily-collection", "name": "Daily collection", "formula": "collections", "triggerRecordType": "EaglesoftDailyActivity", "subjectField": "locationId", "unit": "usd", "targetValue": 8100, "direction": "higher" },
+        { "kpiId": "collection-ratio", "name": "Collection ratio", "formula": "collections / production", "triggerRecordType": "EaglesoftDailyActivity", "subjectField": "locationId", "unit": "ratio", "targetValue": 0.9, "direction": "higher" },
+        { "kpiId": "production-per-provider", "name": "Production per provider", "formula": "production / providerCount", "triggerRecordType": "EaglesoftDailyActivity", "subjectField": "locationId", "unit": "usd", "targetValue": 3000, "direction": "higher" },
+        { "kpiId": "new-patient-count", "name": "New patient count", "formula": "newPatients", "triggerRecordType": "EaglesoftDailyActivity", "subjectField": "locationId", "unit": "count", "targetValue": 2, "direction": "higher" },
+        { "kpiId": "ar-over-90", "name": "A/R aging over 90 days", "formula": "arOver90", "triggerRecordType": "EaglesoftDailyActivity", "subjectField": "locationId", "unit": "usd", "targetValue": 50000, "direction": "lower" },
+        { "kpiId": "headcount", "name": "Headcount", "formula": "headcount", "triggerRecordType": "PayrollSummary", "subjectField": "locationId", "unit": "count", "targetValue": null, "direction": "higher" },
+        { "kpiId": "labor-hours", "name": "Labor hours", "formula": "laborHours", "triggerRecordType": "PayrollSummary", "subjectField": "locationId", "unit": "hours", "targetValue": null, "direction": "higher" }
+      ],
+      "okrs": [
+        {
+          "okrId": "dental-unit-economics",
+          "objective": "Healthy unit economics at every practice location",
+          "keyResults": [
+            { "krId": "kr-collection-ratio", "kpiId": "collection-ratio", "targetValue": 0.9 },
+            { "krId": "kr-production-per-provider", "kpiId": "production-per-provider", "targetValue": 3000 }
+          ]
+        }
+      ]
+    }
+  ],
+
+  "agents": [
+    {
+      "agentId": "dental-guide",
+      "name": "Dental Operations Guide",
+      "persona": "You are a dental practice operations advisor for a multi-location dental group. You understand production vs collections, collection ratio, A/R aging, provider productivity, new-patient flow, and payroll cost dynamics per location. Ground every answer in the location-level data provided; compare locations only on metrics present in the context; never invent numbers. When a location underperforms, suggest which operational levers (scheduling density, hygiene reappointment, insurance follow-up, fee schedule review) typically move the KPI in question - as options to investigate, not directives.",
+      "contextSources": [ "records:EaglesoftDailyActivity", "records:PayrollSummary", "scores", "deviations", "benchmarks" ],
+      "sampleQuestions": [
+        "Which location has the weakest collection ratio and what usually causes that?",
+        "How does production per provider compare across our locations?",
+        "Where is A/R over 90 days growing, and what should we do first?"
+      ]
+    }
+  ]
+}

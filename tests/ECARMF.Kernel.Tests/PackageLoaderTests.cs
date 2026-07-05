@@ -209,6 +209,28 @@ public class PackageLoaderTests
     }
 
     [Fact]
+    public async Task Activation_failure_is_retryable_once_the_conflict_is_resolved()
+    {
+        var loader = CreateLoader();
+        await loader.LoadAsync(Tenant, ValidManifest("pkg.a"));
+        await loader.ActivateAsync(Tenant, "pkg.a", "1.0.0");
+        await loader.LoadAsync(Tenant, ValidManifest("pkg.b"));
+
+        // Conflict (same event name) marks pkg.b Failed — an ENVIRONMENTAL
+        // failure, not a manifest defect.
+        var failed = await loader.ActivateAsync(Tenant, "pkg.b", "1.0.0");
+        Assert.Equal(PackageLoadState.Failed, failed.State);
+
+        // Resolve the environment, retry the same version: succeeds.
+        await loader.DeactivateAsync(Tenant, "pkg.a", "1.0.0");
+        var retried = await loader.ActivateAsync(Tenant, "pkg.b", "1.0.0");
+
+        Assert.True(retried.Success);
+        Assert.Equal(PackageLoadState.Active, retried.State);
+        Assert.True(Registries().Rules.Contains("pkg.b.R-1"));
+    }
+
+    [Fact]
     public async Task Deactivate_refused_while_active_dependent_exists()
     {
         var loader = CreateLoader();
