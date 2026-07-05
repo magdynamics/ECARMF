@@ -50,13 +50,14 @@ public class MagCpaKernelTests
         Assert.Equal(RenewalStatuses.Active, renewed.Status);
     }
 
-    // ---- Knowledge Reference Library ----------------------------------
+    // ---- Knowledge assets (Batch 2 R8: supersedes the reference library) ----
 
-    private static ReferenceDocumentDeclaration IrsPub(string year, DateTimeOffset from, DateTimeOffset? to) => new()
+    private static KnowledgeAsset IrsPub(string year, DateTimeOffset from, DateTimeOffset? to) => new()
     {
-        ReferenceId = $"irs-pub-334-{year}",
+        AssetId = $"irs-pub-334-{year}",
         DocKey = "irs-pub-334",
         Title = $"IRS Publication 334 (Tax Guide for Small Business), {year} edition",
+        AssetType = "ReferenceManual",
         DocType = "IRSGuideline",
         Issuer = "IRS",
         Jurisdiction = "Federal",
@@ -68,7 +69,7 @@ public class MagCpaKernelTests
     [Fact]
     public void Effective_dated_retrieval_never_returns_a_superseded_year()
     {
-        var registry = new ReferenceRegistry();
+        var registry = new KnowledgeAssetRegistry();
         registry.Register(IrsPub("2025",
             new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero),
             new DateTimeOffset(2025, 12, 31, 23, 59, 59, TimeSpan.Zero)), "ecarmf.cpa-reference", "1.0.0");
@@ -79,26 +80,32 @@ public class MagCpaKernelTests
         var during2026 = registry.GetEffective(new DateTimeOffset(2026, 7, 5, 0, 0, 0, TimeSpan.Zero), docKey: "irs-pub-334");
         var during2027 = registry.GetEffective(new DateTimeOffset(2027, 3, 1, 0, 0, 0, TimeSpan.Zero), docKey: "irs-pub-334");
 
-        Assert.Equal("irs-pub-334-2025", Assert.Single(during2025).Declaration.ReferenceId);
-        Assert.Equal("irs-pub-334-2026", Assert.Single(during2026).Declaration.ReferenceId);
+        Assert.Equal("irs-pub-334-2025", Assert.Single(during2025).Declaration.AssetId);
+        Assert.Equal("irs-pub-334-2026", Assert.Single(during2026).Declaration.AssetId);
         // Open-ended EffectiveTo stays current until a successor bounds it.
-        Assert.Equal("irs-pub-334-2026", Assert.Single(during2027).Declaration.ReferenceId);
+        Assert.Equal("irs-pub-334-2026", Assert.Single(during2027).Declaration.AssetId);
     }
 
     [Fact]
-    public void Validator_requires_effective_dates_on_reference_documents()
+    public void Validator_requires_effective_dates_on_knowledge_assets()
     {
         var manifest = new KnowledgePackageManifest
         {
             PackageId = "p", Name = "p", PackageVersion = "1.0.0",
-            ReferenceDocuments =
+            KnowledgeAssets =
             [
-                new ReferenceDocumentDeclaration { ReferenceId = "undated", DocKey = "k", Title = "T", DocType = "GAAP" },
-                new ReferenceDocumentDeclaration
+                new KnowledgeAsset { AssetId = "undated", DocKey = "k", Title = "T", DocType = "GAAP" },
+                new KnowledgeAsset
                 {
-                    ReferenceId = "inverted", DocKey = "k2", Title = "T2", DocType = "GAAP",
+                    AssetId = "inverted", DocKey = "k2", Title = "T2", DocType = "GAAP",
                     EffectiveFrom = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero),
                     EffectiveTo = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero)
+                },
+                new KnowledgeAsset
+                {
+                    AssetId = "bad-edge", DocKey = "k3", Title = "T3", DocType = "GAAP",
+                    EffectiveFrom = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero),
+                    Relationships = [new KnowledgeAssetRelationship { RelatedAssetId = "", RelationshipType = "supersedes" }]
                 }
             ]
         };
@@ -107,6 +114,7 @@ public class MagCpaKernelTests
 
         Assert.Contains(errors, e => e.Contains("undated") && e.Contains("EffectiveFrom"));
         Assert.Contains(errors, e => e.Contains("inverted") && e.Contains("EffectiveTo"));
+        Assert.Contains(errors, e => e.Contains("bad-edge") && e.Contains("RelatedAssetId"));
     }
 
     [Fact]
@@ -127,11 +135,11 @@ public class MagCpaKernelTests
     public async Task Disclaimer_is_appended_by_the_kernel_and_references_ground_only_effective_versions()
     {
         var registries = new TenantRegistryProvider();
-        registries.GetFor(Tenant).References.Register(IrsPub("2025",
+        registries.GetFor(Tenant).KnowledgeAssets.Register(IrsPub("2025",
             new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero),
-            new DateTimeOffset(2025, 12, 31, 23, 59, 59, TimeSpan.Zero)), "ecarmf.cpa-reference", "1.0.0");
-        registries.GetFor(Tenant).References.Register(IrsPub("2026",
-            new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero), null), "ecarmf.cpa-reference", "1.0.0");
+            new DateTimeOffset(2025, 12, 31, 23, 59, 59, TimeSpan.Zero)), "ecarmf.cpa-reference", "1.1.0");
+        registries.GetFor(Tenant).KnowledgeAssets.Register(IrsPub("2026",
+            new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero), null), "ecarmf.cpa-reference", "1.1.0");
         registries.GetFor(Tenant).Agents.Register(new AgentDeclaration
         {
             AgentId = "tax-compliance-agent",

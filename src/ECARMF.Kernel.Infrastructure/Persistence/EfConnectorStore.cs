@@ -66,10 +66,12 @@ public class EfConnectorStore : IConnectorStore
         ReliabilityRating = c.ReliabilityRating,
         ProvenanceClass = c.ProvenanceClass,
         Status = c.Status,
+        SourceOwnership = c.SourceOwnership,
         CreatedAt = DateTimeOffset.UtcNow
     };
 
     private static ConnectorDefinition ToDomain(ConnectorRecord r) => new(
         r.ConnectorId, r.Name, r.DomainTag, ArrivalModes.Normalize(r.ArrivalMode),
-        r.SchemaTemplateId, r.ReliabilityRating, r.ProvenanceClass, r.Status);
+        r.SchemaTemplateId, r.ReliabilityRating, r.ProvenanceClass, r.Status,
+        string.IsNullOrWhiteSpace(r.SourceOwnership) ? SourceOwnerships.TenantOwned : r.SourceOwnership);
 }

@@ -38,5 +38,5 @@ public class KnowledgePackageManifest : UniversalBaseEntity
 
     public List<AgentDeclaration> Agents { get; set; } = [];
 
-    public List<ReferenceDocumentDeclaration> ReferenceDocuments { get; set; } = [];
+    public List<KnowledgeAsset> KnowledgeAssets { get; set; } = [];
 }

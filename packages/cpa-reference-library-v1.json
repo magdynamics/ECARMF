@@ -8,7 +8,7 @@
 
   "packageId": "ecarmf.cpa-reference",
   "name": "CPA Knowledge Reference Library",
-  "packageVersion": "1.0.0",
+  "packageVersion": "1.1.0",
   "publisher": "MAG Dynamics (sources: IRS, AICPA, FASB, IDOR public guidance)",
   "dependencies": [],
 
@@ -22,9 +22,9 @@
   "performanceFrameworks": [],
   "agents": [],
 
-  "referenceDocuments": [
+  "knowledgeAssets": [
     {
-      "referenceId": "irs-pub-334-2025",
+      "assetId":"irs-pub-334-2025",
       "docKey": "irs-pub-334",
       "title": "IRS Publication 334, Tax Guide for Small Business - 2025 edition",
       "docType": "IRSGuideline",
@@ -36,9 +36,13 @@
       "contentText": "2025 edition. Applies to tax year 2025 returns. Flat corporate rate 21% (IRC s11, TCJA). Section 179 expensing limit and standard mileage rates per 2025 revenue procedures. Superseded for tax year 2026 by the 2026 edition."
     },
     {
-      "referenceId": "irs-pub-334-2026",
+      "assetId": "irs-pub-334-2026",
       "docKey": "irs-pub-334",
       "title": "IRS Publication 334, Tax Guide for Small Business - 2026 edition",
+      "assetType": "ReferenceManual",
+      "relationships": [
+        { "relatedAssetId": "irs-pub-334-2025", "relationshipType": "supersedes" }
+      ],
       "docType": "IRSGuideline",
       "issuer": "IRS",
       "jurisdiction": "Federal",
@@ -48,7 +52,7 @@
       "contentText": "2026 edition (current). Applies to tax year 2026 returns. Flat corporate rate 21% (IRC s11). Inflation-adjusted thresholds per 2026 revenue procedures. Remains effective until the 2027 edition is published as a new package version."
     },
     {
-      "referenceId": "gaap-asc-2026",
+      "assetId":"gaap-asc-2026",
       "docKey": "gaap-asc",
       "title": "FASB Accounting Standards Codification (GAAP) - 2026 view",
       "docType": "GAAP",
@@ -60,7 +64,7 @@
       "contentText": "POINTER (licensed content - not reproduced): FASB ASC via asc.fasb.org, firm subscription. Key active updates for 2026 engagements per ASU effective-date schedule. Cite specific ASC topics (e.g. ASC 606 revenue, ASC 842 leases) from the codification itself."
     },
     {
-      "referenceId": "gaas-sas-2026",
+      "assetId":"gaas-sas-2026",
       "docKey": "gaas-sas",
       "title": "AICPA Statements on Auditing Standards (GAAS) - 2026 compilation",
       "docType": "GAAS",
@@ -72,7 +76,7 @@
       "contentText": "AICPA SAS compilation applicable to 2026 audit engagements (AU-C sections). Includes quality management standards effective for engagements beginning after Dec 15, 2025 (SQMS 1/2, SAS 146)."
     },
     {
-      "referenceId": "irs-audit-technique-guides-2026",
+      "assetId":"irs-audit-technique-guides-2026",
       "docKey": "irs-atg",
       "title": "IRS Audit Technique Guides (segment audit guidelines) - 2026 set",
       "docType": "AuditGuideline",
@@ -84,7 +88,7 @@
       "contentText": "Public IRS ATG set: cash-intensive businesses, construction, restaurants, attorneys, and other segments. Used to explain WHY a ratio deviation correlates with examination risk in a given segment. Indicators only - selection for examination is an IRS decision, never predictable from ratios alone."
     },
     {
-      "referenceId": "idor-guidelines-2026",
+      "assetId":"idor-guidelines-2026",
       "docKey": "idor-guidelines",
       "title": "Illinois Department of Revenue guidance - 2026",
       "docType": "StateRevenue",

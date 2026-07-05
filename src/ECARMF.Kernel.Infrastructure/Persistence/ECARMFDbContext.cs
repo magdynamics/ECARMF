@@ -69,6 +69,10 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<FundingEventRecord> FundingEvents => Set<FundingEventRecord>();
 
+    public DbSet<ITAssetRecord> ITAssets => Set<ITAssetRecord>();
+
+    public DbSet<InvestorProfileRecord> InvestorProfiles => Set<InvestorProfileRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AgentInteractionRecord>(entity =>
@@ -186,6 +190,36 @@ public class ECARMFDbContext : DbContext
             entity.Property(a => a.ProposalReasoning).HasMaxLength(2000);
             entity.Property(a => a.CreatedBy).HasMaxLength(400).IsRequired();
             entity.HasIndex(a => new { a.TenantId, a.AccountId }).IsUnique();
+        });
+
+        modelBuilder.Entity<ITAssetRecord>(entity =>
+        {
+            entity.ToTable("ITAssets");
+            entity.HasKey(a => a.Id);
+            entity.Property(a => a.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(a => a.AssetId).HasMaxLength(100).IsRequired();
+            entity.Property(a => a.Name).HasMaxLength(400).IsRequired();
+            entity.Property(a => a.AssetType).HasMaxLength(100).IsRequired();
+            entity.Property(a => a.OwnerUnitId).HasMaxLength(100);
+            entity.Property(a => a.Environment).HasMaxLength(100);
+            entity.Property(a => a.Notes).HasMaxLength(2000);
+            entity.Property(a => a.Status).HasMaxLength(50).IsRequired();
+            entity.Property(a => a.CreatedBy).HasMaxLength(400).IsRequired();
+            entity.HasIndex(a => new { a.TenantId, a.AssetId }).IsUnique();
+        });
+
+        modelBuilder.Entity<InvestorProfileRecord>(entity =>
+        {
+            entity.ToTable("InvestorProfiles");
+            entity.HasKey(p => p.Id);
+            entity.Property(p => p.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(p => p.UserIdentifier).HasMaxLength(400).IsRequired();
+            entity.Property(p => p.KycStatus).HasMaxLength(50).IsRequired();
+            entity.Property(p => p.AmlStatus).HasMaxLength(50).IsRequired();
+            entity.Property(p => p.AccreditationStatus).HasMaxLength(50).IsRequired();
+            entity.Property(p => p.Notes).HasMaxLength(2000);
+            entity.Property(p => p.CreatedBy).HasMaxLength(400).IsRequired();
+            entity.HasIndex(p => new { p.TenantId, p.UserIdentifier }).IsUnique();
         });
 
         modelBuilder.Entity<FundingSourceRecord>(entity =>

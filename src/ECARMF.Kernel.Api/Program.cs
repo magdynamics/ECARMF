@@ -85,8 +85,9 @@ app.MapHardeningEndpoints();
 app.MapOrgUnitEndpoints();
 app.MapTreasuryEndpoints();
 app.MapAgentEndpoints();
-app.MapReferenceEndpoints();
+app.MapKnowledgeAssetEndpoints();
 app.MapFundingEndpoints();
+app.MapBatch2Endpoints();
 
 using (var scope = app.Services.CreateScope())
 {

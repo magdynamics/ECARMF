@@ -264,8 +264,8 @@ public class PackageLoader : IPackageLoader
             registries.Agents.Register(agent, manifest.PackageId, manifest.PackageVersion);
         foreach (var rule in manifest.Rules)
             registries.Rules.Register(rule, manifest.PackageId, manifest.PackageVersion);
-        foreach (var reference in manifest.ReferenceDocuments)
-            registries.References.Register(reference, manifest.PackageId, manifest.PackageVersion);
+        foreach (var asset in manifest.KnowledgeAssets)
+            registries.KnowledgeAssets.Register(asset, manifest.PackageId, manifest.PackageVersion);
     }
 
     private static void UnregisterAll(TenantRegistries registries, string packageId, string packageVersion)
@@ -278,7 +278,7 @@ public class PackageLoader : IPackageLoader
         registries.Workflows.UnregisterPackage(packageId, packageVersion);
         registries.Agents.UnregisterPackage(packageId, packageVersion);
         registries.Rules.UnregisterPackage(packageId, packageVersion);
-        registries.References.UnregisterPackage(packageId, packageVersion);
+        registries.KnowledgeAssets.UnregisterPackage(packageId, packageVersion);
     }
 
     private Task AuditLifecycleAsync(

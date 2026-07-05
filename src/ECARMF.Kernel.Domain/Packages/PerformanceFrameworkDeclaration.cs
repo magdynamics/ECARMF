@@ -20,6 +20,14 @@ public class KPIDefinition
     /// <summary>Payload field identifying the venture/site the KPI belongs to.</summary>
     public string SubjectField { get; set; } = string.Empty;
 
+    /// <summary>What kind of thing the subject IS (Batch 2, Refinement 7) —
+    /// polymorphic like ComplianceRenewal's subject: "OrganizationalUnit"
+    /// (a location, project), "User" (an employee whose KPIs tie to
+    /// compensation), or any future type. Open string; stamped onto every
+    /// emitted KPI score so consumers can filter by subject kind instead
+    /// of guessing from the subject id's shape.</summary>
+    public string SubjectType { get; set; } = "OrganizationalUnit";
+
     public string Unit { get; set; } = "ratio";
 
     public decimal? TargetValue { get; set; }

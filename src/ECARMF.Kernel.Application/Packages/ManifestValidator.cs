@@ -40,23 +40,28 @@ public static class ManifestValidator
         CheckNames(errors, "performance framework", manifest.PerformanceFrameworks.Select(f => f.FrameworkId));
         CheckNames(errors, "workflow", manifest.Workflows.Select(w => w.WorkflowId));
         CheckNames(errors, "agent", manifest.Agents.Select(a => a.AgentId));
-        CheckNames(errors, "reference document", manifest.ReferenceDocuments.Select(r => r.ReferenceId));
+        CheckNames(errors, "knowledge asset", manifest.KnowledgeAssets.Select(a => a.AssetId));
 
-        foreach (var reference in manifest.ReferenceDocuments)
+        foreach (var asset in manifest.KnowledgeAssets)
         {
-            var label = string.IsNullOrWhiteSpace(reference.ReferenceId) ? "(unnamed reference)" : reference.ReferenceId;
-            if (string.IsNullOrWhiteSpace(reference.DocKey))
-                errors.Add($"Reference '{label}' has no DocKey (the stable identity across annual versions).");
-            if (string.IsNullOrWhiteSpace(reference.Title))
-                errors.Add($"Reference '{label}' has no Title.");
-            if (string.IsNullOrWhiteSpace(reference.DocType))
-                errors.Add($"Reference '{label}' has no DocType.");
+            var label = string.IsNullOrWhiteSpace(asset.AssetId) ? "(unnamed knowledge asset)" : asset.AssetId;
+            if (string.IsNullOrWhiteSpace(asset.DocKey))
+                errors.Add($"Knowledge asset '{label}' has no DocKey (the stable identity across versions).");
+            if (string.IsNullOrWhiteSpace(asset.Title))
+                errors.Add($"Knowledge asset '{label}' has no Title.");
+            if (string.IsNullOrWhiteSpace(asset.AssetType))
+                errors.Add($"Knowledge asset '{label}' has no AssetType (open: ReferenceManual, PolicyDocument, SOP, ...).");
             // The effective range is the load-bearing feature: tax law changes
-            // annually, and an undated reference silently answers with stale rules.
-            if (reference.EffectiveFrom == default)
-                errors.Add($"Reference '{label}' has no EffectiveFrom — every reference version must be effective-dated.");
-            if (reference.EffectiveTo is { } to && to <= reference.EffectiveFrom)
-                errors.Add($"Reference '{label}' has EffectiveTo on or before EffectiveFrom.");
+            // annually, and an undated asset silently answers with stale rules.
+            if (asset.EffectiveFrom == default)
+                errors.Add($"Knowledge asset '{label}' has no EffectiveFrom — every version must be effective-dated.");
+            if (asset.EffectiveTo is { } to && to <= asset.EffectiveFrom)
+                errors.Add($"Knowledge asset '{label}' has EffectiveTo on or before EffectiveFrom.");
+            foreach (var relationship in asset.Relationships)
+            {
+                if (string.IsNullOrWhiteSpace(relationship.RelatedAssetId))
+                    errors.Add($"Knowledge asset '{label}' has a relationship with no RelatedAssetId.");
+            }
         }
 
         foreach (var agent in manifest.Agents)

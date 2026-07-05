@@ -23,6 +23,8 @@ public class ScoreEntry
 
     public string Provenance { get; set; } = string.Empty;
 
+    public string? RiskType { get; set; }
+
     public Guid CorrelationId { get; set; }
 
     public DateTimeOffset ComputedAt { get; set; }

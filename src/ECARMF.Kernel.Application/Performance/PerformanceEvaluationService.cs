@@ -86,7 +86,7 @@ public class PerformanceEvaluationService : IPerformanceEvaluator, IFrameworkRec
                 actuals[kpi.KpiId] = value;
                 var subject = ResolveSubject(kernelEvent, kpi.SubjectField);
 
-                var actualScore = await EmitAsync(kernelEvent, framework, "KPIActual", $"{kpi.KpiId}@{subject}", value, ct);
+                var actualScore = await EmitAsync(kernelEvent, framework, "KPIActual", $"{kpi.KpiId}@{subject}", value, ct, kpi.SubjectType);
 
                 // Deviation monitoring runs in the same pass: actual vs the
                 // KPI target (or the latest forecast when no target exists).
@@ -104,7 +104,7 @@ public class PerformanceEvaluationService : IPerformanceEvaluator, IFrameworkRec
                 if (kpi.TargetValue is { } target && target != 0)
                 {
                     var variance = (value - target) / target;
-                    await EmitAsync(kernelEvent, framework, "KPIVariance", $"{kpi.KpiId}@{subject}", variance, ct);
+                    await EmitAsync(kernelEvent, framework, "KPIVariance", $"{kpi.KpiId}@{subject}", variance, ct, kpi.SubjectType);
                 }
             }
 
@@ -164,7 +164,8 @@ public class PerformanceEvaluationService : IPerformanceEvaluator, IFrameworkRec
         string scoreType,
         string subjectId,
         decimal value,
-        CancellationToken ct)
+        CancellationToken ct,
+        string? kpiSubjectType = null)
     {
         var score = new ScoreRecord
         {
@@ -180,6 +181,14 @@ public class PerformanceEvaluationService : IPerformanceEvaluator, IFrameworkRec
             CorrelationId = kernelEvent.CorrelationId,
             ComputedAt = DateTimeOffset.UtcNow
         };
+
+        // Batch 2, Refinement 7: the KPI declares what KIND of thing its
+        // subject is (OrganizationalUnit, User, ...), so employee-level
+        // KPIs are queryable by subject kind, not by id-shape guessing.
+        if (!string.IsNullOrWhiteSpace(kpiSubjectType))
+        {
+            score.Metadata["kpiSubjectType"] = kpiSubjectType;
+        }
 
         await _scores.AppendAsync(score, ct);
         await _audit.AppendAsync(new AuditEntry

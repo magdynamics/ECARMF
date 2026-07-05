@@ -51,7 +51,20 @@ public sealed record ConnectorDefinition(
     string SchemaTemplateId,
     decimal ReliabilityRating,
     string ProvenanceClass,
-    string Status);
+    string Status,
+    // Batch 2, Refinement 12: TenantOwned (a system the tenant controls —
+    // bank feed, POS) vs PublicExternal (public data ABOUT the tenant —
+    // review sites, social monitoring), which carries different
+    // reliability and consent characteristics.
+    string SourceOwnership = SourceOwnerships.TenantOwned);
+
+public static class SourceOwnerships
+{
+    public const string TenantOwned = "TenantOwned";
+    public const string PublicExternal = "PublicExternal";
+
+    public static readonly string[] All = { TenantOwned, PublicExternal };
+}
 
 /// <summary>Tenant-scoped connector configuration store. Seeds the live
 /// ManualEntryConnector so the admin UI form works out of the box.</summary>

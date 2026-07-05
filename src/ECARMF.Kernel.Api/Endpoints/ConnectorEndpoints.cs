@@ -13,7 +13,8 @@ public static class ConnectorEndpoints
         string ArrivalMode,
         string SchemaTemplateId,
         decimal ReliabilityRating,
-        string ProvenanceClass);
+        string ProvenanceClass,
+        string? SourceOwnership = null);
 
     public record IngestRequest(string RawPayload);
 
@@ -55,11 +56,20 @@ public static class ConnectorEndpoints
             if (await connectors.GetAsync(tenantId, request.ConnectorId, ct) is not null)
                 return Results.BadRequest(new { error = $"Connector '{request.ConnectorId}' already exists." });
 
+            // Batch 2, Refinement 12: owned system vs public data about the
+            // tenant — the latter carries different reliability/consent traits.
+            var ownership = string.IsNullOrWhiteSpace(request.SourceOwnership)
+                ? SourceOwnerships.TenantOwned
+                : SourceOwnerships.All.FirstOrDefault(o =>
+                    string.Equals(o, request.SourceOwnership.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (ownership is null)
+                return Results.BadRequest(new { error = "sourceOwnership must be TenantOwned or PublicExternal." });
+
             var definition = new ConnectorDefinition(
                 request.ConnectorId, request.Name, request.DomainTag.Trim(), arrivalMode,
                 request.SchemaTemplateId, request.ReliabilityRating,
                 string.IsNullOrWhiteSpace(request.ProvenanceClass) ? Provenance.ExternalSystemVerified : request.ProvenanceClass,
-                "Active");
+                "Active", ownership);
 
             await connectors.AddAsync(tenantId, definition, ct);
             return Results.Created($"/api/connectors/{request.ConnectorId}", definition);

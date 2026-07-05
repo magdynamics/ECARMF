@@ -324,21 +324,25 @@ public class AgentConsultService : IAgentConsultService
             {
                 // Only currently-effective versions: the agent citing tax
                 // rules must never ground itself in a superseded year.
-                var effective = _registries.GetFor(tenantId).References
+                // ("references" remains the context-source keyword; the
+                // backing mechanism is the KnowledgeAsset registry.)
+                var effective = _registries.GetFor(tenantId).KnowledgeAssets
                     .GetEffective(DateTimeOffset.UtcNow)
-                    .Select(r => new
+                    .Select(a => new
                     {
-                        r.Declaration.DocKey,
-                        r.Declaration.Title,
-                        r.Declaration.DocType,
-                        r.Declaration.Issuer,
-                        r.Declaration.Jurisdiction,
-                        r.Declaration.EffectiveFrom,
-                        r.Declaration.EffectiveTo,
-                        r.Declaration.Summary,
-                        content = r.Declaration.ContentText
+                        a.Declaration.DocKey,
+                        a.Declaration.Title,
+                        a.Declaration.AssetType,
+                        a.Declaration.DocType,
+                        a.Declaration.Issuer,
+                        a.Declaration.Jurisdiction,
+                        a.Declaration.EffectiveFrom,
+                        a.Declaration.EffectiveTo,
+                        a.Declaration.Summary,
+                        content = a.Declaration.ContentText,
+                        relationships = a.Declaration.Relationships
                     });
-                Append(context, "referenceLibrary (currently effective versions only)", effective);
+                Append(context, "knowledgeAssets (currently effective versions only)", effective);
             }
             else if (source.StartsWith("records:", StringComparison.OrdinalIgnoreCase))
             {

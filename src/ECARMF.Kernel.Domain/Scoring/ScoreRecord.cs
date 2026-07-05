@@ -36,6 +36,13 @@ public class ScoreRecord
     /// because it looks numeric and confident.</summary>
     public string Provenance { get; set; } = "AIGenerated";
 
+    /// <summary>Open risk classification tag (Batch 2, Refinement 11):
+    /// Regulatory, TreasuryConcentration, WalletSecurity, Cybersecurity,
+    /// Marketing, Operational, Financial, Reputational — or any future
+    /// type. One ScoreRecord mechanism serves every tenant's risk list;
+    /// never a per-tenant RiskRecord entity. Null = not a risk score.</summary>
+    public string? RiskType { get; set; }
+
     /// <summary>Ties the score into its flywheel cycle in the audit log.</summary>
     public Guid CorrelationId { get; set; }
 

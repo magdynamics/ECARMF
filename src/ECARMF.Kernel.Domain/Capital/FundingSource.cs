@@ -25,6 +25,12 @@ public class FundingSource
     /// <summary>Lender or investor name.</summary>
     public string Name { get; set; } = string.Empty;
 
+    /// <summary>For Equity sources: the gated investor identity behind this
+    /// capital (Batch 2, Refinement 10) — links the money to the KYC/AML/
+    /// accreditation-verified User once investor details arrive. Null while
+    /// the investor is a placeholder or for Debt sources.</summary>
+    public string? InvestorUserId { get; set; }
+
     public string? Institution { get; set; }
 
     /// <summary>Total loan commitment / investor commitment.</summary>

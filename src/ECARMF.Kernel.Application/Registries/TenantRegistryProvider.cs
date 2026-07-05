@@ -12,7 +12,7 @@ public sealed record TenantRegistries(
     IPerformanceFrameworkRegistry PerformanceFrameworks,
     IWorkflowRegistry Workflows,
     IAgentRegistry Agents,
-    IReferenceRegistry References);
+    IKnowledgeAssetRegistry KnowledgeAssets);
 
 /// <summary>
 /// Tenant isolation boundary for the in-memory runtime. Each tenant gets its
@@ -45,6 +45,6 @@ public class TenantRegistryProvider : ITenantRegistryProvider
             new PerformanceFrameworkRegistry(),
             new WorkflowRegistry(),
             new AgentRegistry(),
-            new ReferenceRegistry()));
+            new KnowledgeAssetRegistry()));
     }
 }

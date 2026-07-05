@@ -22,5 +22,7 @@ public class ConnectorRecord
 
     public string Status { get; set; } = string.Empty;
 
+    public string SourceOwnership { get; set; } = "TenantOwned";
+
     public DateTimeOffset CreatedAt { get; set; }
 }

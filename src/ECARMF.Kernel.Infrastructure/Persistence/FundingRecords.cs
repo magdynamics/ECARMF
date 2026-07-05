@@ -12,6 +12,7 @@ public class FundingSourceRecord
     public string UnitId { get; set; } = string.Empty;
     public string Kind { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
+    public string? InvestorUserId { get; set; }
     public string? Institution { get; set; }
     public decimal? CommitmentAmount { get; set; }
     public string? Notes { get; set; }
@@ -81,7 +82,7 @@ public class EfFundingSourceStore : IFundingSourceStore
     private static FundingSourceRecord ToRecord(FundingSource s) => new()
     {
         Id = s.Id, TenantId = s.TenantId, SourceId = s.SourceId, UnitId = s.UnitId,
-        Kind = s.Kind, Name = s.Name, Institution = s.Institution,
+        Kind = s.Kind, Name = s.Name, InvestorUserId = s.InvestorUserId, Institution = s.Institution,
         CommitmentAmount = s.CommitmentAmount, Notes = s.Notes,
         CreatedBy = s.CreatedBy, CreatedAt = s.CreatedAt, UpdatedAt = s.UpdatedAt
     };
@@ -89,7 +90,7 @@ public class EfFundingSourceStore : IFundingSourceStore
     private static FundingSource ToDomain(FundingSourceRecord r) => new()
     {
         Id = r.Id, TenantId = r.TenantId, SourceId = r.SourceId, UnitId = r.UnitId,
-        Kind = r.Kind, Name = r.Name, Institution = r.Institution,
+        Kind = r.Kind, Name = r.Name, InvestorUserId = r.InvestorUserId, Institution = r.Institution,
         CommitmentAmount = r.CommitmentAmount, Notes = r.Notes,
         CreatedBy = r.CreatedBy, CreatedAt = r.CreatedAt, UpdatedAt = r.UpdatedAt
     };
