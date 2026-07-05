@@ -65,6 +65,10 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<SweepAccountRecord> SweepAccounts => Set<SweepAccountRecord>();
 
+    public DbSet<FundingSourceRecord> FundingSources => Set<FundingSourceRecord>();
+
+    public DbSet<FundingEventRecord> FundingEvents => Set<FundingEventRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AgentInteractionRecord>(entity =>
@@ -184,6 +188,40 @@ public class ECARMFDbContext : DbContext
             entity.HasIndex(a => new { a.TenantId, a.AccountId }).IsUnique();
         });
 
+        modelBuilder.Entity<FundingSourceRecord>(entity =>
+        {
+            entity.ToTable("FundingSources");
+            entity.HasKey(s => s.Id);
+            entity.Property(s => s.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(s => s.SourceId).HasMaxLength(100).IsRequired();
+            entity.Property(s => s.UnitId).HasMaxLength(100).IsRequired();
+            entity.Property(s => s.Kind).HasMaxLength(50).IsRequired();
+            entity.Property(s => s.Name).HasMaxLength(400).IsRequired();
+            entity.Property(s => s.Institution).HasMaxLength(200);
+            entity.Property(s => s.CommitmentAmount).HasPrecision(18, 2);
+            entity.Property(s => s.Notes).HasMaxLength(2000);
+            entity.Property(s => s.CreatedBy).HasMaxLength(400).IsRequired();
+            entity.HasIndex(s => new { s.TenantId, s.SourceId }).IsUnique();
+        });
+
+        modelBuilder.Entity<FundingEventRecord>(entity =>
+        {
+            entity.ToTable("FundingEvents");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.EventType).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.MilestoneReference).HasMaxLength(200);
+            entity.Property(e => e.PercentCompleteClaimed).HasPrecision(5, 4);
+            entity.Property(e => e.Amount).HasPrecision(18, 2);
+            entity.Property(e => e.DocumentationReference).HasMaxLength(400);
+            entity.Property(e => e.VerificationNote).HasMaxLength(2000);
+            entity.Property(e => e.Status).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.RequestedBy).HasMaxLength(400).IsRequired();
+            entity.Property(e => e.DecidedBy).HasMaxLength(400);
+            entity.Property(e => e.DecisionComment).HasMaxLength(2000);
+            entity.HasIndex(e => new { e.TenantId, e.FundingSourceId, e.RequestedAt });
+        });
+
         modelBuilder.Entity<OrgUnitRecord>(entity =>
         {
             entity.ToTable("OrgUnits");
@@ -231,6 +269,7 @@ public class ECARMFDbContext : DbContext
             entity.Property(r => r.RequiredUnits).HasPrecision(18, 2);
             entity.Property(r => r.CompletedUnits).HasPrecision(18, 2);
             entity.Property(r => r.UnitLabel).HasMaxLength(100);
+            entity.Property(r => r.MilestoneReference).HasMaxLength(200);
             entity.Property(r => r.NotifyRole).HasMaxLength(100).IsRequired();
             entity.Property(r => r.Status).HasMaxLength(50).IsRequired();
             entity.Property(r => r.CreatedBy).HasMaxLength(400).IsRequired();

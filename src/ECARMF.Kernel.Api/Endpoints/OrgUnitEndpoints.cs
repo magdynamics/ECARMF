@@ -12,6 +12,8 @@ public record AttachUnitPackageRequest(string PackageId);
 
 public record SetLifecycleRequest(string LifecycleState);
 
+public record SetLifecyclePackagesRequest(Dictionary<string, List<string>> Map);
+
 /// <summary>
 /// The tenant's organizational shape: any hierarchy, any depth, all data.
 /// Packages attach per unit; industry classification drives framework
@@ -116,6 +118,30 @@ public static class OrgUnitEndpoints
             {
                 return Results.Ok(await service.SetLifecycleStateAsync(
                     tenantId, unitId, request.LifecycleState, user!.Identifier, ct));
+            }
+            catch (KeyNotFoundException) { return Results.NotFound(); }
+            catch (ArgumentException ex) { return Results.BadRequest(new { error = ex.Message }); }
+        });
+
+        // Lifecycle-aware framework attachment (Rosetta Requirement 3): the
+        // map is configuration; the swap happens automatically on lifecycle
+        // state change, audited, with hand-attached packages untouched.
+        group.MapPut("/{unitId}/lifecycle-packages", async (
+            string unitId, SetLifecyclePackagesRequest request, HttpContext context,
+            IUserStore users, IOrgUnitService service, CancellationToken ct) =>
+        {
+            if (!TenantResolution.TryGetTenant(context, out var tenantId))
+                return TenantResolution.MissingTenantResult();
+            var (error, user) = await AccessGuard.RequireAsync(context, users, tenantId, Permissions.ConnectorConfigure, ct);
+            if (error is not null) return error;
+
+            if (request.Map is null)
+                return Results.BadRequest(new { error = "map is required, e.g. { \"Construction\": [\"ecarmf.ai-construction\"] }." });
+
+            try
+            {
+                return Results.Ok(await service.SetLifecyclePackageMapAsync(
+                    tenantId, unitId, request.Map, user!.Identifier, ct));
             }
             catch (KeyNotFoundException) { return Results.NotFound(); }
             catch (ArgumentException ex) { return Results.BadRequest(new { error = ex.Message }); }

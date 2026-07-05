@@ -45,6 +45,8 @@ public static class DependencyInjection
         services.AddScoped<Application.Onboarding.IOnboardingTemplateStore, EfOnboardingTemplateStore>();
         services.AddScoped<Application.Identity.IOrgUnitStore, EfOrgUnitStore>();
         services.AddScoped<Application.Treasury.ISweepAccountStore, EfSweepAccountStore>();
+        services.AddScoped<Application.Capital.IFundingSourceStore, EfFundingSourceStore>();
+        services.AddScoped<Application.Capital.IFundingEventStore, EfFundingEventStore>();
         services.AddScoped<Application.Billing.IBillingPlanStore, EfBillingPlanStore>();
         services.AddScoped<Application.Billing.IBillingStatementStore, EfBillingStatementStore>();
         services.AddScoped<Application.Billing.IUsageMeter, EfUsageMeter>();

@@ -63,6 +63,17 @@ public class RenewalCommitment
     /// <summary>What a unit is ("CPE hours", "CLE credits").</summary>
     public string? UnitLabel { get; set; }
 
+    /// <summary>Milestone-gated obligations (Rosetta Requirement 5): a
+    /// building permit or occupancy inspection is tied to project phase
+    /// completion, not a recurring date. When set, the calendar ladder
+    /// stays SILENT until the milestone is marked reached — then the
+    /// obligation becomes live and escalates like any other.</summary>
+    public string? MilestoneReference { get; set; }
+
+    /// <summary>When the gating milestone was marked reached; null while
+    /// the obligation is still dormant behind its milestone.</summary>
+    public DateTimeOffset? MilestoneReachedAt { get; set; }
+
     /// <summary>Role notified as the due date approaches.</summary>
     public string NotifyRole { get; set; } = "ExecutiveOwner";
 

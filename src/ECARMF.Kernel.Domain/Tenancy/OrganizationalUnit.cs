@@ -44,6 +44,16 @@ public class OrganizationalUnit
     /// special-cased per unit type.</summary>
     public string LifecycleState { get; set; } = "Operating";
 
+    /// <summary>Lifecycle-aware framework attachment (Rosetta Requirement
+    /// 3): lifecycle state → packageIds that should be attached WHILE the
+    /// unit is in that state. When the state changes, mapped packages for
+    /// the new state attach and mapped packages of other states detach —
+    /// automatically, audited, no manual reconfiguration. Packages attached
+    /// by hand (not in this map) are never touched. Empty map = the
+    /// pre-existing review-notification behavior only.</summary>
+    public Dictionary<string, List<string>> LifecyclePackageMap { get; set; } =
+        new(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>Active | Archived.</summary>
     public string Status { get; set; } = "Active";
 

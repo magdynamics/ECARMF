@@ -39,9 +39,19 @@ public interface IOrgUnitService
     /// <summary>Moves a unit to a new lifecycle state (Construction →
     /// Operating, Operating → Sold, ...). Audited, and generically raises a
     /// framework/package review notification — a stabilizing hotel and a
-    /// closing dental practice use the exact same mechanism.</summary>
+    /// closing dental practice use the exact same mechanism. When the unit
+    /// carries a lifecycle-package map, mapped packages follow the state
+    /// automatically (Rosetta Requirement 3).</summary>
     Task<OrganizationalUnit> SetLifecycleStateAsync(
         string tenantId, string unitId, string lifecycleState, string actor, CancellationToken ct = default);
+
+    /// <summary>Declares which packages belong to which lifecycle state for
+    /// this unit — configuration, not code: a Project can state that
+    /// Construction runs the build-chain package and OperatingAsset runs the
+    /// real-estate package, and the swap happens on state change.</summary>
+    Task<OrganizationalUnit> SetLifecyclePackageMapAsync(
+        string tenantId, string unitId, Dictionary<string, List<string>> map, string actor,
+        CancellationToken ct = default);
 }
 
 /// <summary>
@@ -86,17 +96,62 @@ public class OrgUnitService : IOrgUnitService
         }
 
         unit.LifecycleState = lifecycleState.Trim();
+
+        // Lifecycle-aware framework attachment (Rosetta Requirement 3):
+        // packages mapped to the NEW state attach; packages mapped
+        // exclusively to OTHER states detach. Hand-attached packages
+        // (absent from the map entirely) are never touched.
+        var attached = new List<string>();
+        var detached = new List<string>();
+        if (unit.LifecyclePackageMap.Count > 0)
+        {
+            var forNewState = unit.LifecyclePackageMap.TryGetValue(unit.LifecycleState, out var mapped)
+                ? mapped : [];
+            var allMapped = unit.LifecyclePackageMap.Values
+                .SelectMany(p => p).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+
+            foreach (var packageId in allMapped)
+            {
+                var belongsNow = forNewState.Contains(packageId, StringComparer.OrdinalIgnoreCase);
+                var isAttached = unit.AttachedPackageIds.Contains(packageId, StringComparer.OrdinalIgnoreCase);
+                if (belongsNow && !isAttached)
+                {
+                    unit.AttachedPackageIds.Add(packageId);
+                    attached.Add(packageId);
+                }
+                else if (!belongsNow && isAttached)
+                {
+                    unit.AttachedPackageIds.RemoveAll(p =>
+                        string.Equals(p, packageId, StringComparison.OrdinalIgnoreCase));
+                    detached.Add(packageId);
+                }
+            }
+        }
+
         unit.UpdatedAt = DateTimeOffset.UtcNow;
         await _units.UpdateAsync(unit, ct);
 
         await AuditAsync(tenantId, actor, AuditCategories.OrgUnitChanged,
             $"Unit '{unit.Name}' lifecycle changed: {previous} → {unit.LifecycleState}.", unit, ct);
+        if (attached.Count > 0 || detached.Count > 0)
+        {
+            await AuditAsync(tenantId, "system:flywheel", AuditCategories.OrgUnitPackagesChanged,
+                $"Lifecycle-driven package switch on '{unit.Name}': " +
+                (attached.Count > 0 ? $"attached {string.Join(", ", attached)}" : "") +
+                (attached.Count > 0 && detached.Count > 0 ? "; " : "") +
+                (detached.Count > 0 ? $"detached {string.Join(", ", detached)}" : "") +
+                $" (state {previous} → {unit.LifecycleState}, per the unit's lifecycle-package map).",
+                unit, ct);
+        }
 
         // The generic reaction: a lifecycle change means the attached
         // frameworks/packages may no longer fit — surface a review, for ANY
         // unit type, never special-cased.
         if (_notifications is not null)
         {
+            var switched = attached.Count > 0 || detached.Count > 0
+                ? $" Lifecycle map applied automatically: attached [{string.Join(", ", attached)}], detached [{string.Join(", ", detached)}]."
+                : string.Empty;
             await _notifications.AddAsync(new Domain.Workflow.NotificationItem
             {
                 TenantId = tenantId,
@@ -104,11 +159,42 @@ public class OrgUnitService : IOrgUnitService
                 Target = "ExecutiveOwner",
                 Message = $"'{unit.Name}' moved from {previous} to {unit.LifecycleState} — review its attached " +
                           $"packages and frameworks ({(unit.AttachedPackageIds.Count == 0 ? "none attached" : string.Join(", ", unit.AttachedPackageIds))}); " +
-                          "a unit's intelligence should match its lifecycle stage.",
+                          "a unit's intelligence should match its lifecycle stage." + switched,
                 Severity = "Info",
                 CorrelationId = Guid.NewGuid()
             }, ct);
         }
+
+        return unit;
+    }
+
+    public async Task<OrganizationalUnit> SetLifecyclePackageMapAsync(
+        string tenantId, string unitId, Dictionary<string, List<string>> map, string actor,
+        CancellationToken ct = default)
+    {
+        var unit = await _units.GetAsync(tenantId, unitId, ct)
+            ?? throw new KeyNotFoundException($"Unit '{unitId}' does not exist.");
+
+        // Every mapped package must be Active for the tenant — a map
+        // pointing at nothing would silently do nothing at transition time.
+        var active = await _packages.GetByStateAsync(tenantId, PackageLoadState.Active, ct);
+        var activeIds = active.Select(p => p.Manifest.PackageId).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var unknown = map.Values.SelectMany(p => p)
+            .Where(p => !activeIds.Contains(p)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        if (unknown.Count > 0)
+        {
+            throw new ArgumentException(
+                $"These packages are not Active for this tenant: {string.Join(", ", unknown)}. Activate them first.");
+        }
+
+        unit.LifecyclePackageMap = new Dictionary<string, List<string>>(map, StringComparer.OrdinalIgnoreCase);
+        unit.UpdatedAt = DateTimeOffset.UtcNow;
+        await _units.UpdateAsync(unit, ct);
+
+        await AuditAsync(tenantId, actor, AuditCategories.OrgUnitPackagesChanged,
+            $"Lifecycle-package map set on '{unit.Name}': " +
+            string.Join("; ", map.Select(kv => $"{kv.Key} → [{string.Join(", ", kv.Value)}]")) + ".",
+            unit, ct);
 
         return unit;
     }

@@ -1,0 +1,121 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "AI Construction",
+  "version": "1",
+  "status": "Published",
+  "owner": "MAG Dynamics",
+  "description": "AI Construction project package (Rosetta test case): project-level KPIs layered on top of the live Build Chain Operational framework (which computes from SiteView OperationalEvent records in ecarmf.performance-frameworks). BuildChain project period roll-ups feed budget-to-actual, schedule variance, change-order impact, draw cycle time, and inspection pass rate per project. Designed to be attached to Project units DURING the Construction lifecycle state via the unit's lifecycle-package map; at transition to OperatingAsset the kernel detaches it and attaches ecarmf.realestate-asset automatically (Rosetta Requirement 3).",
+
+  "packageId": "ecarmf.ai-construction",
+  "name": "AI Construction",
+  "packageVersion": "1.0.1",
+  "publisher": "MAG Dynamics",
+  "dependencies": [],
+
+  "entities": [
+    {
+      "entityTypeName": "ProjectPeriodSummary",
+      "description": "One project's period roll-up from BuildChain: budget vs actual, schedule position, change orders, draw cycle, inspections.",
+      "attributes": [
+        { "name": "projectId", "dataType": "string", "required": true },
+        { "name": "periodEnd", "dataType": "string", "required": true },
+        { "name": "budgetToDate", "dataType": "number", "required": true },
+        { "name": "actualToDate", "dataType": "number", "required": true },
+        { "name": "scheduleVarianceDays", "dataType": "number", "required": false },
+        { "name": "changeOrderCount", "dataType": "number", "required": false },
+        { "name": "changeOrderCost", "dataType": "number", "required": false },
+        { "name": "avgDrawCycleDays", "dataType": "number", "required": false },
+        { "name": "inspectionsPassed", "dataType": "number", "required": false },
+        { "name": "inspectionsTotal", "dataType": "number", "required": false }
+      ]
+    }
+  ],
+
+  "events": [],
+  "rules": [],
+  "capabilities": [
+    { "capabilityId": "ConstructionProjectIntelligence", "name": "Construction Project Intelligence", "description": "Project-phase KPIs: budget, schedule, change orders, draws, inspections." }
+  ],
+
+  "schemaTemplates": [
+    {
+      "templateId": "siteview-phase-summary-json",
+      "name": "SiteView phase-completion summary (JSON) - the richer live shape behind Build Chain Operational KPIs",
+      "sourceFormat": "json",
+      "targetEntityType": "OperationalEvent",
+      "fieldMappings": [
+        { "rawField": "equipmentId", "targetField": "assetReference", "transform": "none", "required": true },
+        { "rawField": "siteId", "targetField": "siteId", "transform": "none", "required": true },
+        { "rawField": "eventType", "targetField": "eventCategory", "transform": "none", "required": true },
+        { "rawField": "timestamp", "targetField": "occurredAt", "transform": "parseDate", "required": true },
+        { "rawField": "completedOnTime", "targetField": "completedOnTime", "transform": "none", "required": false },
+        { "rawField": "totalCompleted", "targetField": "totalCompleted", "transform": "none", "required": false },
+        { "rawField": "actualCost", "targetField": "actualCost", "transform": "none", "required": false },
+        { "rawField": "plannedCost", "targetField": "plannedCost", "transform": "none", "required": false },
+        { "rawField": "runtimeHours", "targetField": "runtimeHours", "transform": "none", "required": false },
+        { "rawField": "availableHours", "targetField": "availableHours", "transform": "none", "required": false },
+        { "rawField": "incidents", "targetField": "incidents", "transform": "none", "required": false },
+        { "rawField": "laborHours", "targetField": "laborHours", "transform": "none", "required": false }
+      ]
+    },
+    {
+      "templateId": "buildchain-project-period-json",
+      "name": "BuildChain project period roll-up (JSON)",
+      "sourceFormat": "json",
+      "targetEntityType": "ProjectPeriodSummary",
+      "fieldMappings": [
+        { "rawField": "projectCode", "targetField": "projectId", "transform": "none", "required": true },
+        { "rawField": "periodEnding", "targetField": "periodEnd", "transform": "parseDate", "required": true },
+        { "rawField": "budgetedCostToDate", "targetField": "budgetToDate", "transform": "none", "required": true },
+        { "rawField": "actualCostToDate", "targetField": "actualToDate", "transform": "none", "required": true },
+        { "rawField": "scheduleVarianceDays", "targetField": "scheduleVarianceDays", "transform": "none", "required": false },
+        { "rawField": "changeOrders", "targetField": "changeOrderCount", "transform": "none", "required": false },
+        { "rawField": "changeOrderValue", "targetField": "changeOrderCost", "transform": "none", "required": false },
+        { "rawField": "avgDaysDrawToFunding", "targetField": "avgDrawCycleDays", "transform": "none", "required": false },
+        { "rawField": "inspectionsPassed", "targetField": "inspectionsPassed", "transform": "none", "required": false },
+        { "rawField": "inspectionsScheduled", "targetField": "inspectionsTotal", "transform": "none", "required": false }
+      ]
+    }
+  ],
+
+  "performanceFrameworks": [
+    {
+      "frameworkId": "construction-project-v1",
+      "name": "Construction Project KPI Framework v1",
+      "industry": "Construction",
+      "description": "Project-specific KPIs on top of Build Chain operations (Rosetta Requirement 7): budget-to-actual, schedule variance, change-order impact, draw cycle time, inspection pass rate. Targets are AI-seeded baselines pending project-team review.",
+      "kpis": [
+        { "kpiId": "budget-variance", "name": "Budget variance (actual vs budget)", "formula": "(actualToDate - budgetToDate) / budgetToDate", "triggerRecordType": "ProjectPeriodSummary", "subjectField": "projectId", "unit": "ratio", "targetValue": 0.05, "direction": "lower" },
+        { "kpiId": "schedule-variance-days", "name": "Schedule variance (days behind plan)", "formula": "scheduleVarianceDays", "triggerRecordType": "ProjectPeriodSummary", "subjectField": "projectId", "unit": "days", "targetValue": 0, "direction": "lower" },
+        { "kpiId": "change-order-cost-ratio", "name": "Change order cost / budget", "formula": "changeOrderCost / budgetToDate", "triggerRecordType": "ProjectPeriodSummary", "subjectField": "projectId", "unit": "ratio", "targetValue": 0.03, "direction": "lower" },
+        { "kpiId": "draw-cycle-days", "name": "Draw request cycle time (days)", "formula": "avgDrawCycleDays", "triggerRecordType": "ProjectPeriodSummary", "subjectField": "projectId", "unit": "days", "targetValue": 10, "direction": "lower" },
+        { "kpiId": "inspection-pass-rate", "name": "Permit/inspection pass rate", "formula": "inspectionsPassed / inspectionsTotal", "triggerRecordType": "ProjectPeriodSummary", "subjectField": "projectId", "unit": "ratio", "targetValue": 0.9, "direction": "higher" }
+      ],
+      "okrs": [
+        {
+          "okrId": "project-delivery",
+          "objective": "Deliver the project on budget and on schedule",
+          "keyResults": [
+            { "krId": "kr-budget", "kpiId": "budget-variance", "targetValue": 0.05 },
+            { "krId": "kr-inspections", "kpiId": "inspection-pass-rate", "targetValue": 0.9 }
+          ]
+        }
+      ]
+    }
+  ],
+
+  "agents": [
+    {
+      "agentId": "construction-guide",
+      "name": "Construction Project Guide",
+      "description": "Advisory agent over live SiteView operations and BuildChain project roll-ups: budget, schedule, equipment, safety, draws.",
+      "persona": "You are a construction project operations advisor for a self-performing developer. You understand budget-to-actual variance, schedule variance, change-order discipline, equipment utilization, safety incident rates, draw request cycles, and inspection readiness. Ground every answer in the project-level data provided; never invent numbers. When a metric drifts, suggest which levers (sequencing, procurement lead times, equipment allocation, inspection pre-walks, draw documentation hygiene) typically move it - as options to investigate, not directives.",
+      "contextSources": [ "records:ProjectPeriodSummary", "records:OperationalEvent", "scores", "deviations", "benchmarks" ],
+      "sampleQuestions": [
+        "How is the Burbank project tracking against budget and schedule?",
+        "Which phase is driving the cost variance, and what usually causes that?",
+        "Is our equipment utilization consistent with this phase of construction?"
+      ]
+    }
+  ]
+}

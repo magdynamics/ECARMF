@@ -24,6 +24,8 @@ public class RenewalRecord
     public decimal? RequiredUnits { get; set; }
     public decimal CompletedUnits { get; set; }
     public string? UnitLabel { get; set; }
+    public string? MilestoneReference { get; set; }
+    public DateTimeOffset? MilestoneReachedAt { get; set; }
     public string NotifyRole { get; set; } = string.Empty;
     public bool CreateTask { get; set; }
     public string Status { get; set; } = RenewalStatuses.Active;
@@ -86,6 +88,8 @@ public class EfRenewalStore : IRenewalStore
         record.RequiredUnits = updated.RequiredUnits;
         record.CompletedUnits = updated.CompletedUnits;
         record.UnitLabel = updated.UnitLabel;
+        record.MilestoneReference = updated.MilestoneReference;
+        record.MilestoneReachedAt = updated.MilestoneReachedAt;
         record.NotifyRole = updated.NotifyRole;
         record.CreateTask = updated.CreateTask;
         record.Status = updated.Status;
@@ -124,6 +128,8 @@ public class EfRenewalStore : IRenewalStore
         RequiredUnits = renewal.RequiredUnits,
         CompletedUnits = renewal.CompletedUnits,
         UnitLabel = renewal.UnitLabel,
+        MilestoneReference = renewal.MilestoneReference,
+        MilestoneReachedAt = renewal.MilestoneReachedAt,
         NotifyRole = renewal.NotifyRole,
         CreateTask = renewal.CreateTask,
         Status = renewal.Status,
@@ -154,6 +160,8 @@ public class EfRenewalStore : IRenewalStore
         RequiredUnits = record.RequiredUnits,
         CompletedUnits = record.CompletedUnits,
         UnitLabel = record.UnitLabel,
+        MilestoneReference = record.MilestoneReference,
+        MilestoneReachedAt = record.MilestoneReachedAt,
         NotifyRole = record.NotifyRole,
         CreateTask = record.CreateTask,
         Status = record.Status,

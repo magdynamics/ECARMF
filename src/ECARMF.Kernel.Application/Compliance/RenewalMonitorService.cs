@@ -68,10 +68,15 @@ public class RenewalMonitorService : IRenewalMonitor
 
     public async Task<int> EvaluateAsync(string? tenantId, DateTimeOffset now, CancellationToken ct = default)
     {
-        var candidates = tenantId is null
+        var candidates = (tenantId is null
             ? await _renewals.GetActiveAllTenantsAsync(ct)
             : (await _renewals.GetAllAsync(tenantId, ct))
-                .Where(r => r.Status == RenewalStatuses.Active).ToList();
+                .Where(r => r.Status == RenewalStatuses.Active).ToList())
+            // Milestone-gated obligations (Rosetta Requirement 5) stay
+            // dormant until their milestone is reached — a certificate of
+            // occupancy cannot be "overdue" while the building has no roof.
+            .Where(r => r.MilestoneReference is null || r.MilestoneReachedAt is not null)
+            .ToList();
 
         var raised = 0;
         foreach (var renewal in candidates)

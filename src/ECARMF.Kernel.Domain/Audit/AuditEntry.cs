@@ -76,4 +76,9 @@ public static class AuditCategories
     public const string TreasurySweepProposed = "TreasurySweepProposed";
     public const string PayrollBalanceFlagged = "PayrollBalanceFlagged";
     public const string TenantSensitivityChanged = "TenantSensitivityChanged";
+    public const string FundingSourceCreated = "FundingSourceCreated";
+    public const string FundingEventRequested = "FundingEventRequested";
+    public const string FundingEventDecided = "FundingEventDecided";
+    public const string FundingEventDisbursed = "FundingEventDisbursed";
+    public const string RenewalMilestoneReached = "RenewalMilestoneReached";
 }

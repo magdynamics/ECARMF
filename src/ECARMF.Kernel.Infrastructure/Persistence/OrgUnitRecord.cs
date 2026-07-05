@@ -15,6 +15,7 @@ public class OrgUnitRecord
     public string? ParentUnitId { get; set; }
     public string? Industry { get; set; }
     public string AttachedPackageIdsJson { get; set; } = "[]";
+    public string LifecyclePackageMapJson { get; set; } = "{}";
     public string? Notes { get; set; }
     public string LifecycleState { get; set; } = "Operating";
     public string Status { get; set; } = "Active";
@@ -58,6 +59,7 @@ public class EfOrgUnitStore : IOrgUnitStore
         record.ParentUnitId = unit.ParentUnitId;
         record.Industry = unit.Industry;
         record.AttachedPackageIdsJson = JsonSerializer.Serialize(unit.AttachedPackageIds);
+        record.LifecyclePackageMapJson = JsonSerializer.Serialize(unit.LifecyclePackageMap);
         record.Notes = unit.Notes;
         record.LifecycleState = unit.LifecycleState;
         record.Status = unit.Status;
@@ -86,6 +88,7 @@ public class EfOrgUnitStore : IOrgUnitStore
         ParentUnitId = unit.ParentUnitId,
         Industry = unit.Industry,
         AttachedPackageIdsJson = JsonSerializer.Serialize(unit.AttachedPackageIds),
+        LifecyclePackageMapJson = JsonSerializer.Serialize(unit.LifecyclePackageMap),
         Notes = unit.Notes,
         LifecycleState = unit.LifecycleState,
         Status = unit.Status,
@@ -104,6 +107,9 @@ public class EfOrgUnitStore : IOrgUnitStore
         ParentUnitId = record.ParentUnitId,
         Industry = record.Industry,
         AttachedPackageIds = JsonSerializer.Deserialize<List<string>>(record.AttachedPackageIdsJson) ?? [],
+        LifecyclePackageMap = JsonSerializer.Deserialize<Dictionary<string, List<string>>>(record.LifecyclePackageMapJson)
+            is { } map ? new Dictionary<string, List<string>>(map, StringComparer.OrdinalIgnoreCase)
+                       : new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
         Notes = record.Notes,
         LifecycleState = record.LifecycleState,
         Status = record.Status,

@@ -12,11 +12,14 @@ public record SaveRenewalRequest(
     string? Counterparty, string? Reference, string? Notes,
     DateTimeOffset DueDate, int? RecurrenceMonths, int[]? LeadTimeDays,
     string NotifyRole, bool CreateTask,
-    decimal? RequiredUnits = null, string? UnitLabel = null);
+    decimal? RequiredUnits = null, string? UnitLabel = null,
+    string? MilestoneReference = null);
 
 public record AttachRenewalDocumentRequest(string FileName, string ContentBase64);
 
 public record RecordProgressRequest(decimal Units, string? Note);
+
+public record MilestoneReachedRequest(int? DueInDays, string? Note);
 
 /// <summary>
 /// Renewal commitments: dated obligations (licenses, insurance, loans,
@@ -160,6 +163,55 @@ public static class RenewalEndpoints
                     ["units"] = request.Units.ToString(System.Globalization.CultureInfo.InvariantCulture),
                     ["completedUnits"] = renewal.CompletedUnits.ToString(System.Globalization.CultureInfo.InvariantCulture),
                     ["requiredUnits"] = renewal.RequiredUnits.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    ["note"] = request.Note ?? ""
+                }
+            }, ct);
+
+            return Results.Ok(renewal);
+        });
+
+        // Milestone-gated obligations (Rosetta Requirement 5): the gate
+        // opens when the project phase completes — from here the standard
+        // calendar ladder takes over. Optionally re-anchors the due date
+        // relative to the milestone (e.g. occupancy inspection due 30 days
+        // after construction complete).
+        group.MapPost("/{id:guid}/milestone-reached", async (
+            Guid id, MilestoneReachedRequest request, HttpContext context,
+            IUserStore users, IRenewalStore renewals, Application.Audit.IAuditLog audit, CancellationToken ct) =>
+        {
+            if (!TenantResolution.TryGetTenant(context, out var tenantId))
+                return TenantResolution.MissingTenantResult();
+            var (error, user) = await AccessGuard.RequireAsync(context, users, tenantId, Permissions.RecordSubmit, ct);
+            if (error is not null) return error;
+
+            var renewal = await renewals.GetAsync(tenantId, id, ct);
+            if (renewal is null) return Results.NotFound();
+            if (renewal.MilestoneReference is null)
+                return Results.BadRequest(new { error = "This commitment is calendar-based; it has no gating milestone." });
+            if (renewal.MilestoneReachedAt is not null)
+                return Results.BadRequest(new { error = $"Milestone '{renewal.MilestoneReference}' was already marked reached." });
+
+            renewal.MilestoneReachedAt = DateTimeOffset.UtcNow;
+            if (request.DueInDays is int days and > 0)
+            {
+                renewal.DueDate = DateTimeOffset.UtcNow.AddDays(days);
+                renewal.LastAlertedThresholdDays = null; // fresh ladder from the new anchor
+            }
+            renewal.UpdatedAt = DateTimeOffset.UtcNow;
+            await renewals.UpdateAsync(renewal, ct);
+
+            await audit.AppendAsync(new Domain.Audit.AuditEntry
+            {
+                TenantId = tenantId,
+                CorrelationId = renewal.Id,
+                Category = Domain.Audit.AuditCategories.RenewalMilestoneReached,
+                Actor = user!.Identifier,
+                Summary = $"Milestone '{renewal.MilestoneReference}' reached — '{renewal.Name}' is now live, due {renewal.DueDate:yyyy-MM-dd}.",
+                Detail = new Dictionary<string, string>
+                {
+                    ["renewalId"] = renewal.Id.ToString(),
+                    ["milestone"] = renewal.MilestoneReference,
+                    ["dueDate"] = renewal.DueDate.ToString("O"),
                     ["note"] = request.Note ?? ""
                 }
             }, ct);
@@ -373,6 +425,7 @@ public static class RenewalEndpoints
             Category = category,
             RequiredUnits = request.RequiredUnits,
             UnitLabel = string.IsNullOrWhiteSpace(request.UnitLabel) ? null : request.UnitLabel.Trim(),
+            MilestoneReference = string.IsNullOrWhiteSpace(request.MilestoneReference) ? null : request.MilestoneReference.Trim(),
             SubjectType = string.IsNullOrWhiteSpace(request.SubjectType) ? null : request.SubjectType.Trim(),
             SubjectId = string.IsNullOrWhiteSpace(request.SubjectId) ? null : request.SubjectId.Trim(),
             Counterparty = request.Counterparty,

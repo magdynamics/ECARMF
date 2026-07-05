@@ -40,6 +40,7 @@ public static class DependencyInjection
         services.AddScoped<Analytics.IPeerBenchmarkService, Analytics.PeerBenchmarkService>();
         services.AddScoped<Identity.IOrgUnitService, Identity.OrgUnitService>();
         services.AddScoped<Treasury.ITreasurySweepService, Treasury.TreasurySweepService>();
+        services.AddScoped<Capital.IFundingService, Capital.FundingService>();
         services.AddScoped<Billing.IBillingService, Billing.BillingService>();
         services.AddScoped<Agents.IAgentConsultService, Agents.AgentConsultService>();
 

@@ -1,0 +1,74 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "Real Estate Asset",
+  "version": "1",
+  "status": "Published",
+  "owner": "MAG Dynamics",
+  "description": "Real Estate Asset KPI package (Rosetta Requirement 3, operating phase): occupancy, NOI margin, cap rate, and DSCR per operating asset. Attached automatically by the lifecycle-package map when a Project unit transitions from Construction to OperatingAsset - never a manual reconfiguration. A hospitality-specific variant (RevPAR, ADR, GOP margin) is DEFERRED by decision until the Burbank hotel approaches stabilization and live data exists to validate formulas against (Rosetta Requirement 7); the lifecycle mechanism makes that a package swap later, not a rebuild.",
+
+  "packageId": "ecarmf.realestate-asset",
+  "name": "Real Estate Asset",
+  "packageVersion": "1.0.0",
+  "publisher": "MAG Dynamics",
+  "dependencies": [],
+
+  "entities": [
+    {
+      "entityTypeName": "AssetPeriodReport",
+      "description": "One operating asset's period report: occupancy, revenue, expenses, debt service, valuation.",
+      "attributes": [
+        { "name": "assetId", "dataType": "string", "required": true },
+        { "name": "periodEnd", "dataType": "string", "required": true },
+        { "name": "occupiedRooms", "dataType": "number", "required": false },
+        { "name": "totalRooms", "dataType": "number", "required": false },
+        { "name": "revenue", "dataType": "number", "required": true },
+        { "name": "operatingExpenses", "dataType": "number", "required": true },
+        { "name": "debtService", "dataType": "number", "required": false },
+        { "name": "assetValue", "dataType": "number", "required": false }
+      ]
+    }
+  ],
+
+  "events": [],
+  "rules": [],
+  "capabilities": [
+    { "capabilityId": "RealEstateAssetIntelligence", "name": "Real Estate Asset Intelligence", "description": "Operating-asset KPIs: occupancy, NOI, cap rate, DSCR." }
+  ],
+
+  "schemaTemplates": [
+    {
+      "templateId": "asset-period-json",
+      "name": "Operating asset period report (JSON)",
+      "sourceFormat": "json",
+      "targetEntityType": "AssetPeriodReport",
+      "fieldMappings": [
+        { "rawField": "assetCode", "targetField": "assetId", "transform": "none", "required": true },
+        { "rawField": "periodEnding", "targetField": "periodEnd", "transform": "parseDate", "required": true },
+        { "rawField": "occupiedRooms", "targetField": "occupiedRooms", "transform": "none", "required": false },
+        { "rawField": "totalRooms", "targetField": "totalRooms", "transform": "none", "required": false },
+        { "rawField": "totalRevenue", "targetField": "revenue", "transform": "none", "required": true },
+        { "rawField": "opex", "targetField": "operatingExpenses", "transform": "none", "required": true },
+        { "rawField": "debtServicePaid", "targetField": "debtService", "transform": "none", "required": false },
+        { "rawField": "appraisedValue", "targetField": "assetValue", "transform": "none", "required": false }
+      ]
+    }
+  ],
+
+  "performanceFrameworks": [
+    {
+      "frameworkId": "realestate-asset-v1",
+      "name": "Real Estate Asset KPI Framework v1",
+      "industry": "RealEstate",
+      "description": "Operating-asset KPIs (Rosetta Requirement 3, post-construction phase). Targets are AI-seeded baselines pending asset-manager review.",
+      "kpis": [
+        { "kpiId": "occupancy-rate", "name": "Occupancy rate", "formula": "occupiedRooms / totalRooms", "triggerRecordType": "AssetPeriodReport", "subjectField": "assetId", "unit": "ratio", "targetValue": 0.7, "direction": "higher" },
+        { "kpiId": "noi-margin", "name": "NOI margin", "formula": "(revenue - operatingExpenses) / revenue", "triggerRecordType": "AssetPeriodReport", "subjectField": "assetId", "unit": "ratio", "targetValue": 0.3, "direction": "higher" },
+        { "kpiId": "cap-rate", "name": "Cap rate (NOI / asset value)", "formula": "(revenue - operatingExpenses) / assetValue", "triggerRecordType": "AssetPeriodReport", "subjectField": "assetId", "unit": "ratio", "targetValue": 0.06, "direction": "higher" },
+        { "kpiId": "dscr", "name": "Debt service coverage ratio", "formula": "(revenue - operatingExpenses) / debtService", "triggerRecordType": "AssetPeriodReport", "subjectField": "assetId", "unit": "ratio", "targetValue": 1.25, "direction": "higher" }
+      ],
+      "okrs": []
+    }
+  ],
+
+  "agents": []
+}
