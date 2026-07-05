@@ -14,7 +14,10 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <!-- Windows TFM for the built-in OCR engine (Windows.Media.Ocr) and PDF
+         page renderer (Windows.Data.Pdf): scanned documents become text with
+         zero external dependencies - the platform stays fully on-prem. -->
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>

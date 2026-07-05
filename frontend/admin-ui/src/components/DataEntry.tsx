@@ -196,10 +196,10 @@ export function DataEntry({ tenant, user }: { tenant: string; user: string }) {
             </select>
           </label>
           <label>
-            File (.pdf, .txt, .eml)
+            File (.pdf, scans/photos, .txt, .eml)
             <input
               type="file"
-              accept=".pdf,.txt,.eml,.md,.csv"
+              accept=".pdf,image/*,.txt,.eml,.md,.csv"
               onChange={(e) => setDocFile(e.target.files?.[0] ?? null)}
             />
           </label>

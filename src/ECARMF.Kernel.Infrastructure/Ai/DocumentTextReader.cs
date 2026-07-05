@@ -5,12 +5,17 @@ using UglyToad.PdfPig;
 namespace ECARMF.Kernel.Infrastructure.Ai;
 
 /// <summary>
-/// File-to-text stage in front of document extraction: PDFs go through
-/// PdfPig text extraction; everything else is treated as UTF-8 text
-/// (.txt, .eml, .md, .csv, pasted content saved to a file, ...).
+/// File-to-text stage in front of document extraction. PDFs go through
+/// PdfPig text extraction; a PDF with no text layer (a scan) falls back to
+/// the Windows built-in OCR engine, as do image uploads (photos and scans
+/// of licenses, statements, receipts). Everything else is treated as UTF-8
+/// text (.txt, .eml, .md, .csv, pasted content saved to a file, ...).
 /// </summary>
 public class DocumentTextReader : IDocumentTextReader
 {
+    private static readonly string[] ImageExtensions =
+        [".png", ".jpg", ".jpeg", ".bmp", ".gif", ".tif", ".tiff", ".webp"];
+
     public (bool Success, string TextOrError) ReadText(string fileName, byte[] content)
     {
         if (content.Length == 0)
@@ -19,6 +24,11 @@ public class DocumentTextReader : IDocumentTextReader
         }
 
         var extension = Path.GetExtension(fileName).ToLowerInvariant();
+
+        if (ImageExtensions.Contains(extension))
+        {
+            return Ocr(() => WindowsOcr.ReadImageAsync(content));
+        }
 
         if (extension == ".pdf")
         {
@@ -32,14 +42,18 @@ public class DocumentTextReader : IDocumentTextReader
                 }
 
                 var result = text.ToString().Trim();
-                return result.Length > 0
-                    ? (true, result)
-                    : (false, "No text could be extracted from the PDF (it may be a scanned image without a text layer).");
+                if (result.Length > 0)
+                {
+                    return (true, result);
+                }
             }
             catch (Exception ex)
             {
                 return (false, $"Could not read the PDF: {ex.Message}");
             }
+
+            // No text layer: this is a scan — render the pages and OCR them.
+            return Ocr(() => WindowsOcr.ReadScannedPdfAsync(content));
         }
 
         try
@@ -50,5 +64,17 @@ public class DocumentTextReader : IDocumentTextReader
         {
             return (false, $"Could not decode the file as text: {ex.Message}");
         }
+    }
+
+    private static (bool, string) Ocr(Func<Task<(bool, string)>> recognize)
+    {
+        if (!OperatingSystem.IsWindowsVersionAtLeast(10, 0, 19041))
+        {
+            return (false, "OCR requires Windows 10 (build 19041) or later on the host.");
+        }
+
+        // The reader port is synchronous; there is no synchronization context
+        // in the API pipeline, so blocking on the WinRT task is safe here.
+        return recognize().GetAwaiter().GetResult();
     }
 }
