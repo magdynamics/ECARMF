@@ -64,4 +64,6 @@ public static class AuditCategories
     public const string MailSettingsUpdated = "MailSettingsUpdated";
     public const string ReportGenerated = "ReportGenerated";
     public const string BulkImportCompleted = "BulkImportCompleted";
+    public const string TemplateCaptured = "TemplateCaptured";
+    public const string TemplateApplied = "TemplateApplied";
 }

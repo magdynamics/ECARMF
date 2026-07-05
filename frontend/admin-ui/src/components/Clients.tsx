@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api, ApiError } from '../api'
+import { StarterPacks } from './StarterPacks'
 
 interface TenantProfile {
   tenantId: string
@@ -425,6 +426,8 @@ export function Clients({ tenant, user }: { tenant: string; user: string }) {
           )}
         </section>
       )}
+
+      <StarterPacks />
     </div>
   )
 }

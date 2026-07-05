@@ -42,6 +42,7 @@ public static class DependencyInjection
         services.AddScoped<Application.Notifications.INotificationOutbox, EfNotificationOutbox>();
         services.AddScoped<Application.Notifications.IMailSettingsStore, EfMailSettingsStore>();
         services.AddScoped<Application.Notifications.IEmailSender, Mail.SmtpEmailSender>();
+        services.AddScoped<Application.Onboarding.IOnboardingTemplateStore, EfOnboardingTemplateStore>();
         services.AddScoped<Application.Billing.IBillingPlanStore, EfBillingPlanStore>();
         services.AddScoped<Application.Billing.IBillingStatementStore, EfBillingStatementStore>();
         services.AddScoped<Application.Billing.IUsageMeter, EfUsageMeter>();

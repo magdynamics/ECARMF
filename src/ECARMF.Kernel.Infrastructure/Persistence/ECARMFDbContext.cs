@@ -59,6 +59,8 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<MailSettingsRecord> MailSettings => Set<MailSettingsRecord>();
 
+    public DbSet<OnboardingTemplateRecord> OnboardingTemplates => Set<OnboardingTemplateRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AgentInteractionRecord>(entity =>
@@ -156,6 +158,19 @@ public class ECARMFDbContext : DbContext
             entity.Property(m => m.FromAddress).HasMaxLength(400).IsRequired();
             entity.Property(m => m.MinSeverity).HasMaxLength(20).IsRequired();
             entity.Property(m => m.ConfiguredBy).HasMaxLength(400).IsRequired();
+        });
+
+        modelBuilder.Entity<OnboardingTemplateRecord>(entity =>
+        {
+            entity.ToTable("OnboardingTemplates");
+            entity.HasKey(t => t.Id);
+            entity.Property(t => t.TemplateId).HasMaxLength(100).IsRequired();
+            entity.Property(t => t.Name).HasMaxLength(200).IsRequired();
+            entity.Property(t => t.Industry).HasMaxLength(100);
+            entity.Property(t => t.Description).HasMaxLength(2000);
+            entity.Property(t => t.CreatedFromTenant).HasMaxLength(100).IsRequired();
+            entity.Property(t => t.CreatedBy).HasMaxLength(400).IsRequired();
+            entity.HasIndex(t => t.TemplateId).IsUnique();
         });
 
         modelBuilder.Entity<RenewalRecord>(entity =>
