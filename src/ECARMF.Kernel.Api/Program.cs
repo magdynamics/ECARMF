@@ -81,6 +81,7 @@ app.MapBulkImportEndpoints();
 app.MapTemplateEndpoints();
 app.MapHealthBoardEndpoints();
 app.MapHardeningEndpoints();
+app.MapOrgUnitEndpoints();
 app.MapAgentEndpoints();
 
 using (var scope = app.Services.CreateScope())

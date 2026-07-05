@@ -61,6 +61,8 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<OnboardingTemplateRecord> OnboardingTemplates => Set<OnboardingTemplateRecord>();
 
+    public DbSet<OrgUnitRecord> OrgUnits => Set<OrgUnitRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AgentInteractionRecord>(entity =>
@@ -158,6 +160,23 @@ public class ECARMFDbContext : DbContext
             entity.Property(m => m.FromAddress).HasMaxLength(400).IsRequired();
             entity.Property(m => m.MinSeverity).HasMaxLength(20).IsRequired();
             entity.Property(m => m.ConfiguredBy).HasMaxLength(400).IsRequired();
+        });
+
+        modelBuilder.Entity<OrgUnitRecord>(entity =>
+        {
+            entity.ToTable("OrgUnits");
+            entity.HasKey(u => u.Id);
+            entity.Property(u => u.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(u => u.UnitId).HasMaxLength(100).IsRequired();
+            entity.Property(u => u.Name).HasMaxLength(400).IsRequired();
+            entity.Property(u => u.UnitType).HasMaxLength(100).IsRequired();
+            entity.Property(u => u.ParentUnitId).HasMaxLength(100);
+            entity.Property(u => u.Industry).HasMaxLength(100);
+            entity.Property(u => u.Notes).HasMaxLength(2000);
+            entity.Property(u => u.Status).HasMaxLength(50).IsRequired();
+            entity.Property(u => u.CreatedBy).HasMaxLength(400).IsRequired();
+            entity.HasIndex(u => new { u.TenantId, u.UnitId }).IsUnique();
+            entity.HasIndex(u => new { u.TenantId, u.ParentUnitId });
         });
 
         modelBuilder.Entity<OnboardingTemplateRecord>(entity =>

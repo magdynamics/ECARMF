@@ -14,6 +14,7 @@ import { HealthBoard } from './components/HealthBoard'
 import { Home } from './components/Home'
 import { Integrations } from './components/Integrations'
 import { Library } from './components/Library'
+import { Organization } from './components/Organization'
 import { PackageInspector } from './components/PackageInspector'
 import { RecordActivity } from './components/RecordActivity'
 import { Renewals } from './components/Renewals'
@@ -29,6 +30,7 @@ const SEEDED_USERS = [
 // 'platform' tenant, and the gate below offers the switch.
 const NAV: { tab: string; label: string; icon: string; group: string }[] = [
   { tab: 'home', label: 'Start Here', icon: '🏠', group: '' },
+  { tab: 'organization', label: 'Organization', icon: '🏛️', group: 'Setup' },
   { tab: 'packages', label: 'Packages', icon: '📦', group: 'Setup' },
   { tab: 'integrations', label: 'Integrations', icon: '🔌', group: 'Setup' },
   { tab: 'benchmarks', label: 'Benchmarks', icon: '🎯', group: 'Setup' },
@@ -238,6 +240,8 @@ function App() {
             <OperatorGate />
           ) : tab === 'home' ? (
             <Home tenant={effectiveTenant} user={effectiveUser} go={setTab} />
+          ) : tab === 'organization' ? (
+            <Organization tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'packages' ? (
             <PackageInspector tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'integrations' ? (

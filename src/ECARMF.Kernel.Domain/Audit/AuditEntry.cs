@@ -67,4 +67,6 @@ public static class AuditCategories
     public const string TemplateCaptured = "TemplateCaptured";
     public const string TemplateApplied = "TemplateApplied";
     public const string UserRolesChanged = "UserRolesChanged";
+    public const string OrgUnitChanged = "OrgUnitChanged";
+    public const string OrgUnitPackagesChanged = "OrgUnitPackagesChanged";
 }
