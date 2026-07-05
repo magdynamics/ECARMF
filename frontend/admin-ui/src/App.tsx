@@ -10,6 +10,7 @@ import { Clients } from './components/Clients'
 import { Dashboard } from './components/Dashboard'
 import { DataEntry } from './components/DataEntry'
 import { EmailSettings } from './components/EmailSettings'
+import { HealthBoard } from './components/HealthBoard'
 import { Home } from './components/Home'
 import { Integrations } from './components/Integrations'
 import { Library } from './components/Library'
@@ -40,6 +41,7 @@ const NAV: { tab: string; label: string; icon: string; group: string }[] = [
   { tab: 'library', label: 'Library', icon: '🗄️', group: 'Output' },
   { tab: 'allocations', label: 'Allocations', icon: '💼', group: 'Output' },
   { tab: 'advisor', label: 'AI Advisor', icon: '🤖', group: 'Output' },
+  { tab: 'health', label: 'Health Board', icon: '🩺', group: 'Platform' },
   { tab: 'clients', label: 'Clients', icon: '🏢', group: 'Platform' },
   { tab: 'billing', label: 'Billing', icon: '🧾', group: 'Platform' },
   { tab: 'email', label: 'Email', icon: '✉️', group: 'Platform' },
@@ -114,7 +116,7 @@ function App() {
 
   const effectiveTenant = signedInWithKey ? (me?.tenantId ?? '') : tenant
   const effectiveUser = signedInWithKey ? (me?.identifier ?? '') : user
-  const isPlatformTab = tab === 'clients' || tab === 'billing' || tab === 'email'
+  const isPlatformTab = tab === 'clients' || tab === 'billing' || tab === 'email' || tab === 'health'
   const onPlatformTenant = effectiveTenant.toLowerCase() === 'platform'
 
   // Operator gate: the Platform group needs the reserved operator tenant.
@@ -260,6 +262,8 @@ function App() {
             <Allocations tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'advisor' ? (
             <Advisor tenant={effectiveTenant} user={effectiveUser} />
+          ) : tab === 'health' ? (
+            <HealthBoard tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'clients' ? (
             <Clients tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'email' ? (

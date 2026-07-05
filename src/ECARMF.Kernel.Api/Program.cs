@@ -78,6 +78,7 @@ app.MapMailEndpoints();
 app.MapReportEndpoints();
 app.MapBulkImportEndpoints();
 app.MapTemplateEndpoints();
+app.MapHealthBoardEndpoints();
 app.MapAgentEndpoints();
 
 using (var scope = app.Services.CreateScope())
