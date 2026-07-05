@@ -157,6 +157,8 @@ function App() {
                 Tenant
                 <input
                   placeholder="tenant-alpha"
+                  autoComplete="off"
+                  name="ecarmf-tenant-id"
                   value={tenantInput}
                   onChange={(e) => setTenantInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && applyTenant()}
@@ -176,6 +178,8 @@ function App() {
                 <input
                   type="password"
                   placeholder="ecarmf_…"
+                  autoComplete="off"
+                  name="ecarmf-access-key"
                   value={apiKeyInput}
                   onChange={(e) => setApiKeyInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && apiKeyInput.trim() && signIn()}
@@ -190,6 +194,12 @@ function App() {
       <div className="layout">
         {navOpen && <div className="backdrop" onClick={() => setNavOpen(false)} />}
         <aside className={`sidebar ${navOpen ? 'open' : ''}`}>
+          {effectiveTenant && (
+            <div className="tenant-badge" title="Every screen shows only this tenant's data.">
+              <span className="muted small">Viewing tenant</span>
+              <strong className="mono">{effectiveTenant}</strong>
+            </div>
+          )}
           {NAV.map((item, index) => (
             <span key={item.tab} style={{ display: 'contents' }}>
               {item.group && (index === 0 || NAV[index - 1].group !== item.group) && (
