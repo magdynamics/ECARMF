@@ -40,6 +40,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// The API also serves the built admin UI (frontend build lands in wwwroot),
+// so one address is the whole app — shareable across the network.
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 // Credential-first authentication: an access key derives tenant + identity
 // (headers are overwritten); suspended tenants are locked out platform-wide.
 app.UseMiddleware<ECARMF.Kernel.Api.Hosting.ApiKeyAuthenticationMiddleware>();
