@@ -38,7 +38,10 @@ ALTER ROLE db_owner ADD MEMBER [NT AUTHORITY\NETWORK SERVICE];
     # Real Windows service: starts at boot, restarts on failure.
     $svc = Get-Service -Name 'ECARMF' -ErrorAction SilentlyContinue
     if ($svc) { sc.exe delete ECARMF | Out-Null; Start-Sleep -Seconds 2 }
-    sc.exe create ECARMF binPath= '"C:\ECARMF\app\ECARMF.Kernel.Api.exe" --urls http://0.0.0.0:5099' start= auto obj= "NT AUTHORITY\NetworkService" DisplayName= "ECARMF Platform" | Out-Null
+    # http://*:5099 binds IPv4 AND IPv6 — the machine's hostname (mag-wkts)
+    # resolves to an IPv6 link-local address, so an IPv4-only binding makes
+    # http://<hostname>:5099 fail while http://localhost:5099 works.
+    sc.exe create ECARMF binPath= '"C:\ECARMF\app\ECARMF.Kernel.Api.exe" --urls http://*:5099' start= auto obj= "NT AUTHORITY\NetworkService" DisplayName= "ECARMF Platform" | Out-Null
     sc.exe description ECARMF "ECARMF Platform Kernel - serves the admin UI and API on port 5099." | Out-Null
     sc.exe failure ECARMF reset= 86400 actions= restart/60000/restart/60000/restart/60000 | Out-Null
     Start-Service -Name ECARMF
