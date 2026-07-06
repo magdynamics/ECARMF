@@ -50,8 +50,21 @@ if (app.Environment.IsDevelopment())
 
 // The API also serves the built admin UI (frontend build lands in wwwroot),
 // so one address is the whole app — shareable across the network.
+// index.html must never be cached: it names the current hashed bundle, and
+// a cached copy pins users to a stale app after every deploy ("it's still
+// broken" reports that a hard refresh fixes). The hashed assets themselves
+// are immutable and can cache forever.
 app.UseDefaultFiles();
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        var isHashedAsset = ctx.File.Name.Contains('-') && ctx.Context.Request.Path.StartsWithSegments("/assets");
+        ctx.Context.Response.Headers.CacheControl = isHashedAsset
+            ? "public, max-age=31536000, immutable"
+            : "no-cache";
+    },
+});
 
 // Credential-first authentication: an access key derives tenant + identity
 // (headers are overwritten); suspended tenants are locked out platform-wide.
