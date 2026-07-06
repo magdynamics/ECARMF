@@ -1,0 +1,252 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "AI Oxygen Spa & Boutique",
+  "version": "1",
+  "status": "Published",
+  "owner": "MAG Dynamics",
+  "description": "Oxygen Spa & Boutique package (sixth test case): the first tenant running SERVICE and RETAIL intelligence on the same unit simultaneously - a medical-spa appointment framework and a bridal-retail framework both evaluate the same location's records, exercising what the registry design always allowed. Marketing intelligence KPIs feed budget-reallocation thinking (a reallocation recommendation is a CapitalFlow with targetAssetClass 'Marketing Campaign' - the Batch 2 R2-amendment semantics). Reputation KPIs from PUBLIC external signals (Refinement 12 sourceOwnership PublicExternal - data ABOUT the tenant, not from systems it controls) carry riskType Reputational. Document archive ships as simple KnowledgeAssets (no graph/semantic needs - same entity as MagDynamics, simpler configuration). DELIBERATELY ABSENT: the before/after customer photo pipeline (Requirement 5) - HIPAA applicability and marketing-consent capture must be resolved with counsel first; it ships as a package update once cleared, exactly like MagCPA's call-recording gate.",
+
+  "packageId": "ecarmf.ai-oxygen-spa",
+  "name": "AI Oxygen Spa & Boutique",
+  "packageVersion": "1.0.0",
+  "publisher": "MAG Dynamics",
+  "dependencies": [],
+
+  "entities": [
+    {
+      "entityTypeName": "AppointmentDay",
+      "description": "One day of medical-spa appointment activity from the scheduling system.",
+      "attributes": [
+        { "name": "locationId", "dataType": "string", "required": true },
+        { "name": "businessDate", "dataType": "string", "required": true },
+        { "name": "appointmentsBooked", "dataType": "number", "required": true },
+        { "name": "appointmentsCompleted", "dataType": "number", "required": true },
+        { "name": "noShows", "dataType": "number", "required": false },
+        { "name": "newClients", "dataType": "number", "required": false },
+        { "name": "serviceRevenue", "dataType": "number", "required": false }
+      ]
+    },
+    {
+      "entityTypeName": "RetailDay",
+      "description": "One day of bridal-boutique retail activity: sales, units, inventory, returns.",
+      "attributes": [
+        { "name": "locationId", "dataType": "string", "required": true },
+        { "name": "businessDate", "dataType": "string", "required": true },
+        { "name": "retailRevenue", "dataType": "number", "required": true },
+        { "name": "unitsSold", "dataType": "number", "required": false },
+        { "name": "inventoryOnHand", "dataType": "number", "required": false },
+        { "name": "returns", "dataType": "number", "required": false }
+      ]
+    },
+    {
+      "entityTypeName": "CampaignPeriod",
+      "description": "One marketing campaign's period performance: spend, leads, conversions, attributed revenue.",
+      "attributes": [
+        { "name": "campaignId", "dataType": "string", "required": true },
+        { "name": "periodEnd", "dataType": "string", "required": true },
+        { "name": "spend", "dataType": "number", "required": true },
+        { "name": "leads", "dataType": "number", "required": false },
+        { "name": "conversions", "dataType": "number", "required": false },
+        { "name": "revenueAttributed", "dataType": "number", "required": false }
+      ]
+    },
+    {
+      "entityTypeName": "SocialSignalDay",
+      "description": "One day of PUBLIC signals per platform (Facebook/Instagram/Google/Yelp): sentiment, ratings, negative reviews. Arrives via a PublicExternal connector - lower reliability, different consent/ToS posture than owned feeds.",
+      "attributes": [
+        { "name": "platform", "dataType": "string", "required": true },
+        { "name": "signalDate", "dataType": "string", "required": true },
+        { "name": "mentions", "dataType": "number", "required": false },
+        { "name": "avgSentiment", "dataType": "number", "required": false },
+        { "name": "negativeReviews", "dataType": "number", "required": false },
+        { "name": "avgRating", "dataType": "number", "required": false }
+      ]
+    }
+  ],
+
+  "events": [],
+  "rules": [],
+  "capabilities": [
+    { "capabilityId": "HybridServiceRetailIntelligence", "name": "Hybrid Service+Retail Intelligence", "description": "Two frameworks, one unit: spa services and bridal retail evaluated side by side." },
+    { "capabilityId": "ReputationIntelligence", "name": "Reputation Intelligence", "description": "Public-signal sentiment and review monitoring with Reputational risk tagging." }
+  ],
+
+  "schemaTemplates": [
+    {
+      "templateId": "scheduler-day-json",
+      "name": "Appointment scheduler daily summary (JSON) - vendor TBD (open question 3)",
+      "sourceFormat": "json",
+      "targetEntityType": "AppointmentDay",
+      "fieldMappings": [
+        { "rawField": "location", "targetField": "locationId", "transform": "none", "required": true },
+        { "rawField": "date", "targetField": "businessDate", "transform": "parseDate", "required": true },
+        { "rawField": "booked", "targetField": "appointmentsBooked", "transform": "none", "required": true },
+        { "rawField": "completed", "targetField": "appointmentsCompleted", "transform": "none", "required": true },
+        { "rawField": "noShows", "targetField": "noShows", "transform": "none", "required": false },
+        { "rawField": "firstVisits", "targetField": "newClients", "transform": "none", "required": false },
+        { "rawField": "serviceSales", "targetField": "serviceRevenue", "transform": "none", "required": false }
+      ]
+    },
+    {
+      "templateId": "boutique-retail-day-json",
+      "name": "Boutique retail daily summary (JSON)",
+      "sourceFormat": "json",
+      "targetEntityType": "RetailDay",
+      "fieldMappings": [
+        { "rawField": "location", "targetField": "locationId", "transform": "none", "required": true },
+        { "rawField": "date", "targetField": "businessDate", "transform": "parseDate", "required": true },
+        { "rawField": "retailSales", "targetField": "retailRevenue", "transform": "none", "required": true },
+        { "rawField": "itemsSold", "targetField": "unitsSold", "transform": "none", "required": false },
+        { "rawField": "stockOnHand", "targetField": "inventoryOnHand", "transform": "none", "required": false },
+        { "rawField": "returnCount", "targetField": "returns", "transform": "none", "required": false }
+      ]
+    },
+    {
+      "templateId": "campaign-period-json",
+      "name": "Marketing campaign period performance (JSON)",
+      "sourceFormat": "json",
+      "targetEntityType": "CampaignPeriod",
+      "fieldMappings": [
+        { "rawField": "campaign", "targetField": "campaignId", "transform": "none", "required": true },
+        { "rawField": "periodEnding", "targetField": "periodEnd", "transform": "parseDate", "required": true },
+        { "rawField": "adSpend", "targetField": "spend", "transform": "none", "required": true },
+        { "rawField": "leadCount", "targetField": "leads", "transform": "none", "required": false },
+        { "rawField": "conversionCount", "targetField": "conversions", "transform": "none", "required": false },
+        { "rawField": "attributedRevenue", "targetField": "revenueAttributed", "transform": "none", "required": false }
+      ]
+    },
+    {
+      "templateId": "social-signals-json",
+      "name": "Public social/review signals per platform (JSON) - PublicExternal source",
+      "sourceFormat": "json",
+      "targetEntityType": "SocialSignalDay",
+      "fieldMappings": [
+        { "rawField": "platform", "targetField": "platform", "transform": "none", "required": true },
+        { "rawField": "date", "targetField": "signalDate", "transform": "parseDate", "required": true },
+        { "rawField": "mentionCount", "targetField": "mentions", "transform": "none", "required": false },
+        { "rawField": "sentimentScore", "targetField": "avgSentiment", "transform": "none", "required": false },
+        { "rawField": "negativeReviewCount", "targetField": "negativeReviews", "transform": "none", "required": false },
+        { "rawField": "averageRating", "targetField": "avgRating", "transform": "none", "required": false }
+      ]
+    }
+  ],
+
+  "performanceFrameworks": [
+    {
+      "frameworkId": "spa-services-v1",
+      "name": "Medical Spa Services KPI Framework v1",
+      "industry": "MedicalSpa",
+      "description": "Appointment-based service KPIs - runs on the SAME unit as the retail framework (Requirement 2).",
+      "kpis": [
+        { "kpiId": "appointment-completion", "name": "Appointment completion rate", "formula": "appointmentsCompleted / appointmentsBooked", "triggerRecordType": "AppointmentDay", "subjectField": "locationId", "subjectType": "OrganizationalUnit", "unit": "ratio", "targetValue": 0.9, "direction": "higher" },
+        { "kpiId": "no-show-rate", "name": "No-show rate", "formula": "noShows / appointmentsBooked", "triggerRecordType": "AppointmentDay", "subjectField": "locationId", "subjectType": "OrganizationalUnit", "unit": "ratio", "targetValue": 0.08, "direction": "lower" },
+        { "kpiId": "new-clients-daily", "name": "New clients (daily)", "formula": "newClients", "triggerRecordType": "AppointmentDay", "subjectField": "locationId", "subjectType": "OrganizationalUnit", "unit": "count", "targetValue": 3, "direction": "higher" },
+        { "kpiId": "service-revenue-daily", "name": "Service revenue (daily)", "formula": "serviceRevenue", "triggerRecordType": "AppointmentDay", "subjectField": "locationId", "subjectType": "OrganizationalUnit", "unit": "usd", "targetValue": 4000, "direction": "higher" }
+      ],
+      "okrs": []
+    },
+    {
+      "frameworkId": "bridal-retail-v1",
+      "name": "Bridal Retail KPI Framework v1",
+      "industry": "Retail",
+      "description": "Sales/inventory KPIs for the boutique side - the second framework on the same unit.",
+      "kpis": [
+        { "kpiId": "retail-revenue-daily", "name": "Retail revenue (daily)", "formula": "retailRevenue", "triggerRecordType": "RetailDay", "subjectField": "locationId", "subjectType": "OrganizationalUnit", "unit": "usd", "targetValue": 2500, "direction": "higher" },
+        { "kpiId": "sell-through", "name": "Daily sell-through (units sold / stock)", "formula": "unitsSold / inventoryOnHand", "triggerRecordType": "RetailDay", "subjectField": "locationId", "subjectType": "OrganizationalUnit", "unit": "ratio", "targetValue": 0.02, "direction": "higher" },
+        { "kpiId": "return-rate", "name": "Return rate", "formula": "returns / unitsSold", "triggerRecordType": "RetailDay", "subjectField": "locationId", "subjectType": "OrganizationalUnit", "unit": "ratio", "targetValue": 0.05, "direction": "lower" }
+      ],
+      "okrs": []
+    },
+    {
+      "frameworkId": "marketing-intel-v1",
+      "name": "Marketing Intelligence KPI Framework v1",
+      "industry": "MedicalSpa",
+      "description": "Per-campaign performance (Requirement 7). A reallocation recommendation toward the strongest campaign is a CapitalFlow with targetAssetClass 'Marketing Campaign' - the open asset-class semantics from the Batch 2 R2 amendment decision.",
+      "kpis": [
+        { "kpiId": "cost-per-acquisition", "name": "Cost per acquisition", "formula": "spend / conversions", "triggerRecordType": "CampaignPeriod", "subjectField": "campaignId", "subjectType": "Campaign", "unit": "usd", "targetValue": 120, "direction": "lower" },
+        { "kpiId": "roas", "name": "Return on ad spend", "formula": "revenueAttributed / spend", "triggerRecordType": "CampaignPeriod", "subjectField": "campaignId", "subjectType": "Campaign", "riskType": "Marketing", "unit": "ratio", "targetValue": 3, "direction": "higher" },
+        { "kpiId": "conversion-rate", "name": "Lead conversion rate", "formula": "conversions / leads", "triggerRecordType": "CampaignPeriod", "subjectField": "campaignId", "subjectType": "Campaign", "unit": "ratio", "targetValue": 0.2, "direction": "higher" }
+      ],
+      "okrs": []
+    },
+    {
+      "frameworkId": "reputation-v1",
+      "name": "Reputation Intelligence KPI Framework v1",
+      "industry": "MedicalSpa",
+      "description": "Per-platform public-signal KPIs (Requirement 6, first real Refinement 12 use). All tagged riskType Reputational - reputation risk rides the score mechanism like every other risk.",
+      "kpis": [
+        { "kpiId": "avg-rating", "name": "Average public rating", "formula": "avgRating", "triggerRecordType": "SocialSignalDay", "subjectField": "platform", "subjectType": "PublicChannel", "riskType": "Reputational", "unit": "stars", "targetValue": 4.5, "direction": "higher" },
+        { "kpiId": "negative-reviews-daily", "name": "Negative reviews (daily)", "formula": "negativeReviews", "triggerRecordType": "SocialSignalDay", "subjectField": "platform", "subjectType": "PublicChannel", "riskType": "Reputational", "unit": "count", "targetValue": 2, "direction": "lower" },
+        { "kpiId": "sentiment-index", "name": "Sentiment index", "formula": "avgSentiment", "triggerRecordType": "SocialSignalDay", "subjectField": "platform", "subjectType": "PublicChannel", "riskType": "Reputational", "unit": "index", "targetValue": 0.6, "direction": "higher" }
+      ],
+      "okrs": []
+    }
+  ],
+
+  "agents": [
+    {
+      "agentId": "marketing-guide",
+      "name": "Marketing Intelligence Guide",
+      "description": "Campaign performance advisor: CPA, ROAS, conversion; recommends where budget should shift - as recommendations, never transfers.",
+      "persona": "You are the marketing intelligence advisor for a hybrid medical spa and bridal boutique. You read per-campaign KPIs (cost per acquisition, ROAS, conversion rate) and their deviations. When one campaign outperforms another, you recommend budget reallocation with explicit numbers and reasoning - framed as a recommendation for the owner to approve, because budget movement is a capital flow that only a human decides. Ground every statement in the campaign data provided; never invent performance numbers.",
+      "contextSources": [ "records:CampaignPeriod", "scores", "deviations", "allocations" ],
+      "sampleQuestions": [
+        "Which campaign has the best return on ad spend right now?",
+        "Where should next month's budget shift, and by how much?",
+        "Is our cost per acquisition trending the wrong way anywhere?"
+      ]
+    },
+    {
+      "agentId": "reputation-guide",
+      "name": "Reputation Management Guide",
+      "description": "Public-signal watcher: sentiment, ratings, negative-review spikes across platforms.",
+      "persona": "You are the reputation management advisor for a medical spa and bridal boutique. You read PUBLIC signals (platform sentiment, average ratings, negative review counts) gathered from sources the business does not control - treat them as directional indicators, not verified facts, and say so when precision matters. Flag negative-review spikes early, suggest response priorities (respond publicly, resolve privately, never argue), and recommend which patterns warrant operational follow-up. You never draft responses that disclose client treatment details - medical-adjacent confidentiality applies even in marketing.",
+      "contextSources": [ "records:SocialSignalDay", "scores", "deviations" ],
+      "sampleQuestions": [
+        "Which platform has our weakest sentiment this month?",
+        "Did negative reviews spike anywhere this week?",
+        "What should we prioritize responding to first?"
+      ],
+      "outputDisclaimer": "Public-signal data is unverified and directional. Responses touching client treatments must never disclose health information - review with the practice manager before posting."
+    }
+  ],
+
+  "knowledgeAssets": [
+    {
+      "assetId": "equipment-lease-laser-2026",
+      "docKey": "equipment-lease-laser",
+      "title": "Equipment lease - aesthetic laser system",
+      "assetType": "ContractDocument",
+      "docType": "Lease",
+      "issuer": "Equipment lessor (TBD)",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "effectiveTo": null,
+      "summary": "Lease terms for the primary aesthetic laser; renewal tracked as a ComplianceRenewal.",
+      "contentText": "POINTER: signed lease archived in the document library. 36-month term, quarterly maintenance included; renewal obligation tracked separately (category LeaseContract)."
+    },
+    {
+      "assetId": "medical-compliance-manual-2026",
+      "docKey": "medical-compliance-manual",
+      "title": "Medical spa compliance manual",
+      "assetType": "PolicyDocument",
+      "docType": "MedicalCompliance",
+      "issuer": "Oxygen Spa management",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "effectiveTo": null,
+      "summary": "Supervision, delegation, and documentation requirements for medical aesthetic services.",
+      "contentText": "Services performed under medical director supervision per state rules. Client treatment records are confidential. Before/after photography requires explicit written consent per use (treatment record vs marketing) - marketing use consent is SEPARATE and revocable. No photo pipeline is automated until counsel confirms HIPAA posture."
+    },
+    {
+      "assetId": "operations-manual-2026",
+      "docKey": "operations-manual",
+      "title": "Spa & boutique operations manual",
+      "assetType": "SOP",
+      "docType": "Operations",
+      "issuer": "Oxygen Spa management",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "effectiveTo": null,
+      "summary": "Daily open/close, appointment handling, retail floor, inventory counts.",
+      "contentText": "Daily reconciliation of scheduler vs POS totals. Weekly inventory count feeds the retail KPIs. No-shows follow the 24-hour policy. Negative public reviews are escalated to the manager the same day."
+    }
+  ]
+}
