@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+﻿import { Component, useEffect, useState, type ReactNode } from 'react'
 import './App.css'
 import { api, getApiKey, getTenant, getUser, setApiKey, setTenant, setUser } from './api'
 import { Advisor } from './components/Advisor'
@@ -25,6 +25,44 @@ const SEEDED_USERS = [
   { id: 'owner@platform', label: 'Owner / Executive' },
   { id: 'admin@platform', label: 'Platform Administrator' },
 ]
+
+// A crash in one screen must degrade to an in-place error panel — without
+// this, React unmounts the whole tree and the user sees a black page with
+// no way back (found live: the Organization detail panel did exactly that).
+class ScreenBoundary extends Component<
+  { screen: string; children: ReactNode },
+  { failed: Error | null }
+> {
+  state = { failed: null as Error | null }
+
+  static getDerivedStateFromError(error: Error) {
+    return { failed: error }
+  }
+
+  componentDidUpdate(prev: { screen: string }) {
+    // Navigating to another tab clears the failure.
+    if (prev.screen !== this.props.screen && this.state.failed) {
+      this.setState({ failed: null })
+    }
+  }
+
+  render() {
+    if (this.state.failed) {
+      return (
+        <section className="panel">
+          <h2>This screen hit an error</h2>
+          <p className="muted">
+            The rest of the app is fine — pick another tab, or reload this one.
+            Please report what you clicked, along with this message:
+          </p>
+          <p className="mono small">{String(this.state.failed)}</p>
+          <button onClick={() => this.setState({ failed: null })}>Reload this screen</button>
+        </section>
+      )
+    }
+    return this.props.children
+  }
+}
 
 // Sidebar navigation, grouped by what the user is doing. The Platform group
 // is the operator console (clients & billing) — it requires the reserved
@@ -248,6 +286,7 @@ function App() {
         </aside>
 
         <main className="content">
+          <ScreenBoundary screen={`${tab}:${effectiveTenant}`}>
           {!effectiveTenant ? (
             <section className="panel">
               <h2>Step 0 — choose your tenant (or sign in)</h2>
@@ -299,6 +338,7 @@ function App() {
           ) : (
             <Billing tenant={effectiveTenant} user={effectiveUser} />
           )}
+          </ScreenBoundary>
         </main>
       </div>
     </div>

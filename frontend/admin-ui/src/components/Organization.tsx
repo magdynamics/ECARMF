@@ -12,8 +12,12 @@ interface OrgUnit {
   status: string
 }
 
+// The packages LIST endpoint returns flat summaries (packageId, name,
+// state) — not the full manifest. Reading p.manifest here crashed the
+// whole app the moment a unit's detail panel rendered.
 interface PackageInfo {
-  manifest: { packageId: string; name: string }
+  packageId: string
+  name: string
   state: string
 }
 
@@ -218,8 +222,8 @@ export function Organization({ tenant, user }: { tenant: string; user: string })
               <label>Attach package<select value={attachChoice} onChange={(e) => setAttachChoice(e.target.value)}>
                 <option value="">choose an active package…</option>
                 {packages.map((p) => (
-                  <option key={p.manifest.packageId} value={p.manifest.packageId}>
-                    {p.manifest.name} ({p.manifest.packageId})
+                  <option key={p.packageId} value={p.packageId}>
+                    {p.name} ({p.packageId})
                   </option>
                 ))}
               </select></label>
