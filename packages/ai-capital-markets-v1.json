@@ -1,0 +1,121 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "AI Capital Markets (Shared)",
+  "version": "1",
+  "status": "Published",
+  "owner": "MAG Dynamics",
+  "description": "SHARED capital-markets package: the Treasury, Compliance, Risk, and Marketing Intelligence agents plus the investor-acquisition KPI framework that Asset Fractional and Altera Capital Group both need - built ONCE and activated for both tenants, the AI Agent Package Library reuse premise applied to agents themselves. Campaign entities here measure INVESTOR acquisition (capital committed per campaign), distinct from consumer-marketing shapes.",
+
+  "packageId": "ecarmf.ai-capital-markets",
+  "name": "AI Capital Markets (Shared)",
+  "packageVersion": "1.0.0",
+  "publisher": "MAG Dynamics",
+  "dependencies": [],
+
+  "entities": [
+    {
+      "entityTypeName": "InvestorCampaignPeriod",
+      "description": "One investor-acquisition campaign's period performance: spend, leads, verified conversions, capital committed.",
+      "attributes": [
+        { "name": "campaignId", "dataType": "string", "required": true },
+        { "name": "periodEnd", "dataType": "string", "required": true },
+        { "name": "spend", "dataType": "number", "required": true },
+        { "name": "leads", "dataType": "number", "required": false },
+        { "name": "investorsConverted", "dataType": "number", "required": false },
+        { "name": "capitalCommitted", "dataType": "number", "required": false }
+      ]
+    }
+  ],
+
+  "events": [],
+  "rules": [],
+  "capabilities": [
+    { "capabilityId": "CapitalMarketsIntelligence", "name": "Capital Markets Intelligence", "description": "Shared treasury/compliance/risk/marketing advisory for securities-adjacent tenants." }
+  ],
+
+  "schemaTemplates": [
+    {
+      "templateId": "investor-campaign-period-json",
+      "name": "Investor-acquisition campaign period (JSON)",
+      "sourceFormat": "json",
+      "targetEntityType": "InvestorCampaignPeriod",
+      "fieldMappings": [
+        { "rawField": "campaign", "targetField": "campaignId", "transform": "none", "required": true },
+        { "rawField": "periodEnding", "targetField": "periodEnd", "transform": "parseDate", "required": true },
+        { "rawField": "adSpend", "targetField": "spend", "transform": "none", "required": true },
+        { "rawField": "leadCount", "targetField": "leads", "transform": "none", "required": false },
+        { "rawField": "investorsConverted", "targetField": "investorsConverted", "transform": "none", "required": false },
+        { "rawField": "capitalCommitted", "targetField": "capitalCommitted", "transform": "none", "required": false }
+      ]
+    }
+  ],
+
+  "performanceFrameworks": [
+    {
+      "frameworkId": "investor-acquisition-v1",
+      "name": "Investor Acquisition KPI Framework v1",
+      "industry": "CapitalMarkets",
+      "description": "Per-campaign investor-acquisition KPIs. A reallocation toward the strongest campaign is a CapitalFlow with targetAssetClass 'Marketing Campaign' (Oxygen Spa precedent).",
+      "kpis": [
+        { "kpiId": "cost-per-investor", "name": "Cost per converted investor", "formula": "spend / investorsConverted", "triggerRecordType": "InvestorCampaignPeriod", "subjectField": "campaignId", "subjectType": "Campaign", "riskType": "Marketing", "unit": "usd", "targetValue": 5000, "direction": "lower" },
+        { "kpiId": "investor-conversion-rate", "name": "Lead-to-investor conversion", "formula": "investorsConverted / leads", "triggerRecordType": "InvestorCampaignPeriod", "subjectField": "campaignId", "subjectType": "Campaign", "unit": "ratio", "targetValue": 0.1, "direction": "higher" },
+        { "kpiId": "capital-per-dollar", "name": "Capital committed per marketing dollar", "formula": "capitalCommitted / spend", "triggerRecordType": "InvestorCampaignPeriod", "subjectField": "campaignId", "subjectType": "Campaign", "unit": "ratio", "targetValue": 40, "direction": "higher" }
+      ],
+      "okrs": []
+    }
+  ],
+
+  "agents": [
+    {
+      "agentId": "treasury-guide-capital",
+      "name": "Treasury Guide (Capital Markets)",
+      "description": "Cash, escrow, wallet, and stablecoin position advisor across banks and digital custodians.",
+      "persona": "You are the treasury advisor for a capital-markets business holding balances across bank accounts, escrow accounts, digital wallets, and custodial stablecoin positions. You read account balances, standing sweep thresholds, and pending capital flows. Transfers between institutions (including bank-to-wallet and wallet-to-custodian) settle with delay and are Recommend-Only by kernel policy - you propose, a human approves. Never treat unsettled or in-transit funds as available. Escrowed investor funds are never operational liquidity.",
+      "contextSources": [ "scores", "allocations", "deviations" ],
+      "sampleQuestions": [
+        "What is our total liquid position across fiat and stablecoin?",
+        "Which accounts are above their sweep thresholds?",
+        "Are any proposed transfers still awaiting approval?"
+      ],
+      "outputDisclaimer": "Treasury recommendations only - every transfer requires human approval through the capital-flow decision process. Escrowed investor funds are excluded from operational recommendations."
+    },
+    {
+      "agentId": "compliance-guide-capital",
+      "name": "Compliance Guide (Reg D/S, KYC/AML)",
+      "description": "Investor-gating and offering-compliance advisor: KYC/AML/accreditation states, Reg D/S obligations, audit readiness.",
+      "persona": "You are the compliance advisor for securities-exempt offerings (Reg D 506(b)/(c), Reg S). You read investor verification states (KYC, AML, accreditation - each Pending, Verified, or Rejected), offering documents from the knowledge base, and compliance deviations. An investor participates ONLY when all three checks are Verified; you flag anyone approaching participation without clearance. You explain regulatory obligations with citations to the offering documents provided; you never determine that a specific investor or offering IS compliant - qualified securities counsel decides.",
+      "contextSources": [ "references", "deviations", "scores" ],
+      "sampleQuestions": [
+        "Which prospective investors are still missing verification checks?",
+        "What does our PPM say about transfer restrictions?",
+        "Are we tracking all Form D amendment obligations?"
+      ],
+      "outputDisclaimer": "Compliance information, not legal advice - Reg D/S determinations and investor-eligibility decisions are made by qualified securities counsel and authorized officers, never by this agent."
+    },
+    {
+      "agentId": "risk-guide-capital",
+      "name": "Risk Guide (Capital Markets)",
+      "description": "Reads riskType-tagged scores across the portfolio: Regulatory, TreasuryConcentration, WalletSecurity, Marketing.",
+      "persona": "You are the risk advisor for a capital-markets business. You read risk-tagged scores and open deviations across every risk class present (Regulatory, TreasuryConcentration, WalletSecurity, Cybersecurity, Marketing, Reputational) and rank what deserves attention first by severity and concentration. You distinguish measured risk (from data) from structural risk (from design), and you recommend mitigations as options with trade-offs, never directives.",
+      "contextSources": [ "scores", "deviations", "benchmarks" ],
+      "sampleQuestions": [
+        "What are our top three open risk flags right now?",
+        "Is treasury concentration acceptable across custodians?",
+        "Which risk class is trending worst this quarter?"
+      ]
+    },
+    {
+      "agentId": "marketing-guide-capital",
+      "name": "Marketing Intelligence Guide (Investor Acquisition)",
+      "description": "Investor-acquisition campaign advisor: cost per investor, conversion, capital efficiency.",
+      "persona": "You are the marketing intelligence advisor for investor-acquisition campaigns in exempt offerings. You read per-campaign KPIs (cost per converted investor, lead-to-investor conversion, capital per marketing dollar) and recommend budget reallocation toward what works - as recommendations a human approves, since budget movement is a capital flow. You are aware that securities marketing is regulated: you flag (never draft) anything that could constitute general solicitation where the offering's exemption prohibits it.",
+      "contextSources": [ "records:InvestorCampaignPeriod", "scores", "deviations", "allocations" ],
+      "sampleQuestions": [
+        "Which campaign converts investors most efficiently?",
+        "Where should next quarter's acquisition budget go?",
+        "Is any campaign's cost per investor drifting above target?"
+      ],
+      "outputDisclaimer": "Marketing analytics only - securities-marketing content and solicitation questions must be reviewed by compliance and counsel before use."
+    }
+  ]
+}

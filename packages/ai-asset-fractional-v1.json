@@ -1,0 +1,173 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "AI Asset Fractional",
+  "version": "1",
+  "status": "Published",
+  "owner": "MAG Dynamics",
+  "description": "Asset Fractional package (seventh test case): real estate tokenization. Token offering periods feed subscription/raise KPIs per property; CoStar-style property data feeds the SAME Real Estate Asset framework Rosetta ships (ecarmf.realestate-asset - third framework reuse); identity-verification provider results arrive as records that INFORM the human gating decision on InvestorProfiles (Batch 2 R10 - providers report, humans decide, AI never self-approves). Offering documentation ships as KnowledgeAssets with semanticSearchEnabled FALSE by default - in a Reg D/S context, precision and audit trail beat discovery. Four new connector domains (BlockchainWallet, DigitalCustodian, TokenIssuance, PropertyDataProvider) are open domainTag values - zero kernel changes. Treasury across banks/wallets/custodians rides the existing sweep mechanism: cross-institution transfers (bank-to-wallet included) are Recommend-Only by the JJ Fish rule.",
+
+  "packageId": "ecarmf.ai-asset-fractional",
+  "name": "AI Asset Fractional",
+  "packageVersion": "1.0.1",
+  "publisher": "MAG Dynamics",
+  "dependencies": [],
+
+  "entities": [
+    {
+      "entityTypeName": "TokenOfferingPeriod",
+      "description": "One tokenized property offering's period snapshot: tokens issued/subscribed, capital raised vs target, investor count.",
+      "attributes": [
+        { "name": "propertyId", "dataType": "string", "required": true },
+        { "name": "periodEnd", "dataType": "string", "required": true },
+        { "name": "tokensIssued", "dataType": "number", "required": true },
+        { "name": "tokensSubscribed", "dataType": "number", "required": true },
+        { "name": "capitalRaised", "dataType": "number", "required": false },
+        { "name": "targetRaise", "dataType": "number", "required": false },
+        { "name": "investorCount", "dataType": "number", "required": false }
+      ]
+    },
+    {
+      "entityTypeName": "IdentityCheckResult",
+      "description": "A third-party verification provider's result for a prospective investor. INFORMS the human gating decision on the InvestorProfile - never applies it automatically.",
+      "attributes": [
+        { "name": "investorId", "dataType": "string", "required": true },
+        { "name": "provider", "dataType": "string", "required": true },
+        { "name": "checkType", "dataType": "string", "required": true },
+        { "name": "result", "dataType": "string", "required": true },
+        { "name": "checkedAt", "dataType": "string", "required": true }
+      ]
+    }
+  ],
+
+  "events": [],
+  "rules": [],
+  "capabilities": [
+    { "capabilityId": "TokenizationIntelligence", "name": "Tokenization Intelligence", "description": "Offering subscription tracking, gated investor onboarding, tokenized-property KPIs." }
+  ],
+
+  "schemaTemplates": [
+    {
+      "templateId": "token-offering-period-json",
+      "name": "Token offering period snapshot (issuance platform TBD - open question 1)",
+      "sourceFormat": "json",
+      "targetEntityType": "TokenOfferingPeriod",
+      "fieldMappings": [
+        { "rawField": "property", "targetField": "propertyId", "transform": "none", "required": true },
+        { "rawField": "asOf", "targetField": "periodEnd", "transform": "parseDate", "required": true },
+        { "rawField": "issued", "targetField": "tokensIssued", "transform": "none", "required": true },
+        { "rawField": "subscribed", "targetField": "tokensSubscribed", "transform": "none", "required": true },
+        { "rawField": "raised", "targetField": "capitalRaised", "transform": "none", "required": false },
+        { "rawField": "target", "targetField": "targetRaise", "transform": "none", "required": false },
+        { "rawField": "investors", "targetField": "investorCount", "transform": "none", "required": false }
+      ]
+    },
+    {
+      "templateId": "costar-property-json",
+      "name": "Property data provider period report (CoStar-style) - maps onto the shared AssetPeriodReport",
+      "sourceFormat": "json",
+      "targetEntityType": "AssetPeriodReport",
+      "fieldMappings": [
+        { "rawField": "propertyCode", "targetField": "assetId", "transform": "none", "required": true },
+        { "rawField": "asOfDate", "targetField": "periodEnd", "transform": "parseDate", "required": true },
+        { "rawField": "occupiedUnits", "targetField": "occupiedRooms", "transform": "none", "required": false },
+        { "rawField": "totalUnits", "targetField": "totalRooms", "transform": "none", "required": false },
+        { "rawField": "grossRevenue", "targetField": "revenue", "transform": "none", "required": true },
+        { "rawField": "operatingExpenses", "targetField": "operatingExpenses", "transform": "none", "required": false },
+        { "rawField": "annualDebtService", "targetField": "debtService", "transform": "none", "required": false },
+        { "rawField": "marketValue", "targetField": "assetValue", "transform": "none", "required": false }
+      ]
+    },
+    {
+      "templateId": "kyc-provider-result-json",
+      "name": "Identity verification provider result (provider TBD - open question 3)",
+      "sourceFormat": "json",
+      "targetEntityType": "IdentityCheckResult",
+      "fieldMappings": [
+        { "rawField": "subjectEmail", "targetField": "investorId", "transform": "none", "required": true },
+        { "rawField": "provider", "targetField": "provider", "transform": "none", "required": true },
+        { "rawField": "check", "targetField": "checkType", "transform": "none", "required": true },
+        { "rawField": "outcome", "targetField": "result", "transform": "none", "required": true },
+        { "rawField": "completedAt", "targetField": "checkedAt", "transform": "parseDate", "required": true }
+      ]
+    }
+  ],
+
+  "performanceFrameworks": [
+    {
+      "frameworkId": "token-offering-v1",
+      "name": "Token Offering KPI Framework v1",
+      "industry": "RealEstate",
+      "description": "Per-property offering KPIs during the OfferingOpen lifecycle state; the property's lifecycle map swaps to the Real Estate Asset framework once Operating.",
+      "kpis": [
+        { "kpiId": "subscription-rate", "name": "Token subscription rate", "formula": "tokensSubscribed / tokensIssued", "triggerRecordType": "TokenOfferingPeriod", "subjectField": "propertyId", "subjectType": "OrganizationalUnit", "unit": "ratio", "targetValue": 0.8, "direction": "higher" },
+        { "kpiId": "raise-progress", "name": "Capital raise progress", "formula": "capitalRaised / targetRaise", "triggerRecordType": "TokenOfferingPeriod", "subjectField": "propertyId", "subjectType": "OrganizationalUnit", "unit": "ratio", "targetValue": 0.9, "direction": "higher" },
+        { "kpiId": "offering-investor-count", "name": "Subscribed investor count", "formula": "investorCount", "triggerRecordType": "TokenOfferingPeriod", "subjectField": "propertyId", "subjectType": "OrganizationalUnit", "unit": "count", "targetValue": 25, "direction": "higher" }
+      ],
+      "okrs": []
+    }
+  ],
+
+  "agents": [
+    {
+      "agentId": "property-intel-guide",
+      "name": "Property Intelligence Guide",
+      "description": "Tokenized-property advisor: offering progress plus operating fundamentals per property.",
+      "persona": "You are the property intelligence advisor for a real estate tokenization platform. You read per-property offering KPIs (subscription rate, raise progress, investor count) and operating fundamentals (occupancy, NOI, cap rate, DSCR) from provider-enriched reports. Ground every statement in the property data provided; distinguish appraised/market values from transaction evidence; never state a token value - pricing is an offering-document matter for counsel and management.",
+      "contextSources": [ "records:TokenOfferingPeriod", "records:AssetPeriodReport", "references", "scores", "deviations" ],
+      "sampleQuestions": [
+        "How is the current offering subscribing against target?",
+        "What are this property's operating fundamentals?",
+        "Which properties in the pipeline look weakest on DSCR?"
+      ],
+      "outputDisclaimer": "Property analytics only - not an offer, valuation, or investment advice. Offering terms are governed exclusively by the offering documents."
+    }
+  ],
+
+  "knowledgeAssets": [
+    {
+      "assetId": "ppm-125-main-2026",
+      "docKey": "ppm-125-main",
+      "title": "Private Placement Memorandum - 125 Main Tower offering",
+      "assetType": "OfferingDocument",
+      "docType": "RegD",
+      "issuer": "Asset Fractional (counsel-prepared)",
+      "effectiveFrom": "2026-06-01T00:00:00Z",
+      "effectiveTo": null,
+      "semanticSearchEnabled": false,
+      "summary": "The governing offering document: risk factors, transfer restrictions, investor qualifications.",
+      "contentText": "POINTER (counsel-controlled document, archived in the library): Reg D 506(c) offering to verified accredited investors only. Tokens are restricted securities; transfer restrictions per the PPM. Semantic search intentionally DISABLED - retrieval is by exact citation for audit precision."
+    },
+    {
+      "assetId": "subscription-agreement-125-main-2026",
+      "docKey": "subscription-agreement-125-main",
+      "title": "Subscription Agreement - 125 Main Tower offering",
+      "assetType": "OfferingDocument",
+      "docType": "RegD",
+      "issuer": "Asset Fractional (counsel-prepared)",
+      "effectiveFrom": "2026-06-01T00:00:00Z",
+      "effectiveTo": null,
+      "semanticSearchEnabled": false,
+      "relationships": [
+        { "relatedAssetId": "ppm-125-main-2026", "relationshipType": "implements" }
+      ],
+      "summary": "Investor subscription terms; executed only by investors whose KYC/AML/accreditation checks are all Verified.",
+      "contentText": "POINTER: subscription executes only for CLEARED investors (all three verification checks Verified on the InvestorProfile). Capital arrives as FundingSource contributions linked to the verified investor identity."
+    },
+    {
+      "assetId": "appraisal-125-main-2026",
+      "docKey": "appraisal-125-main",
+      "title": "Independent appraisal - 125 Main Tower",
+      "assetType": "DueDiligenceDocument",
+      "docType": "Appraisal",
+      "issuer": "Independent appraiser (TBD)",
+      "effectiveFrom": "2026-05-15T00:00:00Z",
+      "effectiveTo": null,
+      "semanticSearchEnabled": false,
+      "relationships": [
+        { "relatedAssetId": "ppm-125-main-2026", "relationshipType": "relatedTo" }
+      ],
+      "summary": "As-is market value supporting the offering; refreshed per the PPM's revaluation policy.",
+      "contentText": "POINTER: appraisal archived in the library. Provider-fed operating data (occupancy, NOI) updates fundamentals; the appraisal itself is versioned by effective date like every knowledge asset."
+    }
+  ]
+}
