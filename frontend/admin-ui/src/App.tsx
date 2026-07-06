@@ -108,6 +108,7 @@ function App() {
   const [tab, setTab] = useState('home')
   const [navOpen, setNavOpen] = useState(false)
   const [knownTenants, setKnownTenants] = useState<string[]>([])
+  const [tenantWarning, setTenantWarning] = useState<string | null>(null)
 
   function openTab(next: string) {
     setTab(next)
@@ -117,16 +118,20 @@ function App() {
     window.scrollTo({ top: 0 })
   }
 
-  // Autocomplete the tenant box with the real client list — only asked for
-  // on the operator tenant; client contexts would just 403 (they aren't
-  // supposed to see other tenants), so don't even generate the noise.
+  // Autocomplete + validation list. Fetched once with explicit operator
+  // headers regardless of the tenant currently viewed — otherwise a user
+  // stranded on a mistyped tenant has no list, no suggestions, and no
+  // visible way back. Non-operators get a 403 and simply no autocomplete.
   useEffect(() => {
-    if (signedInWithKey || tenant.toLowerCase() !== 'platform') return
-    api
-      .get<{ tenantId: string }[]>('/api/platform/tenants')
-      .then((list) => setKnownTenants(['platform', ...list.map((t) => t.tenantId)]))
+    if (signedInWithKey) return
+    fetch('/api/platform/tenants', {
+      headers: { 'X-Tenant-Id': 'platform', 'X-User-Id': user || 'admin@platform' },
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+      .then((list: { tenantId: string }[]) =>
+        setKnownTenants(['platform', ...list.map((t) => t.tenantId)]))
       .catch(() => {})
-  }, [tenant, user, signedInWithKey])
+  }, [user, signedInWithKey])
 
   useEffect(() => {
     if (!signedInWithKey) {
@@ -147,8 +152,26 @@ function App() {
   }, [signedInWithKey])
 
   function applyTenant(value?: string) {
-    const next = (value ?? tenantInput).trim()
-    if (!next) return
+    const typed = (value ?? tenantInput).trim()
+    if (!typed) return
+    let next = typed
+    // Guard against ghost tenants ("jj" instead of "jj-fish"): when the
+    // real list is known, a unique prefix auto-completes; an unknown name
+    // is refused with the closest suggestions instead of silently opening
+    // an empty workspace with no way back.
+    if (knownTenants.length > 0 && !knownTenants.some((t) => t.toLowerCase() === typed.toLowerCase())) {
+      const matches = knownTenants.filter((t) => t.toLowerCase().includes(typed.toLowerCase()))
+      if (matches.length === 1) {
+        next = matches[0]
+      } else {
+        setTenantWarning(
+          matches.length > 1
+            ? `'${typed}' matches several tenants: ${matches.join(', ')} — pick one.`
+            : `No tenant named '${typed}' exists. Known tenants: ${knownTenants.join(', ')}.`)
+        return
+      }
+    }
+    setTenantWarning(null)
     setTenant(next)
     setTenantState(next)
     setTenantInput(next)
@@ -261,6 +284,24 @@ function App() {
           )}
         </div>
       </header>
+
+      {/* Ghost-tenant rescue: a warning from Switch validation, or a banner
+          when the STORED tenant doesn't exist (e.g. 'jj') — one click home. */}
+      {!signedInWithKey && tenantWarning && (
+        <div className="error" style={{ margin: '0.5rem 1rem' }}>
+          {tenantWarning}{' '}
+          <button className="secondary" onClick={() => { setTenantWarning(null); applyTenant('platform') }}>
+            Go to platform
+          </button>
+        </div>
+      )}
+      {!signedInWithKey && !tenantWarning && knownTenants.length > 0
+        && !knownTenants.some((t) => t.toLowerCase() === tenant.toLowerCase()) && (
+        <div className="error" style={{ margin: '0.5rem 1rem' }}>
+          Tenant '{tenant}' does not exist — this workspace is empty. Known tenants: {knownTenants.join(', ')}.{' '}
+          <button className="secondary" onClick={() => applyTenant('platform')}>Go to platform</button>
+        </div>
+      )}
 
       <div className="layout">
         {navOpen && <div className="backdrop" onClick={() => setNavOpen(false)} />}
