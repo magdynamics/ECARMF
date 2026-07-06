@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { api, ApiError } from '../api'
 import { StarterPacks } from './StarterPacks'
 
@@ -80,6 +80,17 @@ export function Clients({ tenant, user }: { tenant: string; user: string }) {
   const [importing, setImporting] = useState(false)
 
   const fail = (e: unknown) => setError(e instanceof ApiError ? e.message : String(e))
+
+  // The management panel renders below the client table and the onboarding
+  // forms — without this, clicking Manage opens it off-screen and looks
+  // like nothing happened.
+  const detailRef = useRef<HTMLElement | null>(null)
+  useEffect(() => {
+    if (selected) {
+      requestAnimationFrame(() =>
+        detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+    }
+  }, [selected])
 
   const load = useCallback(async () => {
     try {
@@ -341,7 +352,7 @@ export function Clients({ tenant, user }: { tenant: string; user: string }) {
       </section>
 
       {selected && selectedProfile && (
-        <section className="panel">
+        <section className="panel" ref={detailRef}>
           <h2>{selectedProfile.name} <span className="muted small">({selected})</span></h2>
 
           <h3>Users &amp; contacts</h3>
