@@ -117,14 +117,15 @@ function App() {
     window.scrollTo({ top: 0 })
   }
 
-  // Autocomplete the tenant box with the real client list when the current
-  // context is allowed to see it (operator on the platform tenant). Client
-  // admins get an empty list — they aren't supposed to see other tenants.
+  // Autocomplete the tenant box with the real client list — only asked for
+  // on the operator tenant; client contexts would just 403 (they aren't
+  // supposed to see other tenants), so don't even generate the noise.
   useEffect(() => {
+    if (signedInWithKey || tenant.toLowerCase() !== 'platform') return
     api
       .get<{ tenantId: string }[]>('/api/platform/tenants')
       .then((list) => setKnownTenants(['platform', ...list.map((t) => t.tenantId)]))
-      .catch(() => setKnownTenants([]))
+      .catch(() => {})
   }, [tenant, user, signedInWithKey])
 
   useEffect(() => {
