@@ -1,0 +1,192 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "AI MagDynamics",
+  "version": "1",
+  "status": "Published",
+  "owner": "MAG Dynamics",
+  "description": "MagDynamics internal operations package (fifth test case, first internal tenant). Jira project periods (new ProjectManagement connector domain) feed project delivery/budget/delay KPIs with delay flagged riskType ProjectDelay; employee timesheets feed COMPENSATION-LINKED per-employee KPIs (subjectType User, Batch 2 R7); security posture reports per ITAsset feed patch/backup/vulnerability KPIs tagged riskType Cybersecurity/Infrastructure (R9+R11 - posture is scores, never a bespoke mechanism). Agents: knowledge-guide (grounded in the KnowledgeAsset graph), culture-hr-guide (culture reinforcement + HR), security-guide. Financial and Renewal agent needs are served by existing mechanisms - no duplicates built.",
+
+  "packageId": "ecarmf.ai-magdynamics",
+  "name": "AI MagDynamics",
+  "packageVersion": "1.0.0",
+  "publisher": "MAG Dynamics",
+  "dependencies": [],
+
+  "entities": [
+    {
+      "entityTypeName": "JiraProjectPeriod",
+      "description": "One project's period roll-up from Jira: delivery, effort, delays, profitability.",
+      "attributes": [
+        { "name": "projectKey", "dataType": "string", "required": true },
+        { "name": "periodEnd", "dataType": "string", "required": true },
+        { "name": "tasksCompleted", "dataType": "number", "required": true },
+        { "name": "tasksPlanned", "dataType": "number", "required": true },
+        { "name": "budgetHours", "dataType": "number", "required": false },
+        { "name": "actualHours", "dataType": "number", "required": false },
+        { "name": "delayDays", "dataType": "number", "required": false },
+        { "name": "profitMargin", "dataType": "number", "required": false }
+      ]
+    },
+    {
+      "entityTypeName": "EmployeeTimeSheet",
+      "description": "One employee's period utilization summary - the input to compensation-linked KPIs.",
+      "attributes": [
+        { "name": "employeeId", "dataType": "string", "required": true },
+        { "name": "periodEnd", "dataType": "string", "required": true },
+        { "name": "billable", "dataType": "number", "required": true },
+        { "name": "total", "dataType": "number", "required": true },
+        { "name": "trainingHours", "dataType": "number", "required": false }
+      ]
+    },
+    {
+      "entityTypeName": "SecurityPostureReport",
+      "description": "One ITAsset's posture snapshot: patching, backups, open vulnerabilities.",
+      "attributes": [
+        { "name": "assetId", "dataType": "string", "required": true },
+        { "name": "periodEnd", "dataType": "string", "required": true },
+        { "name": "patchCompliance", "dataType": "number", "required": false },
+        { "name": "backupSuccessRate", "dataType": "number", "required": false },
+        { "name": "openVulnerabilities", "dataType": "number", "required": false }
+      ]
+    }
+  ],
+
+  "events": [],
+  "rules": [],
+  "capabilities": [
+    { "capabilityId": "InternalOperationsIntelligence", "name": "Internal Operations Intelligence", "description": "Project, people, and security-posture KPIs for the MagDynamics tenant." }
+  ],
+
+  "schemaTemplates": [
+    {
+      "templateId": "jira-period-json",
+      "name": "Jira project period roll-up (JSON) - reference until Jira API access details arrive",
+      "sourceFormat": "json",
+      "targetEntityType": "JiraProjectPeriod",
+      "fieldMappings": [
+        { "rawField": "projectKey", "targetField": "projectKey", "transform": "none", "required": true },
+        { "rawField": "periodEnding", "targetField": "periodEnd", "transform": "parseDate", "required": true },
+        { "rawField": "issuesDone", "targetField": "tasksCompleted", "transform": "none", "required": true },
+        { "rawField": "issuesPlanned", "targetField": "tasksPlanned", "transform": "none", "required": true },
+        { "rawField": "budgetedHours", "targetField": "budgetHours", "transform": "none", "required": false },
+        { "rawField": "loggedHours", "targetField": "actualHours", "transform": "none", "required": false },
+        { "rawField": "scheduleSlipDays", "targetField": "delayDays", "transform": "none", "required": false },
+        { "rawField": "marginPct", "targetField": "profitMargin", "transform": "none", "required": false }
+      ]
+    },
+    {
+      "templateId": "employee-timesheet-json",
+      "name": "Employee timesheet period summary (JSON)",
+      "sourceFormat": "json",
+      "targetEntityType": "EmployeeTimeSheet",
+      "fieldMappings": [
+        { "rawField": "employeeEmail", "targetField": "employeeId", "transform": "none", "required": true },
+        { "rawField": "periodEnding", "targetField": "periodEnd", "transform": "parseDate", "required": true },
+        { "rawField": "billableHours", "targetField": "billable", "transform": "none", "required": true },
+        { "rawField": "totalHours", "targetField": "total", "transform": "none", "required": true },
+        { "rawField": "trainingHours", "targetField": "trainingHours", "transform": "none", "required": false }
+      ]
+    },
+    {
+      "templateId": "security-posture-json",
+      "name": "Security posture snapshot per ITAsset (JSON)",
+      "sourceFormat": "json",
+      "targetEntityType": "SecurityPostureReport",
+      "fieldMappings": [
+        { "rawField": "assetId", "targetField": "assetId", "transform": "none", "required": true },
+        { "rawField": "scanDate", "targetField": "periodEnd", "transform": "parseDate", "required": true },
+        { "rawField": "patchCompliancePct", "targetField": "patchCompliance", "transform": "none", "required": false },
+        { "rawField": "backupSuccessPct", "targetField": "backupSuccessRate", "transform": "none", "required": false },
+        { "rawField": "openVulnCount", "targetField": "openVulnerabilities", "transform": "none", "required": false }
+      ]
+    }
+  ],
+
+  "performanceFrameworks": [
+    {
+      "frameworkId": "magdynamics-projects-v1",
+      "name": "MagDynamics Project Delivery KPI Framework v1",
+      "industry": "Technology",
+      "description": "Per-project delivery KPIs from Jira; delay is a risk flag (riskType ProjectDelay) riding the same KPI mechanism.",
+      "kpis": [
+        { "kpiId": "delivery-rate", "name": "Delivery rate", "formula": "tasksCompleted / tasksPlanned", "triggerRecordType": "JiraProjectPeriod", "subjectField": "projectKey", "subjectType": "Project", "unit": "ratio", "targetValue": 0.9, "direction": "higher" },
+        { "kpiId": "budget-adherence", "name": "Budget adherence (actual/budget hours)", "formula": "actualHours / budgetHours", "triggerRecordType": "JiraProjectPeriod", "subjectField": "projectKey", "subjectType": "Project", "unit": "ratio", "targetValue": 1.05, "direction": "lower" },
+        { "kpiId": "delay-days", "name": "Schedule slip (days)", "formula": "delayDays", "triggerRecordType": "JiraProjectPeriod", "subjectField": "projectKey", "subjectType": "Project", "riskType": "ProjectDelay", "unit": "days", "targetValue": 0, "direction": "lower" },
+        { "kpiId": "project-margin", "name": "Project profit margin", "formula": "profitMargin", "triggerRecordType": "JiraProjectPeriod", "subjectField": "projectKey", "subjectType": "Project", "unit": "ratio", "targetValue": 0.25, "direction": "higher" }
+      ],
+      "okrs": [
+        {
+          "okrId": "delivery-excellence",
+          "objective": "Ship on time, on budget, at healthy margin",
+          "keyResults": [
+            { "krId": "kr-delivery", "kpiId": "delivery-rate", "targetValue": 0.9 },
+            { "krId": "kr-margin", "kpiId": "project-margin", "targetValue": 0.25 }
+          ]
+        }
+      ]
+    },
+    {
+      "frameworkId": "magdynamics-people-v1",
+      "name": "MagDynamics People KPI Framework v1",
+      "industry": "Technology",
+      "description": "COMPENSATION-LINKED employee KPIs (Batch 2 R7: subjectType User). Targets are baselines pending leadership review; once adjusted, the human number is authoritative.",
+      "kpis": [
+        { "kpiId": "utilization", "name": "Billable utilization", "formula": "billable / total", "triggerRecordType": "EmployeeTimeSheet", "subjectField": "employeeId", "subjectType": "User", "unit": "ratio", "targetValue": 0.7, "direction": "higher" },
+        { "kpiId": "training-hours", "name": "Training hours (period)", "formula": "trainingHours", "triggerRecordType": "EmployeeTimeSheet", "subjectField": "employeeId", "subjectType": "User", "unit": "hours", "targetValue": 4, "direction": "higher" }
+      ],
+      "okrs": []
+    },
+    {
+      "frameworkId": "magdynamics-security-v1",
+      "name": "MagDynamics Security Posture KPI Framework v1",
+      "industry": "Technology",
+      "description": "Per-ITAsset posture KPIs (R9+R11): scores tagged riskType Cybersecurity/Infrastructure - never a bespoke risk entity.",
+      "kpis": [
+        { "kpiId": "patch-compliance", "name": "Patch compliance", "formula": "patchCompliance", "triggerRecordType": "SecurityPostureReport", "subjectField": "assetId", "subjectType": "ITAsset", "riskType": "Cybersecurity", "unit": "ratio", "targetValue": 0.95, "direction": "higher" },
+        { "kpiId": "backup-success", "name": "Backup success rate", "formula": "backupSuccessRate", "triggerRecordType": "SecurityPostureReport", "subjectField": "assetId", "subjectType": "ITAsset", "riskType": "Infrastructure", "unit": "ratio", "targetValue": 0.99, "direction": "higher" },
+        { "kpiId": "open-vulns", "name": "Open vulnerabilities", "formula": "openVulnerabilities", "triggerRecordType": "SecurityPostureReport", "subjectField": "assetId", "subjectType": "ITAsset", "riskType": "Cybersecurity", "unit": "count", "targetValue": 5, "direction": "lower" }
+      ],
+      "okrs": []
+    }
+  ],
+
+  "agents": [
+    {
+      "agentId": "knowledge-guide",
+      "name": "Knowledge Management Guide",
+      "description": "Document intelligence over the MagDynamics knowledge graph: finds, cites, and relates internal docs, standards, and SOPs.",
+      "persona": "You are the knowledge management guide for a software consultancy. You answer from the knowledge asset graph provided - documentation, architecture docs, coding standards, SOPs, methodologies - citing the specific asset (and its effective period) you relied on, and following relationship edges (implements, supersedes, relatedTo) to point at connected material. If the graph does not contain the answer, say so; never invent documents.",
+      "contextSources": [ "references" ],
+      "sampleQuestions": [
+        "Which coding standard applies to new API endpoints, and what policy does it implement?",
+        "What documentation exists about the ECARMF kernel architecture?",
+        "Which SOPs relate to client data handling?"
+      ]
+    },
+    {
+      "agentId": "culture-hr-guide",
+      "name": "Culture & HR Guide",
+      "description": "Reinforces mission, values, and leadership principles in daily work; answers HR policy questions from the handbook.",
+      "persona": "You are the culture and HR guide for MagDynamics. You ground every answer in the culture documents and HR policies provided (mission, core values, leadership principles, employee handbook) and in the employee KPI data you can see. When advising on decisions or feedback, connect the advice explicitly to a named core value or principle. You never make compensation decisions - you explain how the compensation-linked KPIs work and leave judgments to leadership.",
+      "contextSources": [ "references", "records:EmployeeTimeSheet", "scores", "deviations" ],
+      "sampleQuestions": [
+        "How do our core values apply to handling a slipping client deadline?",
+        "How is billable utilization connected to compensation?",
+        "What does the handbook say about remote work?"
+      ],
+      "outputDisclaimer": "Guidance only - compensation, performance, and disciplinary decisions are made by MagDynamics leadership, not by this agent."
+    },
+    {
+      "agentId": "security-guide",
+      "name": "Cybersecurity & Infrastructure Guide",
+      "description": "Watches posture KPIs across ITAssets: patching, backups, vulnerabilities, renewals.",
+      "persona": "You are the cybersecurity and infrastructure advisor for a ~30-person software consultancy. You read per-asset posture data (patch compliance, backup success, open vulnerabilities), risk-tagged deviations, and certificate/license renewal states. Prioritize findings by blast radius and exploitability, suggest concrete next actions (patch windows, backup test restores, cert rotation), and never claim an action was taken.",
+      "contextSources": [ "records:SecurityPostureReport", "scores", "deviations" ],
+      "sampleQuestions": [
+        "Which assets are behind on patching right now?",
+        "Are any certificates or licenses close to lapsing?",
+        "Where is our backup posture weakest?"
+      ]
+    }
+  ]
+}

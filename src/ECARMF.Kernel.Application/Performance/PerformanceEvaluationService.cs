@@ -86,7 +86,7 @@ public class PerformanceEvaluationService : IPerformanceEvaluator, IFrameworkRec
                 actuals[kpi.KpiId] = value;
                 var subject = ResolveSubject(kernelEvent, kpi.SubjectField);
 
-                var actualScore = await EmitAsync(kernelEvent, framework, "KPIActual", $"{kpi.KpiId}@{subject}", value, ct, kpi.SubjectType);
+                var actualScore = await EmitAsync(kernelEvent, framework, "KPIActual", $"{kpi.KpiId}@{subject}", value, ct, kpi.SubjectType, kpi.RiskType);
 
                 // Deviation monitoring runs in the same pass: actual vs the
                 // KPI target (or the latest forecast when no target exists).
@@ -165,13 +165,15 @@ public class PerformanceEvaluationService : IPerformanceEvaluator, IFrameworkRec
         string subjectId,
         decimal value,
         CancellationToken ct,
-        string? kpiSubjectType = null)
+        string? kpiSubjectType = null,
+        string? riskType = null)
     {
         var score = new ScoreRecord
         {
             TenantId = kernelEvent.TenantId,
             SubjectType = "Performance",
             SubjectId = subjectId,
+            RiskType = string.IsNullOrWhiteSpace(riskType) ? null : riskType,
             ScoreType = scoreType,
             Value = value,
             PackageId = framework.PackageId,

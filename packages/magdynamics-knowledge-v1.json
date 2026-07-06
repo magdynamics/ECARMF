@@ -1,0 +1,154 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "MagDynamics Knowledge Graph",
+  "version": "1",
+  "status": "Published",
+  "owner": "MAG Dynamics",
+  "description": "The first REAL knowledge graph on the KnowledgeAsset mechanism (MagDynamics Requirements 4-5): corporate knowledge (ECARMF docs, architecture, coding standards, AI prompts, SOPs, training) plus culture documents (mission/values, leadership principles, employee handbook) as one graph with typed relationship edges and semanticSearchEnabled flags. Day-one scope is PHASED per open question 4: full asset storage + relationships now; the semantic-search execution engine is a later capability the flags already opt into. Touches the ECARMF-006 Knowledge Graph Standard (still packaged in the repo - noted, not unpacked).",
+
+  "packageId": "ecarmf.magdynamics-kb",
+  "name": "MagDynamics Knowledge Graph",
+  "packageVersion": "1.0.0",
+  "publisher": "MAG Dynamics",
+  "dependencies": [],
+
+  "entities": [],
+  "events": [],
+  "rules": [],
+  "capabilities": [
+    { "capabilityId": "CorporateKnowledgeGraph", "name": "Corporate Knowledge Graph", "description": "Related, effective-dated, semantically-indexable internal knowledge." }
+  ],
+  "schemaTemplates": [],
+  "performanceFrameworks": [],
+  "agents": [],
+
+  "knowledgeAssets": [
+    {
+      "assetId": "mission-values-2026",
+      "docKey": "mission-values",
+      "title": "MagDynamics Mission, Vision & Core Values",
+      "assetType": "CultureDocument",
+      "docType": "Culture",
+      "issuer": "MagDynamics Leadership",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "effectiveTo": null,
+      "semanticSearchEnabled": true,
+      "summary": "Why we exist, where we are going, and the values every decision is tested against.",
+      "contentText": "Mission: build enterprise AI systems that make organizations measurably smarter. Core values: (1) Evidence over opinion. (2) Ship, then sharpen. (3) The client's data is sacred. (4) Teach everything twice. (5) Own the outcome."
+    },
+    {
+      "assetId": "leadership-principles-2026",
+      "docKey": "leadership-principles",
+      "title": "Leadership Principles & Operational Philosophy",
+      "assetType": "CultureDocument",
+      "docType": "Culture",
+      "issuer": "MagDynamics Leadership",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "effectiveTo": null,
+      "semanticSearchEnabled": true,
+      "relationships": [
+        { "relatedAssetId": "mission-values-2026", "relationshipType": "implements" }
+      ],
+      "summary": "How leaders at MagDynamics decide, delegate, and give feedback - the operating expression of the core values.",
+      "contentText": "Leaders write decisions down with their reasoning. Escalate with options, not problems. Feedback is specific, kind, and tied to a named value. Quality bars are non-negotiable; scope is."
+    },
+    {
+      "assetId": "employee-handbook-2026",
+      "docKey": "employee-handbook",
+      "title": "Employee Handbook - 2026 edition",
+      "assetType": "PolicyDocument",
+      "docType": "HRPolicy",
+      "issuer": "MagDynamics HR",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "effectiveTo": null,
+      "semanticSearchEnabled": true,
+      "relationships": [
+        { "relatedAssetId": "mission-values-2026", "relationshipType": "implements" },
+        { "relatedAssetId": "comp-policy-2026", "relationshipType": "relatedTo" }
+      ],
+      "summary": "Employment policies: remote work, PTO, conduct, equipment, confidentiality.",
+      "contentText": "Remote-first with quarterly on-sites. Unlimited PTO with a 15-day minimum. Client confidentiality survives employment. Company equipment is inventoried as ITAssets and returned on exit."
+    },
+    {
+      "assetId": "comp-policy-2026",
+      "docKey": "comp-policy",
+      "title": "Compensation Policy - KPI-linked component",
+      "assetType": "PolicyDocument",
+      "docType": "HRPolicy",
+      "issuer": "MagDynamics Leadership",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "effectiveTo": null,
+      "semanticSearchEnabled": true,
+      "relationships": [
+        { "relatedAssetId": "employee-handbook-2026", "relationshipType": "relatedTo" }
+      ],
+      "summary": "How the variable compensation component reads employee-level KPIs (utilization, training) - the policy behind Requirement 8.",
+      "contentText": "Variable comp reads the employee's KPI actuals (subjectType User): billable utilization vs target and training hours vs target, averaged over the review period. KPIs inform the number; a human leadership review decides it. No automated compensation changes, ever."
+    },
+    {
+      "assetId": "ecarmf-architecture-2026",
+      "docKey": "ecarmf-architecture",
+      "title": "ECARMF Kernel Architecture Overview",
+      "assetType": "ReferenceManual",
+      "docType": "Engineering",
+      "issuer": "MagDynamics Engineering",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "effectiveTo": null,
+      "semanticSearchEnabled": true,
+      "relationships": [
+        { "relatedAssetId": "coding-standards-2026", "relationshipType": "relatedTo" }
+      ],
+      "summary": "The kernel executes declarations; packages carry domain knowledge; tenants are isolated registries.",
+      "contentText": "Nine tenant-scoped registries. Packages declare entities/rules/KPIs/agents/knowledge assets and are versioned, never edited in place. The kernel contains zero domain knowledge. Every financial event is audited; AI proposes, humans approve."
+    },
+    {
+      "assetId": "coding-standards-2026",
+      "docKey": "coding-standards",
+      "title": "Development & Coding Standards",
+      "assetType": "SOP",
+      "docType": "Engineering",
+      "issuer": "MagDynamics Engineering",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "effectiveTo": null,
+      "semanticSearchEnabled": true,
+      "relationships": [
+        { "relatedAssetId": "ecarmf-architecture-2026", "relationshipType": "implements" },
+        { "relatedAssetId": "mission-values-2026", "relationshipType": "implements" }
+      ],
+      "summary": "House rules for shipping code: tests with every change, migrations never edited after release, packages over kernel changes.",
+      "contentText": "Every behavior change ships with a test. EF migrations are append-only once released. Prefer a package update to a kernel change; prefer configuration to a package update. API endpoints enforce permissions before touching stores."
+    },
+    {
+      "assetId": "ai-prompt-library-2026",
+      "docKey": "ai-prompt-library",
+      "title": "AI Prompt Library & Agent Persona Standards",
+      "assetType": "SOP",
+      "docType": "Engineering",
+      "issuer": "MagDynamics AI Practice",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "effectiveTo": null,
+      "semanticSearchEnabled": true,
+      "relationships": [
+        { "relatedAssetId": "coding-standards-2026", "relationshipType": "relatedTo" }
+      ],
+      "summary": "How agent personas are written: grounded, advisory-only, disclaimers where liability exists.",
+      "contentText": "Personas ground every statement in provided context, never invent data, and recommend professionals for legal/tax decisions. Liability-bearing agents declare an outputDisclaimer, which the kernel enforces at the output layer."
+    },
+    {
+      "assetId": "client-onboarding-method-2026",
+      "docKey": "client-onboarding-method",
+      "title": "Client Onboarding Methodology",
+      "assetType": "TrainingMaterial",
+      "docType": "Methodology",
+      "issuer": "MagDynamics Consulting",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "effectiveTo": null,
+      "semanticSearchEnabled": true,
+      "relationships": [
+        { "relatedAssetId": "mission-values-2026", "relationshipType": "implements" }
+      ],
+      "summary": "The tenant test-case playbook: requirements doc, provisional decisions marked TBD, mechanisms before data, live verification before commit.",
+      "contentText": "Every client build starts from a requirements test-case document. Unknowns become clearly-labeled provisional placeholders, never blockers. Kernel mechanisms are proven with live API verification before anything is committed. Reuse is checked before anything new is built."
+    }
+  ]
+}

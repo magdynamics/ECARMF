@@ -30,6 +30,13 @@ public class KPIDefinition
 
     public string Unit { get; set; } = "ratio";
 
+    /// <summary>Optional open risk classification (Batch 2, Refinement 11)
+    /// stamped onto emitted scores: a KPI like "project delay days" tags
+    /// its actuals riskType "ProjectDelay", patch compliance tags
+    /// "Cybersecurity" — risk flags ride the SAME KPI mechanism, never a
+    /// bespoke risk entity.</summary>
+    public string? RiskType { get; set; }
+
     public decimal? TargetValue { get; set; }
 
     /// <summary>higher | lower — which direction beats the target.</summary>

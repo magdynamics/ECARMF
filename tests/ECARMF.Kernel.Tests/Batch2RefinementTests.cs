@@ -56,6 +56,42 @@ public class Batch2RefinementTests
     }
 
     [Fact]
+    public async Task R11_kpi_declared_risk_type_is_stamped_on_emitted_actuals()
+    {
+        var registries = new TenantRegistryProvider();
+        var scores = new InMemoryScoreStore();
+        var evaluator = new PerformanceEvaluationService(registries, scores, new InMemoryAuditLog());
+
+        registries.GetFor(Tenant).PerformanceFrameworks.Register(new PerformanceFrameworkDeclaration
+        {
+            FrameworkId = "project-risk-v1", Name = "Project risks", Industry = "Technology",
+            Kpis =
+            [
+                new KPIDefinition
+                {
+                    KpiId = "delay-days", Formula = "delayDays",
+                    TriggerRecordType = "JiraProjectPeriod", SubjectField = "projectKey",
+                    SubjectType = "Project", RiskType = "ProjectDelay",
+                    TargetValue = 0, Direction = "lower"
+                }
+            ]
+        }, "ecarmf.ai-magdynamics", "1.0.0");
+
+        await evaluator.EvaluateAsync(new KernelEvent(
+            Tenant, "RecordReceived", Guid.NewGuid(),
+            new Dictionary<string, string>
+            {
+                ["recordType"] = "JiraProjectPeriod",
+                ["projectKey"] = "ECARMF-PORTAL",
+                ["delayDays"] = "12"
+            },
+            DateTimeOffset.UtcNow));
+
+        var actual = Assert.Single(scores.Items, s => s.ScoreType == "KPIActual");
+        Assert.Equal("ProjectDelay", actual.RiskType); // risk flags ride the KPI mechanism
+    }
+
+    [Fact]
     public void R8_knowledge_assets_carry_relationships_and_filter_by_asset_type()
     {
         var registry = new KnowledgeAssetRegistry();
