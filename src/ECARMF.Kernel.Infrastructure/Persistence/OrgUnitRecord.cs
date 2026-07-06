@@ -107,9 +107,13 @@ public class EfOrgUnitStore : IOrgUnitStore
         ParentUnitId = record.ParentUnitId,
         Industry = record.Industry,
         AttachedPackageIds = JsonSerializer.Deserialize<List<string>>(record.AttachedPackageIdsJson) ?? [],
-        LifecyclePackageMap = JsonSerializer.Deserialize<Dictionary<string, List<string>>>(record.LifecyclePackageMapJson)
-            is { } map ? new Dictionary<string, List<string>>(map, StringComparer.OrdinalIgnoreCase)
-                       : new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+        // Rows created before the RosettaProjectCapabilities migration hold
+        // "" here (the column's backfill default) — an empty map, never an error.
+        LifecyclePackageMap = string.IsNullOrWhiteSpace(record.LifecyclePackageMapJson)
+            ? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase)
+            : JsonSerializer.Deserialize<Dictionary<string, List<string>>>(record.LifecyclePackageMapJson)
+                is { } map ? new Dictionary<string, List<string>>(map, StringComparer.OrdinalIgnoreCase)
+                           : new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
         Notes = record.Notes,
         LifecycleState = record.LifecycleState,
         Status = record.Status,

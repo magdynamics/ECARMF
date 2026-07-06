@@ -69,11 +69,25 @@ function App() {
   const [signedInWithKey, setSignedInWithKey] = useState(!!getApiKey())
   const [tab, setTab] = useState('home')
   const [navOpen, setNavOpen] = useState(false)
+  const [knownTenants, setKnownTenants] = useState<string[]>([])
 
   function openTab(next: string) {
     setTab(next)
     setNavOpen(false)
+    // A new screen starts at its top — carrying the previous screen's
+    // scroll position leaves users staring at the middle of a page.
+    window.scrollTo({ top: 0 })
   }
+
+  // Autocomplete the tenant box with the real client list when the current
+  // context is allowed to see it (operator on the platform tenant). Client
+  // admins get an empty list — they aren't supposed to see other tenants.
+  useEffect(() => {
+    api
+      .get<{ tenantId: string }[]>('/api/platform/tenants')
+      .then((list) => setKnownTenants(['platform', ...list.map((t) => t.tenantId)]))
+      .catch(() => setKnownTenants([]))
+  }, [tenant, user, signedInWithKey])
 
   useEffect(() => {
     if (!signedInWithKey) {
@@ -171,10 +185,16 @@ function App() {
                   placeholder="tenant-alpha"
                   autoComplete="off"
                   name="ecarmf-tenant-id"
+                  list="ecarmf-known-tenants"
                   value={tenantInput}
                   onChange={(e) => setTenantInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && applyTenant()}
                 />
+                <datalist id="ecarmf-known-tenants">
+                  {knownTenants.map((t) => (
+                    <option key={t} value={t} />
+                  ))}
+                </datalist>
               </label>
               <button onClick={() => applyTenant()} disabled={!tenantInput.trim()}>Switch</button>
               <label>

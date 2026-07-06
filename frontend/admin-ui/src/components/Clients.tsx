@@ -86,10 +86,14 @@ export function Clients({ tenant, user }: { tenant: string; user: string }) {
   // like nothing happened.
   const detailRef = useRef<HTMLElement | null>(null)
   useEffect(() => {
-    if (selected) {
-      requestAnimationFrame(() =>
-        detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
-    }
+    if (!selected) return
+    // Instant (not smooth) and re-asserted briefly: the panel's async data
+    // (users, usage, statements) reflows the page as it arrives, and the
+    // browser aborts an in-flight smooth scroll on reflow.
+    const jump = () => detailRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' })
+    requestAnimationFrame(jump)
+    const settle = setTimeout(jump, 400)
+    return () => clearTimeout(settle)
   }, [selected])
 
   const load = useCallback(async () => {

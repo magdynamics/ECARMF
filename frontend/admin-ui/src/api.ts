@@ -6,7 +6,10 @@ const USER_KEY = 'ecarmf.userId'
 const API_KEY = 'ecarmf.apiKey'
 
 export function getTenant(): string {
-  return localStorage.getItem(TENANT_KEY) ?? ''
+  // First run defaults to the reserved operator tenant: this deployment IS
+  // the operator console, and an empty tenant makes every screen look
+  // broken ("data access not working") until someone knows to type one.
+  return localStorage.getItem(TENANT_KEY) ?? 'platform'
 }
 
 export function setTenant(tenantId: string): void {
