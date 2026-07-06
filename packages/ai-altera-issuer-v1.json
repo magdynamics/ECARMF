@@ -1,0 +1,90 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "AI Altera Issuer",
+  "version": "1",
+  "status": "Published",
+  "owner": "MAG Dynamics",
+  "description": "Altera Capital Group ISSUER-SIDE divergence package (eighth test case). Deliberately small: Treasury, Compliance, Risk, and Marketing agents come UNCHANGED from the shared ecarmf.ai-capital-markets package (the same package instance Asset Fractional runs - the Agent Library reuse premise, proven). This package adds only what genuinely diverges: issuance-program KPIs with concentration and wallet-security risk tags, distribution-channel tracking across broker-dealer/ATS platforms (tZERO et al.), and the Token Operations agent. Executive Advisory rides the kernel's built-in Executive Advisor - not rebuilt. Ongoing investor compliance ('AccreditationRecheck') layers ComplianceRenewal on top of the InvestorProfile gate - Refinements 1 + 10 combined, configuration not code.",
+
+  "packageId": "ecarmf.ai-altera-issuer",
+  "name": "AI Altera Issuer",
+  "packageVersion": "1.0.0",
+  "publisher": "MAG Dynamics",
+  "dependencies": [],
+
+  "entities": [
+    {
+      "entityTypeName": "IssuancePeriod",
+      "description": "One tokenized offering's issuance-program snapshot: raise progress, tokens issued, channel mix, concentration, wallet incidents.",
+      "attributes": [
+        { "name": "offeringId", "dataType": "string", "required": true },
+        { "name": "periodEnd", "dataType": "string", "required": true },
+        { "name": "capitalRaised", "dataType": "number", "required": true },
+        { "name": "targetRaise", "dataType": "number", "required": true },
+        { "name": "tokensIssued", "dataType": "number", "required": false },
+        { "name": "directShare", "dataType": "number", "required": false },
+        { "name": "channelShare", "dataType": "number", "required": false },
+        { "name": "largestInvestorShare", "dataType": "number", "required": false },
+        { "name": "walletIncidents", "dataType": "number", "required": false }
+      ]
+    }
+  ],
+
+  "events": [],
+  "rules": [],
+  "capabilities": [
+    { "capabilityId": "TokenIssuanceOperations", "name": "Token Issuance Operations", "description": "Issuer-side raise, distribution-channel, concentration, and wallet-security intelligence." }
+  ],
+
+  "schemaTemplates": [
+    {
+      "templateId": "issuance-period-json",
+      "name": "Issuance program period snapshot (platform TBD - open question 2)",
+      "sourceFormat": "json",
+      "targetEntityType": "IssuancePeriod",
+      "fieldMappings": [
+        { "rawField": "offering", "targetField": "offeringId", "transform": "none", "required": true },
+        { "rawField": "asOf", "targetField": "periodEnd", "transform": "parseDate", "required": true },
+        { "rawField": "raised", "targetField": "capitalRaised", "transform": "none", "required": true },
+        { "rawField": "target", "targetField": "targetRaise", "transform": "none", "required": true },
+        { "rawField": "issued", "targetField": "tokensIssued", "transform": "none", "required": false },
+        { "rawField": "directPct", "targetField": "directShare", "transform": "none", "required": false },
+        { "rawField": "channelPct", "targetField": "channelShare", "transform": "none", "required": false },
+        { "rawField": "topInvestorPct", "targetField": "largestInvestorShare", "transform": "none", "required": false },
+        { "rawField": "walletIncidents", "targetField": "walletIncidents", "transform": "none", "required": false }
+      ]
+    }
+  ],
+
+  "performanceFrameworks": [
+    {
+      "frameworkId": "token-issuance-ops-v1",
+      "name": "Token Issuance Operations KPI Framework v1",
+      "industry": "CapitalMarkets",
+      "description": "Issuer-side program KPIs. The risk list (Requirement 6) rides riskType tags on these scores - TreasuryConcentration and WalletSecurity here, joining Regulatory/Cybersecurity/Marketing/Reputational proven at prior tenants; a near-superset achieved with ZERO new risk entities.",
+      "kpis": [
+        { "kpiId": "raise-progress", "name": "Capital raise progress", "formula": "capitalRaised / targetRaise", "triggerRecordType": "IssuancePeriod", "subjectField": "offeringId", "subjectType": "OrganizationalUnit", "unit": "ratio", "targetValue": 0.9, "direction": "higher" },
+        { "kpiId": "channel-distribution-share", "name": "Distribution via BD/ATS channels", "formula": "channelShare", "triggerRecordType": "IssuancePeriod", "subjectField": "offeringId", "subjectType": "OrganizationalUnit", "unit": "ratio", "targetValue": 0.4, "direction": "higher" },
+        { "kpiId": "investor-concentration", "name": "Largest investor share of raise", "formula": "largestInvestorShare", "triggerRecordType": "IssuancePeriod", "subjectField": "offeringId", "subjectType": "OrganizationalUnit", "riskType": "TreasuryConcentration", "unit": "ratio", "targetValue": 0.2, "direction": "lower" },
+        { "kpiId": "wallet-incidents", "name": "Wallet security incidents (period)", "formula": "walletIncidents", "triggerRecordType": "IssuancePeriod", "subjectField": "offeringId", "subjectType": "OrganizationalUnit", "riskType": "WalletSecurity", "unit": "count", "targetValue": 1, "direction": "lower" }
+      ],
+      "okrs": []
+    }
+  ],
+
+  "agents": [
+    {
+      "agentId": "token-ops-guide",
+      "name": "Token Operations Guide",
+      "description": "Issuer-side operations advisor: issuance progress, distribution-channel mix, settlement hygiene, concentration and wallet-security posture.",
+      "persona": "You are the token operations advisor for a digital securities issuer distributing directly and through regulated broker-dealer/ATS channels. You read issuance-program KPIs (raise progress, channel mix, investor concentration, wallet incidents) and risk-tagged deviations. You advise on distribution balance, settlement operations discipline, and concentration limits - always as recommendations; issuance decisions, channel agreements, and transfers are made by authorized officers. You never state token prices or terms - the offering documents govern.",
+      "contextSources": [ "records:IssuancePeriod", "scores", "deviations", "allocations" ],
+      "sampleQuestions": [
+        "How is the current raise progressing against target?",
+        "Is our distribution too dependent on one channel?",
+        "Are there concentration or wallet-security flags open?"
+      ],
+      "outputDisclaimer": "Operational analytics only - not an offer, price indication, or securities advice. Offering terms are governed exclusively by the offering documents; distribution decisions rest with authorized officers and counsel."
+    }
+  ]
+}
