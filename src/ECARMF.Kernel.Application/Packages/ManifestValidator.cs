@@ -41,6 +41,22 @@ public static class ManifestValidator
         CheckNames(errors, "workflow", manifest.Workflows.Select(w => w.WorkflowId));
         CheckNames(errors, "agent", manifest.Agents.Select(a => a.AgentId));
         CheckNames(errors, "knowledge asset", manifest.KnowledgeAssets.Select(a => a.AssetId));
+        CheckNames(errors, "AI extraction template", manifest.AiExtractionTemplates.Select(t => t.TemplateId));
+
+        foreach (var extraction in manifest.AiExtractionTemplates)
+        {
+            var label = string.IsNullOrWhiteSpace(extraction.TemplateId) ? "(unnamed extraction template)" : extraction.TemplateId;
+            if (string.IsNullOrWhiteSpace(extraction.TargetType))
+                errors.Add($"AI extraction template '{label}' has no TargetType.");
+            if (extraction.Fields.Count == 0)
+                errors.Add($"AI extraction template '{label}' declares no fields to extract.");
+            if (extraction.ReviewThreshold is <= 0 or > 1)
+                errors.Add($"AI extraction template '{label}' has ReviewThreshold {extraction.ReviewThreshold} — must be in (0, 1].");
+            if (extraction.DocumentKinds.Count == 0)
+                errors.Add($"AI extraction template '{label}' declares no DocumentKinds.");
+            foreach (var field in extraction.Fields.Where(f => string.IsNullOrWhiteSpace(f.Name)))
+                errors.Add($"AI extraction template '{label}' has a field with no Name.");
+        }
 
         foreach (var asset in manifest.KnowledgeAssets)
         {

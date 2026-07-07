@@ -266,6 +266,8 @@ public class PackageLoader : IPackageLoader
             registries.Rules.Register(rule, manifest.PackageId, manifest.PackageVersion);
         foreach (var asset in manifest.KnowledgeAssets)
             registries.KnowledgeAssets.Register(asset, manifest.PackageId, manifest.PackageVersion);
+        foreach (var extraction in manifest.AiExtractionTemplates)
+            registries.AiExtractionTemplates.Register(extraction, manifest.PackageId, manifest.PackageVersion);
     }
 
     private static void UnregisterAll(TenantRegistries registries, string packageId, string packageVersion)
@@ -279,6 +281,7 @@ public class PackageLoader : IPackageLoader
         registries.Agents.UnregisterPackage(packageId, packageVersion);
         registries.Rules.UnregisterPackage(packageId, packageVersion);
         registries.KnowledgeAssets.UnregisterPackage(packageId, packageVersion);
+        registries.AiExtractionTemplates.UnregisterPackage(packageId, packageVersion);
     }
 
     private Task AuditLifecycleAsync(

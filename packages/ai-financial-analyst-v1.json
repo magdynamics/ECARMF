@@ -1,0 +1,105 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "AI Financial Analyst (Platform)",
+  "version": "1",
+  "status": "Published",
+  "owner": "MAG Dynamics",
+  "description": "PLATFORM-LEVEL agent for the shared catalog: ingest a financial statement - structured via existing accounting connectors, or an unstructured PRINTED document via the AI extraction template - and produce risk-flagged ratio analysis. Every extracted value carries the model's per-field confidence and provenance AIGenerated; any value below the review threshold gates the WHOLE statement behind human review before ratios, scores, or capital recommendations can see it (hard requirement - a misread figure never silently propagates). Ratios compute through the same KpiFormulaEvaluator as every tenant KPI (current, quick, debt-to-equity, gross margin, ROA, ROE, DSCR - the DSCR formula pattern reused from the Real Estate framework) and are tagged riskType FinancialRisk; benchmark comparison rides the existing Deviation Monitoring, the MagCPA IRS-ratio pattern pointed at general financial benchmarks. Handwritten input is DEFERRED to its own validated phase - this template accepts Printed only. NOTE: the analysis record flows through normal intake, so the tenant needs an active package declaring RecordReceived (e.g. ecarmf.treasury-controls). Outputs are statistical risk indicators for a human decision-maker, never a lending, credit, or investment determination - enforced at the output layer.",
+
+  "packageId": "ecarmf.ai-financial-analyst",
+  "name": "AI Financial Analyst (Platform)",
+  "packageVersion": "1.0.0",
+  "publisher": "MAG Dynamics",
+  "dependencies": [],
+
+  "entities": [
+    {
+      "entityTypeName": "FinancialStatementAnalyzed",
+      "description": "An APPROVED financial statement released for analysis: canonical line items plus statement metadata. Only the human-gated approval path creates these.",
+      "attributes": [
+        { "name": "statementId", "dataType": "string", "required": true },
+        { "name": "statementType", "dataType": "string", "required": true },
+        { "name": "subjectEntity", "dataType": "string", "required": true },
+        { "name": "period", "dataType": "string", "required": true },
+        { "name": "currentAssets", "dataType": "number", "required": false },
+        { "name": "inventory", "dataType": "number", "required": false },
+        { "name": "currentLiabilities", "dataType": "number", "required": false },
+        { "name": "totalAssets", "dataType": "number", "required": false },
+        { "name": "totalDebt", "dataType": "number", "required": false },
+        { "name": "totalEquity", "dataType": "number", "required": false },
+        { "name": "revenue", "dataType": "number", "required": false },
+        { "name": "cogs", "dataType": "number", "required": false },
+        { "name": "operatingExpenses", "dataType": "number", "required": false },
+        { "name": "netIncome", "dataType": "number", "required": false },
+        { "name": "debtService", "dataType": "number", "required": false }
+      ]
+    }
+  ],
+
+  "events": [],
+  "rules": [],
+  "capabilities": [
+    { "capabilityId": "FinancialStatementIntelligence", "name": "Financial Statement Intelligence", "description": "Confidence-gated statement extraction and risk-flagged ratio analysis, available to every tenant." }
+  ],
+  "schemaTemplates": [],
+  "workflows": [],
+
+  "aiExtractionTemplates": [
+    {
+      "templateId": "financial-statement-printed-v1",
+      "name": "Printed financial statement extraction v1",
+      "description": "AI extraction of canonical line items from a PRINTED balance sheet / income statement / tax return. Handwritten documents are refused - that is a separate confidence regime shipping as its own phase.",
+      "targetType": "FinancialStatement",
+      "documentKinds": [ "Printed" ],
+      "reviewThreshold": 0.85,
+      "fields": [
+        { "name": "currentAssets", "description": "Total current assets, however the statement labels them.", "dataType": "number", "required": false },
+        { "name": "inventory", "description": "Inventory (merchandise, materials, WIP) within current assets.", "dataType": "number", "required": false },
+        { "name": "currentLiabilities", "description": "Total current liabilities.", "dataType": "number", "required": false },
+        { "name": "totalAssets", "description": "Total assets.", "dataType": "number", "required": false },
+        { "name": "totalDebt", "description": "Total interest-bearing debt (short + long term); total liabilities if debt is not broken out.", "dataType": "number", "required": false },
+        { "name": "totalEquity", "description": "Total shareholders'/owners' equity.", "dataType": "number", "required": false },
+        { "name": "revenue", "description": "Total revenue / net sales for the period.", "dataType": "number", "required": true },
+        { "name": "cogs", "description": "Cost of goods sold / cost of sales.", "dataType": "number", "required": false },
+        { "name": "operatingExpenses", "description": "Total operating expenses excluding COGS.", "dataType": "number", "required": false },
+        { "name": "netIncome", "description": "Net income / net profit for the period.", "dataType": "number", "required": false },
+        { "name": "debtService", "description": "Annual debt service (principal + interest payments) if disclosed.", "dataType": "number", "required": false }
+      ]
+    }
+  ],
+
+  "performanceFrameworks": [
+    {
+      "frameworkId": "financial-ratio-analysis-v1",
+      "name": "Financial Ratio Analysis v1",
+      "industry": "CrossIndustry",
+      "description": "Standard ratios computed from APPROVED statements through the shared KpiFormulaEvaluator - the same engine as every tenant KPI. Targets are broad cross-industry baselines; set tenant benchmarks per subject/segment for real expectations (the MagCPA IRS-ratio pattern). All solvency/leverage ratios tagged riskType FinancialRisk.",
+      "kpis": [
+        { "kpiId": "current-ratio", "name": "Current ratio", "formula": "currentAssets / currentLiabilities", "triggerRecordType": "FinancialStatementAnalyzed", "subjectField": "subjectEntity", "subjectType": "OrganizationalUnit", "riskType": "FinancialRisk", "unit": "ratio", "targetValue": 1.5, "direction": "higher" },
+        { "kpiId": "quick-ratio", "name": "Quick ratio", "formula": "(currentAssets - inventory) / currentLiabilities", "triggerRecordType": "FinancialStatementAnalyzed", "subjectField": "subjectEntity", "subjectType": "OrganizationalUnit", "riskType": "FinancialRisk", "unit": "ratio", "targetValue": 1.0, "direction": "higher" },
+        { "kpiId": "debt-to-equity", "name": "Debt to equity", "formula": "totalDebt / totalEquity", "triggerRecordType": "FinancialStatementAnalyzed", "subjectField": "subjectEntity", "subjectType": "OrganizationalUnit", "riskType": "FinancialRisk", "unit": "ratio", "targetValue": 2.0, "direction": "lower" },
+        { "kpiId": "gross-margin", "name": "Gross margin", "formula": "(revenue - cogs) / revenue", "triggerRecordType": "FinancialStatementAnalyzed", "subjectField": "subjectEntity", "subjectType": "OrganizationalUnit", "unit": "ratio", "targetValue": 0.3, "direction": "higher" },
+        { "kpiId": "return-on-assets", "name": "Return on assets", "formula": "netIncome / totalAssets", "triggerRecordType": "FinancialStatementAnalyzed", "subjectField": "subjectEntity", "subjectType": "OrganizationalUnit", "unit": "ratio", "targetValue": 0.05, "direction": "higher" },
+        { "kpiId": "return-on-equity", "name": "Return on equity", "formula": "netIncome / totalEquity", "triggerRecordType": "FinancialStatementAnalyzed", "subjectField": "subjectEntity", "subjectType": "OrganizationalUnit", "unit": "ratio", "targetValue": 0.1, "direction": "higher" },
+        { "kpiId": "statement-dscr", "name": "Debt service coverage (statement)", "formula": "(revenue - cogs - operatingExpenses) / debtService", "triggerRecordType": "FinancialStatementAnalyzed", "subjectField": "subjectEntity", "subjectType": "OrganizationalUnit", "riskType": "FinancialRisk", "unit": "ratio", "targetValue": 1.25, "direction": "higher" }
+      ],
+      "okrs": []
+    }
+  ],
+
+  "agents": [
+    {
+      "agentId": "financial-analyst",
+      "name": "AI Financial Analyst",
+      "description": "Reads analyzed statements, ratio scores, and risk deviations; explains what the numbers indicate and what a human should examine next.",
+      "persona": "You are the platform financial analyst. You read approved financial statement records, their computed ratios (current, quick, debt-to-equity, gross margin, ROA, ROE, DSCR), FinancialRisk-tagged deviations, and tenant benchmarks. Ground every statement in the data provided; distinguish AI-extracted figures from human-verified ones when provenance is visible; never invent numbers. Explain what a ratio deviation typically indicates and what a reviewer should examine next - liquidity pressure, leverage drift, margin erosion - as observations and questions, never verdicts. You NEVER conclude creditworthiness, approve financing, or value a business: you surface indicators; a human decides.",
+      "contextSources": [ "records:FinancialStatementAnalyzed", "scores", "deviations", "benchmarks" ],
+      "sampleQuestions": [
+        "What do the latest statement ratios indicate for this entity?",
+        "Which subjects have open FinancialRisk flags right now?",
+        "Is leverage trending the wrong way for any subject?"
+      ],
+      "outputDisclaimer": "Statistical risk indicators only - derived from statement analysis, NOT a lending, credit, or investment determination, and not financial advice. This applies regardless of extraction confidence. A qualified human decision-maker evaluates every indicator before any decision."
+    }
+  ]
+}

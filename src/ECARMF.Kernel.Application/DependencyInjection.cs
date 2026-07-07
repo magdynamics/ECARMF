@@ -41,6 +41,7 @@ public static class DependencyInjection
         services.AddScoped<Identity.IOrgUnitService, Identity.OrgUnitService>();
         services.AddScoped<Treasury.ITreasurySweepService, Treasury.TreasurySweepService>();
         services.AddScoped<Capital.IFundingService, Capital.FundingService>();
+        services.AddScoped<Analysis.IFinancialStatementService, Analysis.FinancialStatementService>();
         services.AddScoped<Billing.IBillingService, Billing.BillingService>();
         services.AddScoped<Agents.IAgentConsultService, Agents.AgentConsultService>();
 

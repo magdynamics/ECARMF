@@ -82,4 +82,6 @@ public static class AuditCategories
     public const string FundingEventDisbursed = "FundingEventDisbursed";
     public const string RenewalMilestoneReached = "RenewalMilestoneReached";
     public const string InvestorVerificationDecided = "InvestorVerificationDecided";
+    public const string FinancialStatementExtracted = "FinancialStatementExtracted";
+    public const string FinancialStatementReviewed = "FinancialStatementReviewed";
 }

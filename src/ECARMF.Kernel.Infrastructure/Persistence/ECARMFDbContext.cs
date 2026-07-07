@@ -73,6 +73,8 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<InvestorProfileRecord> InvestorProfiles => Set<InvestorProfileRecord>();
 
+    public DbSet<FinancialStatementRecord> FinancialStatements => Set<FinancialStatementRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AgentInteractionRecord>(entity =>
@@ -190,6 +192,24 @@ public class ECARMFDbContext : DbContext
             entity.Property(a => a.ProposalReasoning).HasMaxLength(2000);
             entity.Property(a => a.CreatedBy).HasMaxLength(400).IsRequired();
             entity.HasIndex(a => new { a.TenantId, a.AccountId }).IsUnique();
+        });
+
+        modelBuilder.Entity<FinancialStatementRecord>(entity =>
+        {
+            entity.ToTable("FinancialStatements");
+            entity.HasKey(s => s.Id);
+            entity.Property(s => s.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(s => s.StatementType).HasMaxLength(100).IsRequired();
+            entity.Property(s => s.SubjectEntity).HasMaxLength(200).IsRequired();
+            entity.Property(s => s.Period).HasMaxLength(100).IsRequired();
+            entity.Property(s => s.ExtractionMethod).HasMaxLength(50).IsRequired();
+            entity.Property(s => s.TemplateId).HasMaxLength(200).IsRequired();
+            entity.Property(s => s.ReviewThreshold).HasPrecision(5, 4);
+            entity.Property(s => s.Status).HasMaxLength(50).IsRequired();
+            entity.Property(s => s.CreatedBy).HasMaxLength(400).IsRequired();
+            entity.Property(s => s.ReviewedBy).HasMaxLength(400);
+            entity.Property(s => s.ReviewComment).HasMaxLength(2000);
+            entity.HasIndex(s => new { s.TenantId, s.Status });
         });
 
         modelBuilder.Entity<ITAssetRecord>(entity =>
