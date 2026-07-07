@@ -21,8 +21,13 @@ public interface IDeviationMonitor
     /// <summary>Compares a freshly computed KPIActual against its baseline —
     /// the KPI target when available, otherwise the latest Forecast for the
     /// same subject — and raises a DeviationAlert when the gap exceeds the
-    /// threshold. Just another check in the same processing pass.</summary>
-    Task CheckAsync(string tenantId, ScoreRecord kpiActual, decimal? targetValue, Guid correlationId, CancellationToken ct = default);
+    /// threshold. When <paramref name="direction"/> is supplied ("higher" |
+    /// "lower"), only UNFAVORABLE deviations alert: beating a target is
+    /// performance, not a problem. A target of exactly 0 with a known
+    /// direction is an absolute line (e.g. "zero schedule slip") — any
+    /// unfavorable actual breaches it. Null direction keeps the legacy
+    /// direction-agnostic behavior.</summary>
+    Task CheckAsync(string tenantId, ScoreRecord kpiActual, decimal? targetValue, Guid correlationId, string? direction = null, CancellationToken ct = default);
 
     /// <summary>Missing data is itself a deviation: raises an alert for every
     /// subject whose KPIActual stream has gone silent longer than maxAge.</summary>
@@ -46,13 +51,18 @@ public class DeviationMonitoringService : IDeviationMonitor
     }
 
     public async Task CheckAsync(
-        string tenantId, ScoreRecord kpiActual, decimal? targetValue, Guid correlationId, CancellationToken ct = default)
+        string tenantId, ScoreRecord kpiActual, decimal? targetValue, Guid correlationId,
+        string? direction = null, CancellationToken ct = default)
     {
         decimal expected;
         string source;
+        var hasDirection = direction is not null;
 
-        if (targetValue is { } target && target != 0)
+        if (targetValue is { } target && (target != 0 || hasDirection))
         {
+            // A target of exactly 0 is meaningful ONLY with a direction —
+            // "zero slip days", "zero incidents" — otherwise it stays the
+            // legacy no-baseline case (fall through to forecast).
             expected = target;
             source = "Target";
         }
@@ -70,13 +80,33 @@ public class DeviationMonitoringService : IDeviationMonitor
             source = "Forecast";
         }
 
-        var variance = (kpiActual.Value - expected) / expected;
-        if (Math.Abs(variance) <= DefaultThreshold)
-        {
-            return;
-        }
+        // Direction-aware: beating the target is performance, not a problem.
+        // (Rosetta/MagDynamics finding: training hours ABOVE target and
+        // shrinkage far BELOW target were flagged Critical.)
+        var lowerIsBetter = string.Equals(direction, "lower", StringComparison.OrdinalIgnoreCase);
+        var higherIsBetter = string.Equals(direction, "higher", StringComparison.OrdinalIgnoreCase);
+        if (higherIsBetter && kpiActual.Value >= expected) return;
+        if (lowerIsBetter && kpiActual.Value <= expected) return;
 
-        var severity = Math.Abs(variance) > DefaultThreshold * 2 ? "Critical" : "Warning";
+        decimal variance;
+        string severity;
+        if (expected == 0)
+        {
+            // Absolute line ("zero slip"): any unfavorable actual breaches
+            // it; there is no denominator, so magnitude IS the actual and
+            // the breach is Critical — the tenant declared zero tolerance.
+            variance = kpiActual.Value;
+            severity = "Critical";
+        }
+        else
+        {
+            variance = (kpiActual.Value - expected) / expected;
+            if (Math.Abs(variance) <= DefaultThreshold)
+            {
+                return;
+            }
+            severity = Math.Abs(variance) > DefaultThreshold * 2 ? "Critical" : "Warning";
+        }
         var alert = new DeviationAlert
         {
             TenantId = tenantId,

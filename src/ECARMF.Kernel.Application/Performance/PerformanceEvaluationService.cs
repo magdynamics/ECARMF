@@ -90,9 +90,11 @@ public class PerformanceEvaluationService : IPerformanceEvaluator, IFrameworkRec
 
                 // Deviation monitoring runs in the same pass: actual vs the
                 // KPI target (or the latest forecast when no target exists).
+                // The KPI's direction rides along so only UNFAVORABLE
+                // deviations alert, and a zero target means zero tolerance.
                 if (_deviations is not null)
                 {
-                    await _deviations.CheckAsync(kernelEvent.TenantId, actualScore, kpi.TargetValue, kernelEvent.CorrelationId, ct);
+                    await _deviations.CheckAsync(kernelEvent.TenantId, actualScore, kpi.TargetValue, kernelEvent.CorrelationId, kpi.Direction, ct);
                 }
 
                 // Tenant-set expectations (e.g. "GP% must stay >= 25%") watch KPIs too.

@@ -1,3 +1,4 @@
+using ECARMF.Kernel.Application.Analytics;
 using ECARMF.Kernel.Application.Events;
 using ECARMF.Kernel.Application.Ingestion;
 using ECARMF.Kernel.Application.Performance;
@@ -163,6 +164,56 @@ public class Batch2RefinementTests
         // One mechanism, different open tags — never a per-tenant RiskRecord.
         Assert.Equal("Cybersecurity", scores.Items.Single(s => s.SubjectId == "prod-sql-01").RiskType);
         Assert.Equal("Marketing", scores.Items.Single(s => s.SubjectId == "spring-promo").RiskType);
+    }
+
+    [Fact]
+    public async Task Deviations_are_direction_aware_and_zero_targets_mean_zero_tolerance()
+    {
+        var registries = new TenantRegistryProvider();
+        var scores = new InMemoryScoreStore();
+        var alerts = new InMemoryDeviationStore();
+        var audit = new InMemoryAuditLog();
+        var evaluator = new PerformanceEvaluationService(registries, scores, audit,
+            new DeviationMonitoringService(alerts, scores, audit));
+
+        registries.GetFor(Tenant).PerformanceFrameworks.Register(new PerformanceFrameworkDeclaration
+        {
+            FrameworkId = "direction-v1", Name = "Direction", Industry = "Any",
+            Kpis =
+            [
+                new KPIDefinition { KpiId = "training-hours", Formula = "trainingHours", TriggerRecordType = "Sheet", SubjectField = "who", TargetValue = 4, Direction = "higher" },
+                new KPIDefinition { KpiId = "shrinkage", Formula = "shrinkage", TriggerRecordType = "Sheet", SubjectField = "who", TargetValue = 500, Direction = "lower" },
+                new KPIDefinition { KpiId = "delay-days", Formula = "delayDays", TriggerRecordType = "Sheet", SubjectField = "who", TargetValue = 0, Direction = "lower" }
+            ]
+        }, "p", "1.0.0");
+
+        await evaluator.EvaluateAsync(new KernelEvent(Tenant, "RecordReceived", Guid.NewGuid(),
+            new Dictionary<string, string>
+            {
+                ["recordType"] = "Sheet", ["who"] = "unit-1",
+                ["trainingHours"] = "8",    // ABOVE a higher-is-better target: favorable, no alert
+                ["shrinkage"] = "150",      // far BELOW a lower-is-better target: favorable, no alert
+                ["delayDays"] = "12"        // above a ZERO lower-is-better target: Critical breach
+            }, DateTimeOffset.UtcNow));
+
+        // The MagDynamics/JJ Fish false alarms are gone...
+        Assert.DoesNotContain(alerts.Items, a => a.EntityReference == "training-hours@unit-1");
+        Assert.DoesNotContain(alerts.Items, a => a.EntityReference == "shrinkage@unit-1");
+        // ...and the Rosetta silence is fixed: zero target + direction = zero tolerance.
+        var slip = Assert.Single(alerts.Items, a => a.EntityReference == "delay-days@unit-1");
+        Assert.Equal("Critical", slip.Severity);
+        Assert.Equal(12m, slip.ActualValue);
+
+        // Unfavorable relative breaches still alert exactly as before.
+        await evaluator.EvaluateAsync(new KernelEvent(Tenant, "RecordReceived", Guid.NewGuid(),
+            new Dictionary<string, string>
+            {
+                ["recordType"] = "Sheet", ["who"] = "unit-2",
+                ["trainingHours"] = "1", ["shrinkage"] = "900", ["delayDays"] = "0"
+            }, DateTimeOffset.UtcNow));
+        Assert.Contains(alerts.Items, a => a.EntityReference == "training-hours@unit-2"); // 1 vs 4, unfavorable
+        Assert.Contains(alerts.Items, a => a.EntityReference == "shrinkage@unit-2");      // 900 vs 500, unfavorable
+        Assert.DoesNotContain(alerts.Items, a => a.EntityReference == "delay-days@unit-2"); // on target
     }
 
     [Fact]

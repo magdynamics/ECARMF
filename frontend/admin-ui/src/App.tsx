@@ -19,6 +19,7 @@ import { PackageInspector } from './components/PackageInspector'
 import { RecordActivity } from './components/RecordActivity'
 import { Renewals } from './components/Renewals'
 import { Reports } from './components/Reports'
+import { StatementReview } from './components/StatementReview'
 import { Treasury } from './components/Treasury'
 
 const SEEDED_USERS = [
@@ -77,6 +78,7 @@ const NAV: { tab: string; label: string; icon: string; group: string }[] = [
   { tab: 'treasury', label: 'AI Treasury', icon: '🏦', group: 'Setup' },
   { tab: 'ai', label: 'AI Backend', icon: '🧠', group: 'Setup' },
   { tab: 'dataentry', label: 'Data Entry', icon: '📥', group: 'Input' },
+  { tab: 'statements', label: 'Statement Review', icon: '🧐', group: 'Input' },
   { tab: 'activity', label: 'Record Activity', icon: '📋', group: 'Output' },
   { tab: 'dashboard', label: 'Dashboard', icon: '📊', group: 'Output' },
   { tab: 'reports', label: 'Reports', icon: '📑', group: 'Output' },
@@ -359,6 +361,8 @@ function App() {
             <AiSettings tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'dataentry' ? (
             <DataEntry tenant={effectiveTenant} user={effectiveUser} />
+          ) : tab === 'statements' ? (
+            <StatementReview tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'activity' ? (
             <RecordActivity tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'dashboard' ? (
