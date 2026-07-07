@@ -50,6 +50,7 @@ public static class DependencyInjection
         services.AddScoped<Application.Tenancy.IITAssetStore, EfITAssetStore>();
         services.AddScoped<Application.Identity.IInvestorProfileStore, EfInvestorProfileStore>();
         services.AddScoped<Application.Analysis.IFinancialStatementStore, EfFinancialStatementStore>();
+        services.AddScoped<Application.Operations.IPlatformJanitor, PlatformJanitor>();
         services.AddScoped<Application.Billing.IBillingPlanStore, EfBillingPlanStore>();
         services.AddScoped<Application.Billing.IBillingStatementStore, EfBillingStatementStore>();
         services.AddScoped<Application.Billing.IUsageMeter, EfUsageMeter>();

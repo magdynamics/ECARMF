@@ -100,8 +100,24 @@ interface Me {
   isPlatformOperator: boolean
 }
 
+// Bookmarks and desktop shortcuts can pin a tenant: ?tenant=platform
+// always lands on the operator console regardless of what a previous
+// session left in localStorage. The parameter is adopted once and
+// stripped from the address bar.
+function tenantFromUrlOrStorage(): string {
+  const fromUrl = new URLSearchParams(window.location.search).get('tenant')
+  if (fromUrl && fromUrl.trim()) {
+    setTenant(fromUrl.trim())
+    const url = new URL(window.location.href)
+    url.searchParams.delete('tenant')
+    window.history.replaceState({}, '', url)
+    return fromUrl.trim()
+  }
+  return getTenant()
+}
+
 function App() {
-  const [tenant, setTenantState] = useState(getTenant())
+  const [tenant, setTenantState] = useState(tenantFromUrlOrStorage())
   const [tenantInput, setTenantInput] = useState(tenant)
   const [user, setUserState] = useState(getUser())
   const [apiKeyInput, setApiKeyInput] = useState('')

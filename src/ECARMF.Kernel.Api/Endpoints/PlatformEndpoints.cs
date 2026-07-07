@@ -323,6 +323,46 @@ public static class PlatformEndpoints
             });
         });
 
+        // Ghost-tenant purge: deletes the residue of a tenant id that was
+        // NEVER onboarded (typos like 'jj' seeded users/connectors before
+        // the ghost-tenant guard existed). Real clients are refused — they
+        // are suspended, never hard-deleted, so their records stay
+        // examinable.
+        group.MapDelete("/{tenantId}", async (
+            string tenantId, HttpContext context, IUserStore users,
+            ITenantDirectory tenants, Application.Operations.IPlatformJanitor janitor,
+            IAuditLog audit, CancellationToken ct) =>
+        {
+            var (error, op) = await RequirePlatformOperatorAsync(context, users, ct);
+            if (error is not null) return error;
+
+            if (PlatformTenant.IsPlatform(tenantId))
+                return Results.BadRequest(new { error = "The reserved operator tenant cannot be deleted." });
+            if (await tenants.GetAsync(tenantId, ct) is not null)
+                return Results.BadRequest(new
+                {
+                    error = $"'{tenantId}' is an onboarded client — suspend it instead. " +
+                            "Hard deletion is only for ghost tenant ids that were never onboarded."
+                });
+
+            var deleted = await janitor.PurgeGhostTenantAsync(tenantId, ct);
+
+            await audit.AppendAsync(new AuditEntry
+            {
+                TenantId = PlatformTenant.Id,
+                CorrelationId = Guid.NewGuid(),
+                Category = AuditCategories.GhostTenantPurged,
+                Actor = op!.Identifier,
+                Summary = $"Ghost tenant '{tenantId}' purged: " +
+                          (deleted.Count == 0
+                              ? "no residue found."
+                              : string.Join(", ", deleted.Select(kv => $"{kv.Value} {kv.Key}"))),
+                Detail = deleted.ToDictionary(kv => kv.Key, kv => kv.Value.ToString())
+            }, ct);
+
+            return Results.Ok(new { tenantId, deleted });
+        });
+
         group.MapPost("/{tenantId}/users/{identifier}/rotate-key", async (
             string tenantId, string identifier, HttpContext context,
             IUserStore users, IAuditLog audit, CancellationToken ct) =>

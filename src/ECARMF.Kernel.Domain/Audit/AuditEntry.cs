@@ -84,4 +84,5 @@ public static class AuditCategories
     public const string InvestorVerificationDecided = "InvestorVerificationDecided";
     public const string FinancialStatementExtracted = "FinancialStatementExtracted";
     public const string FinancialStatementReviewed = "FinancialStatementReviewed";
+    public const string GhostTenantPurged = "GhostTenantPurged";
 }
