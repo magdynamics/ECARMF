@@ -117,7 +117,11 @@ function tenantFromUrlOrStorage(): string {
 }
 
 function App() {
-  const [tenant, setTenantState] = useState(tenantFromUrlOrStorage())
+  // In key mode the identity comes from the credential, so resolve "who am I"
+  // (/api/me) from the operator home tenant first — starting on a persisted
+  // client tenant would make an operator look like a client. Non-operator
+  // client keys resolve to their own tenant regardless (act-as is ignored).
+  const [tenant, setTenantState] = useState(getApiKey() ? 'platform' : tenantFromUrlOrStorage())
   const [tenantInput, setTenantInput] = useState(tenant)
   const [user, setUserState] = useState(getUser())
   const [apiKeyInput, setApiKeyInput] = useState('')
@@ -136,10 +140,12 @@ function App() {
     window.scrollTo({ top: 0 })
   }
 
-  // Autocomplete + validation list. Fetched once with explicit operator
-  // headers regardless of the tenant currently viewed — otherwise a user
-  // stranded on a mistyped tenant has no list, no suggestions, and no
-  // visible way back. Non-operators get a 403 and simply no autocomplete.
+  // Autocomplete + validation list. In header mode, fetched with explicit
+  // operator headers regardless of the tenant currently viewed — otherwise a
+  // user stranded on a mistyped tenant has no list, no suggestions, and no
+  // visible way back. In key mode the operator loads it via their credential
+  // (see the /api/me effect below, while still on the platform tenant).
+  // Non-operators get a 403 and simply no autocomplete.
   useEffect(() => {
     if (signedInWithKey) return
     fetch('/api/platform/tenants', {
@@ -160,8 +166,20 @@ function App() {
       .get<Me>('/api/me')
       .then((m) => {
         setMe(m)
-        setTenantState(m.tenantId)
         setUserState(m.identifier)
+        if (m.isPlatformOperator) {
+          // Operator: stay on the platform tenant and load the client list
+          // for the switcher (this call runs while still act-as platform).
+          api
+            .get<{ tenantId: string }[]>('/api/platform/tenants')
+            .then((list) => setKnownTenants(['platform', ...list.map((t) => t.tenantId)]))
+            .catch(() => {})
+        } else {
+          // Client key: bound to its own tenant.
+          setTenant(m.tenantId)
+          setTenantState(m.tenantId)
+          setTenantInput(m.tenantId)
+        }
       })
       .catch(() => {
         setApiKey('')
@@ -203,6 +221,11 @@ function App() {
   function signIn() {
     setApiKey(apiKeyInput.trim())
     setApiKeyInput('')
+    // Resolve identity from the operator home tenant first; /api/me then
+    // decides operator vs client and routes accordingly.
+    setTenant('platform')
+    setTenantState('platform')
+    setTenantInput('platform')
     setSignedInWithKey(true)
   }
 
@@ -212,7 +235,11 @@ function App() {
     setMe(null)
   }
 
-  const effectiveTenant = signedInWithKey ? (me?.tenantId ?? '') : tenant
+  // A platform operator signed in with a key can view any tenant via the
+  // "act as" mechanism, so their effective tenant tracks the SELECTED tenant,
+  // not the credential's home. A client key stays bound to its own tenant.
+  const operator = signedInWithKey && me?.isPlatformOperator === true
+  const effectiveTenant = signedInWithKey ? (operator ? tenant : (me?.tenantId ?? '')) : tenant
   const effectiveUser = signedInWithKey ? (me?.identifier ?? '') : user
   const isPlatformTab = tab === 'clients' || tab === 'billing' || tab === 'email' || tab === 'health'
   const onPlatformTenant = effectiveTenant.toLowerCase() === 'platform'
@@ -226,13 +253,13 @@ function App() {
         — client tenants can never see or reach each other's data here. You are currently on
         tenant <strong>{effectiveTenant}</strong>.
       </p>
-      {signedInWithKey ? (
+      {signedInWithKey && !operator ? (
         <p className="muted small">
           You are signed in with a client access key, which is bound to its own tenant. Sign out
-          and use the operator identity to manage clients.
+          and use an operator access key to manage clients.
         </p>
       ) : (
-        <button onClick={() => { switchUser('admin@platform'); applyTenant('platform') }}>
+        <button onClick={() => { if (!operator) switchUser('admin@platform'); applyTenant('platform') }}>
           Switch to the operator tenant
         </button>
       )}
@@ -253,8 +280,30 @@ function App() {
             <>
               <span className="small">
                 <strong>{me?.displayName ?? '…'}</strong>{' '}
-                <span className="muted">· {me?.tenantName ?? me?.tenantId}</span>
+                <span className="muted">· {operator ? effectiveTenant : (me?.tenantName ?? me?.tenantId)}</span>
               </span>
+              {operator && (
+                <>
+                  <label>
+                    View
+                    <input
+                      placeholder="platform"
+                      autoComplete="off"
+                      name="ecarmf-tenant-id"
+                      list="ecarmf-known-tenants"
+                      value={tenantInput}
+                      onChange={(e) => setTenantInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && applyTenant()}
+                    />
+                    <datalist id="ecarmf-known-tenants">
+                      {knownTenants.map((t) => (
+                        <option key={t} value={t} />
+                      ))}
+                    </datalist>
+                  </label>
+                  <button onClick={() => applyTenant()} disabled={!tenantInput.trim()}>Switch</button>
+                </>
+              )}
               <button onClick={signOut}>Sign out</button>
             </>
           ) : (

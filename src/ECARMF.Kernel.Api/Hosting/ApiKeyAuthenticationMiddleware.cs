@@ -1,5 +1,6 @@
 using ECARMF.Kernel.Api.Endpoints;
 using ECARMF.Kernel.Application.Identity;
+using ECARMF.Kernel.Domain.Identity;
 using ECARMF.Kernel.Domain.Tenancy;
 
 namespace ECARMF.Kernel.Api.Hosting;
@@ -15,6 +16,11 @@ namespace ECARMF.Kernel.Api.Hosting;
 public class ApiKeyAuthenticationMiddleware
 {
     public const string ApiKeyHeader = "X-Api-Key";
+
+    /// <summary>Optional header: a platform-operator key may set this to view
+    /// another tenant's workspace (the operator console). Ignored for
+    /// non-operator keys, which stay pinned to their own tenant.</summary>
+    public const string ActAsTenantHeader = "X-Act-As-Tenant";
 
     private readonly RequestDelegate _next;
     private readonly bool _allowHeaderIdentity;
@@ -56,7 +62,28 @@ public class ApiKeyAuthenticationMiddleware
             }
 
             // The credential is authoritative: derive tenant and identity.
-            context.Request.Headers[TenantResolution.HeaderName] = user.TenantId;
+            // By default the key's own tenant is the tenant.
+            var effectiveTenant = user.TenantId;
+
+            // Operator "act as tenant": a platform-tenant user holding
+            // Tenant:Manage may target another tenant via X-Act-As-Tenant, so
+            // the operator console can view every client under one credential.
+            // The identity stays the operator's own (owner@/admin@platform,
+            // which is seeded into every tenant), so audit and permission
+            // checks resolve against a real, authorized row in that tenant.
+            // Any non-operator key that sends the header is ignored — it stays
+            // pinned to its own tenant, so a client key can never cross over.
+            var actAs = context.Request.Headers[ActAsTenantHeader].FirstOrDefault()?.Trim();
+            if (!string.IsNullOrWhiteSpace(actAs)
+                && !string.Equals(actAs, user.TenantId, StringComparison.OrdinalIgnoreCase)
+                && PlatformTenant.IsPlatform(user.TenantId)
+                && RoleCatalog.HasPermission(user.Roles, Permissions.TenantManage))
+            {
+                effectiveTenant = actAs;
+                context.Items["ActingAsTenant"] = actAs;
+            }
+
+            context.Request.Headers[TenantResolution.HeaderName] = effectiveTenant;
             context.Request.Headers[AccessGuard.UserHeader] = user.Identifier;
             context.Items["AuthenticatedViaApiKey"] = true;
         }

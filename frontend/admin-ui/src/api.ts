@@ -56,6 +56,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
   if (apiKey) {
     headers['X-Api-Key'] = apiKey
+    // Operator console: when signed in with a platform-operator key, the
+    // selected tenant is sent as an "act as" target so one credential can
+    // view every client. The server ignores this for non-operator keys.
+    if (tenant) headers['X-Act-As-Tenant'] = tenant
   } else {
     headers['X-Tenant-Id'] = tenant
     headers['X-User-Id'] = getUser()
