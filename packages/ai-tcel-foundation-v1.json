@@ -1,0 +1,153 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "TCEL Enterprise Foundation",
+  "version": "1",
+  "status": "Published",
+  "owner": "TCEL (multi-manager trading, treasury, banking-risk, capital allocation)",
+  "description": "TCEL Tenant-9 Foundation package (T9-001), onboarded into the ECARMF kernel as knowledge-package metadata - NOT bespoke code. Master data (LegalEntity, Manager) become entity declarations; the EF-001..012 deterministic control catalog becomes executable rules where the declarative condition model allows (status/boolean/threshold controls) and a traceability knowledge asset for the full catalog (controls needing registry lookup, uniqueness, or cross-field comparison are carried but not yet enforceable as simple rules - noted for a richer-condition pass). First of the four packages present in the Structure-v1 handoff (T9-001..004). Boundary vs later packages: this package owns ONLY foundational master data, roles, and enterprise-wide governance controls; banking is T9-002, trading is T9-003, enterprise risk is T9-004.",
+
+  "packageId": "ecarmf.ai-tcel-foundation",
+  "name": "TCEL Enterprise Foundation",
+  "packageVersion": "1.0.0",
+  "publisher": "MAG Dynamics",
+  "dependencies": [],
+
+  "entities": [
+    {
+      "entityTypeName": "LegalEntity",
+      "description": "A TCEL legal entity (T9-001 legal-entity.schema.json). legalEntityId is referenced across T9-002/006/019.",
+      "attributes": [
+        { "name": "legalEntityId", "dataType": "string", "required": true },
+        { "name": "name", "dataType": "string", "required": true },
+        { "name": "registrationNumber", "dataType": "string", "required": false },
+        { "name": "country", "dataType": "string", "required": true },
+        { "name": "state", "dataType": "string", "required": false },
+        { "name": "taxId", "dataType": "string", "required": false },
+        { "name": "regulatoryStatus", "dataType": "string", "required": true },
+        { "name": "parentLegalEntityId", "dataType": "string", "required": false },
+        { "name": "isAccountingEntity", "dataType": "boolean", "required": false },
+        { "name": "reportingCurrency", "dataType": "string", "required": false },
+        { "name": "status", "dataType": "string", "required": true }
+      ]
+    },
+    {
+      "entityTypeName": "Manager",
+      "description": "A TCEL investment manager (T9-001 manager.schema.json). managerId (MGR-NN) is the single most-referenced entity in the tenant.",
+      "attributes": [
+        { "name": "managerId", "dataType": "string", "required": true },
+        { "name": "name", "dataType": "string", "required": true },
+        { "name": "strategy", "dataType": "string", "required": false },
+        { "name": "benchmarkId", "dataType": "string", "required": false },
+        { "name": "assignedCapital", "dataType": "number", "required": false },
+        { "name": "riskLimitId", "dataType": "string", "required": false },
+        { "name": "tradingAuthority", "dataType": "boolean", "required": false },
+        { "name": "bankingAuthority", "dataType": "boolean", "required": false },
+        { "name": "borrowingAuthority", "dataType": "boolean", "required": false },
+        { "name": "status", "dataType": "string", "required": true }
+      ]
+    }
+  ],
+
+  "events": [
+    { "eventName": "RecordReceived", "description": "A record has been durably persisted and is ready for rule/KPI evaluation." },
+    { "eventName": "LegalEntityRegistered", "description": "New legal entity added." },
+    { "eventName": "LegalEntityStatusChanged", "description": "Entity status changed (Restructuring, Closed)." },
+    { "eventName": "ManagerOnboarded", "description": "New manager registered." },
+    { "eventName": "ManagerAuthorityChanged", "description": "Trading/banking/borrowing authority changed." },
+    { "eventName": "RoleGranted", "description": "Role assigned to a user or service account." },
+    { "eventName": "RoleRevoked", "description": "Role removed." },
+    { "eventName": "CommitteeCharterUpdated", "description": "Committee charter version changed." },
+    { "eventName": "ApprovalMatrixUpdated", "description": "Approval threshold or approver changed." },
+    { "eventName": "EnterpriseConfigurationChanged", "description": "Global configuration value changed." },
+    { "eventName": "PolicyPublished", "description": "Enterprise policy version activated." },
+    { "eventName": "PrivilegedAccessGranted", "description": "Privileged or emergency account access granted." }
+  ],
+
+  "rules": [
+    {
+      "ruleId": "EF-012",
+      "name": "Legal entity closed with open obligations",
+      "description": "Preventive/Critical (Owner: General Counsel/CFO). Block closure while obligations remain open.",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "LegalEntityClosure" },
+        { "field": "openObligations", "operator": "GreaterThan", "value": "0" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "EF-012: legal entity {legalEntityId} has {openObligations} open obligation(s) - closure blocked (General Counsel/CFO)."
+    },
+    {
+      "ruleId": "EF-011",
+      "name": "Enterprise configuration changed without approval",
+      "description": "Preventive/Critical (Owner: Platform). Reject and alert.",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "ConfigurationChange" },
+        { "field": "approved", "operator": "Equals", "value": "false" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "EF-011: enterprise configuration '{configKey}' changed without approval - rejected and alerted (Platform)."
+    },
+    {
+      "ruleId": "EF-009",
+      "name": "Privileged access without MFA",
+      "description": "Preventive/Critical (Owner: Security). Deny access.",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "PrivilegedAccessRequest" },
+        { "field": "mfaEnabled", "operator": "Equals", "value": "false" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "EF-009: privileged access for {userId} denied - MFA is not enabled on the account (Security)."
+    },
+    {
+      "ruleId": "EF-010",
+      "name": "Governed record missing metadata",
+      "description": "Preventive/High (Owner: Data Governance). Reject creation.",
+      "triggerEvent": "RecordReceived",
+      "priority": 20,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "GovernedRecord" },
+        { "field": "metadataComplete", "operator": "Equals", "value": "false" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "EF-010: governed record is missing required metadata fields - creation rejected (Data Governance)."
+    },
+    {
+      "ruleId": "EF-008",
+      "name": "Expired policy still active",
+      "description": "Detective/High (Owner: Data Governance). Escalate to policy owner.",
+      "triggerEvent": "RecordReceived",
+      "priority": 30,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "PolicyReview" },
+        { "field": "expired", "operator": "Equals", "value": "true" },
+        { "field": "active", "operator": "Equals", "value": "true" }
+      ],
+      "outcomeOnMatch": "Flagged",
+      "reasonTemplate": "EF-008: policy {policyId} is expired but still active - escalated to the policy owner (Data Governance)."
+    }
+  ],
+
+  "capabilities": [
+    { "capabilityId": "ecarmf.tcel-foundation.EnterpriseFoundation", "name": "TCEL Enterprise Foundation", "description": "Master data (legal entities, managers), enterprise governance controls, and the roles/committees registry for the TCEL tenant." }
+  ],
+
+  "knowledgeAssets": [
+    {
+      "assetId": "tcel-governance-control-catalog-2026",
+      "docKey": "tcel-governance-control-catalog",
+      "title": "TCEL Enterprise Foundation Control Catalog (EF-001..012)",
+      "assetType": "ReferenceManual",
+      "docType": "ControlCatalog",
+      "issuer": "TCEL Data Governance",
+      "jurisdiction": "US",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "summary": "The 12 deterministic EF- controls. EF-008/009/010/011/012 are enforced as executable rules in this package; EF-001..007 require registry lookup, uniqueness, or cross-field comparison beyond the declarative condition model and are carried here for traceability pending a richer-condition pass.",
+      "contentText": "EF-001 Unregistered legal entity referenced | Preventive | Reject downstream reference | Critical | General Counsel. EF-002 Unregistered manager referenced | Preventive | Reject downstream reference | Critical | Manager Oversight. EF-003 Duplicate master-data ID minted outside T9-001 | Preventive | Reject and alert | Critical | Data Governance. EF-004 Role not found in registry used in a control-catalog Owner field | Detective | Flag for reconciliation | High | Data Governance. EF-005 Committee referenced without charter on file | Detective | Flag for reconciliation | High | Corporate Secretary. EF-006 Approval matrix threshold missing for a decision type | Preventive | Block decision workflow activation | Critical | Platform. EF-007 Manager self-approval of own authority change | Preventive | Reject | Critical | CRO. EF-008 Expired policy still active | Detective | Escalate to policy owner | High | Data Governance. EF-009 User identity without MFA on privileged account | Preventive | Deny access | Critical | Security. EF-010 Metadata fields missing on a governed record | Preventive | Reject creation | High | Data Governance. EF-011 Enterprise configuration changed without approval | Preventive | Reject and alert | Critical | Platform. EF-012 Legal entity closed with open obligations | Preventive | Block closure | Critical | General Counsel/CFO."
+    }
+  ]
+}
