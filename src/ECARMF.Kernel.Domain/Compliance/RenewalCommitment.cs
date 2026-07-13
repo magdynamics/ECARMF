@@ -42,8 +42,20 @@ public class RenewalCommitment
     public DateTimeOffset DueDate { get; set; }
 
     /// <summary>Months between renewals; null means a one-time obligation
-    /// that completes when marked renewed.</summary>
+    /// that completes when marked renewed. This is the CANONICAL recurrence
+    /// field (Batch 3, Refinement 17): a value expresses an indefinite,
+    /// ongoing re-verification cadence — OIG exclusion screening due every
+    /// month is RecurrenceMonths = 1, a license renewed yearly is 12 — while
+    /// null is the one-time "expires once, then renewed" case. No separate
+    /// recurring-check mechanism is needed; see <see cref="RecurrencePattern"/>
+    /// for the human-readable label derived from this value.</summary>
     public int? RecurrenceMonths { get; set; }
+
+    /// <summary>Human-readable recurrence label derived from
+    /// <see cref="RecurrenceMonths"/> (Batch 3, Refinement 17): OneTime |
+    /// Monthly | Quarterly | Annual | "Every N months". Not stored — computed
+    /// so there is one source of truth and the two can never drift.</summary>
+    public string RecurrencePattern => RenewalRecurrence.Describe(RecurrenceMonths);
 
     /// <summary>Warning ladder in days before the due date, descending
     /// (e.g. 90, 30, 7): the earliest rung alerts as Info, the middle rungs
@@ -119,4 +131,23 @@ public static class RenewalStatuses
     public const string Active = "Active";
     public const string Renewed = "Renewed";
     public const string Cancelled = "Cancelled";
+}
+
+/// <summary>Maps the canonical RecurrenceMonths value onto the Batch 3
+/// Refinement 17 recurrence-pattern vocabulary. Pure derivation — no state.</summary>
+public static class RenewalRecurrence
+{
+    public const string OneTime = "OneTime";
+    public const string Monthly = "Monthly";
+    public const string Quarterly = "Quarterly";
+    public const string Annual = "Annual";
+
+    public static string Describe(int? recurrenceMonths) => recurrenceMonths switch
+    {
+        null or <= 0 => OneTime,
+        1 => Monthly,
+        3 => Quarterly,
+        12 => Annual,
+        var m => $"Every {m} months"
+    };
 }

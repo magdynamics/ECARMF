@@ -101,6 +101,7 @@ app.MapAgentEndpoints();
 app.MapKnowledgeAssetEndpoints();
 app.MapFundingEndpoints();
 app.MapBatch2Endpoints();
+app.MapBatch3Endpoints();
 app.MapFinancialStatementEndpoints();
 
 using (var scope = app.Services.CreateScope())

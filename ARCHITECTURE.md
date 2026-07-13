@@ -231,6 +231,54 @@ Both compose on existing primitives rather than adding parallel mechanisms:
 5. Every outcome-affecting change must keep the outcome traceable to a rule
    and package version.
 
+### 6.12 Cross-tenant generalization patterns (Refinement batches)
+
+Successive tenants each surfaced one generalization that the kernel absorbed
+as a reusable primitive or pattern — never a per-tenant mechanism. The
+Batch 3 additions (derived from the revenue-cycle-management tenant):
+
+- **EntityRelationship** (R13) — a standalone directed edge
+  (`subjectType/Id → relatedType/Id`, open `relationshipType`, optional
+  `Strength`) usable by **any** subject type, generalizing KnowledgeAsset's
+  embedded edges (R8). A risk-dependency chain (coder accuracy → denials → AR
+  aging → cash flow → churn) becomes **data the engine reads**, not hardcoded
+  logic. The knowledge graph keeps its own edges on `KnowledgeAsset`; this
+  entity covers everything else. Stored tenant-scoped; queried by subject.
+- **CompositeHealth rollup** (R14) — the documented pattern for an executive
+  rollup score. **No new mechanism:** wire `RollsUpInto` EntityRelationship
+  edges from the parent subject (each edge's `Strength` = that child's
+  weight), and `ICompositeHealthService.ComputeAsync` reads the children's
+  latest `ScoreRecord`s, aggregates them with
+  `StatisticalFunctionLibrary.CalculateWeightedRiskScore`, and writes the
+  result back as an ordinary `ScoreRecord` (`ScoreType` `CompositeHealth`,
+  provenance `AIGenerated`). A tenant wanting an executive rollup reuses this
+  — it does not reinvent it. WHICH children and WHAT weights are config (the
+  edges); the arithmetic and ScoreRecord discipline are the kernel's.
+- **Classification forecasting** (R15) — forecasts stay `ScoreRecord`s
+  (`ScoreType` `Forecast`); the `ContinuousTrend` vs `Classification` mode
+  lives in `Metadata["outputType"]`, never a schema field.
+  `ForecastClassificationAsync` predicts a probability (churn, resignation)
+  under the same `AIGenerated` + `AILearningFeedbackService` trust loop as the
+  trend path. The factors and weights are package/tenant-defined; the kernel
+  supplies only the weighted-sum + logistic arithmetic.
+- **CalculateWeightedRiskScore** (R16) — a generic weighted multi-factor
+  function in `StatisticalFunctionLibrary`, the same deliberate
+  kernel-arithmetic exception as NPV/IRR. Any tenant passes its own named,
+  weighted factor set (the RCM tenant's is Likelihood × Business/Compliance/
+  Financial/Reputation Impact × Recovery Time × AI Confidence); the factors
+  are domain logic, the aggregation is kernel-level.
+- **Recurrence pattern on RenewalCommitment** (R17) — `RecurrenceMonths` is
+  the **canonical** recurrence field: a value expresses an indefinite,
+  ongoing re-verification cadence (monthly OIG exclusion screening = `1`),
+  null is the one-time "expires once, then renewed" case. The human-readable
+  `RecurrencePattern` (OneTime/Monthly/Quarterly/Annual/…) is **derived**, not
+  stored — one source of truth, no second renewal mechanism.
+- **Regulated sensitivity tier is domain-neutral** (R6 amendment) — tier
+  enforcement (`SensitivityGuard`, rank-based `SensitivityTiers.AtLeast`) is
+  not securities-specific: the same `Regulated` tier that blocks deletion of
+  watched obligations and mandates access keys for securities issuers applies
+  unchanged to a HIPAA/OIG healthcare tenant. No parallel healthcare tier.
+
 ## 7. The Enterprise AI Operating System layer (Phases 1–6)
 
 Everything below is built **on** the kernel primitives above — new

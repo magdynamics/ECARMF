@@ -68,6 +68,13 @@ public static class StatisticalFunctionLibrary
         return sd == 0 ? 0 : (value - Mean(population)) / sd;
     }
 
+    /// <summary>Logistic (sigmoid) squashing 1/(1+e^-x) → (0,1). Arithmetic
+    /// primitive, same category as the rest of this library — it maps a raw
+    /// weighted score onto a probability for Classification forecasts
+    /// (Batch 3, Refinement 15). WHICH factors feed it stays package-defined.</summary>
+    public static decimal Logistic(decimal x) =>
+        1m / (1m + (decimal)Math.Exp((double)-x));
+
     /// <summary>95% confidence interval for the mean.</summary>
     public static (decimal Lower, decimal Upper) ConfidenceInterval95(IReadOnlyList<decimal> values)
     {
@@ -76,7 +83,31 @@ public static class StatisticalFunctionLibrary
         var margin = 1.96m * StandardDeviation(values) / (decimal)Math.Sqrt(values.Count);
         return (mean - margin, mean + margin);
     }
+
+    /// <summary>
+    /// Generic weighted multi-factor score (Batch 3, Refinement 16). Kernel
+    /// arithmetic — the same deliberate exception as NPV/IRR: the factors and
+    /// their weights are package-defined domain logic, only the aggregation is
+    /// here. Tenant-10's risk model (Likelihood × Business Impact × Compliance
+    /// × Financial × Reputation × Recovery Time × AI Confidence) is one factor
+    /// set; any tenant passes its own. Returns the weight-normalized sum
+    /// (Σ value·weight / Σ weight), so the result stays on the same scale as
+    /// the inputs regardless of how many factors or what the weights sum to.
+    /// Zero total weight yields 0 rather than dividing by zero.
+    /// </summary>
+    public static decimal CalculateWeightedRiskScore(IReadOnlyList<WeightedFactor> factors)
+    {
+        if (factors is null || factors.Count == 0) return 0;
+        var totalWeight = factors.Sum(f => f.Weight);
+        if (totalWeight == 0) return 0;
+        return factors.Sum(f => f.Value * f.Weight) / totalWeight;
+    }
 }
+
+/// <summary>One named, weighted input to <see cref="StatisticalFunctionLibrary
+/// .CalculateWeightedRiskScore"/>. Name is carried for provenance/audit; the
+/// math uses Value and Weight only.</summary>
+public readonly record struct WeightedFactor(string Name, decimal Value, decimal Weight);
 
 /// <summary>Financial arithmetic primitives (NPV like a spreadsheet's NPV()
 /// — a function, not domain logic).</summary>

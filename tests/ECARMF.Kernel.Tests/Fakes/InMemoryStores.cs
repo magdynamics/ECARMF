@@ -1,9 +1,11 @@
 using ECARMF.Kernel.Application.Audit;
 using ECARMF.Kernel.Application.Packages;
+using ECARMF.Kernel.Application.Relationships;
 using ECARMF.Kernel.Application.Scoring;
 using ECARMF.Kernel.Application.Transactions;
 using ECARMF.Kernel.Domain.Audit;
 using ECARMF.Kernel.Domain.Packages;
+using ECARMF.Kernel.Domain.Relationships;
 using ECARMF.Kernel.Domain.Scoring;
 using ECARMF.Kernel.Domain.Transactions;
 
@@ -208,4 +210,45 @@ public class InMemoryAuditLog : IAuditLog
             Items.Where(a => string.Equals(a.TenantId, tenantId, StringComparison.OrdinalIgnoreCase)
                           && a.OccurredAt >= from && a.OccurredAt <= to)
                 .OrderBy(a => a.OccurredAt).ToList());
+}
+
+public class InMemoryEntityRelationshipStore : IEntityRelationshipStore
+{
+    public List<EntityRelationship> Items { get; } = [];
+
+    public Task<EntityRelationship?> GetAsync(string tenantId, Guid id, CancellationToken ct = default) =>
+        Task.FromResult(Items.FirstOrDefault(r =>
+            string.Equals(r.TenantId, tenantId, StringComparison.OrdinalIgnoreCase) && r.Id == id));
+
+    public Task<IReadOnlyList<EntityRelationship>> GetAllAsync(string tenantId, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<EntityRelationship>>(
+            Items.Where(r => string.Equals(r.TenantId, tenantId, StringComparison.OrdinalIgnoreCase)).ToList());
+
+    public Task<IReadOnlyList<EntityRelationship>> GetBySubjectAsync(
+        string tenantId, string subjectType, string subjectId,
+        string? relationshipType = null, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<EntityRelationship>>(
+            Items.Where(r => string.Equals(r.TenantId, tenantId, StringComparison.OrdinalIgnoreCase)
+                          && string.Equals(r.SubjectType, subjectType, StringComparison.OrdinalIgnoreCase)
+                          && string.Equals(r.SubjectId, subjectId, StringComparison.OrdinalIgnoreCase)
+                          && (relationshipType is null
+                              || string.Equals(r.RelationshipType, relationshipType, StringComparison.OrdinalIgnoreCase)))
+                .ToList());
+
+    public Task AddAsync(EntityRelationship relationship, CancellationToken ct = default)
+    {
+        Items.Add(relationship);
+        return Task.CompletedTask;
+    }
+
+    public Task UpdateAsync(EntityRelationship relationship, CancellationToken ct = default)
+    {
+        Items.RemoveAll(r => r.Id == relationship.Id);
+        Items.Add(relationship);
+        return Task.CompletedTask;
+    }
+
+    public Task<bool> RemoveAsync(string tenantId, Guid id, CancellationToken ct = default) =>
+        Task.FromResult(Items.RemoveAll(r =>
+            string.Equals(r.TenantId, tenantId, StringComparison.OrdinalIgnoreCase) && r.Id == id) > 0);
 }

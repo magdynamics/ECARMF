@@ -85,4 +85,7 @@ public static class AuditCategories
     public const string FinancialStatementExtracted = "FinancialStatementExtracted";
     public const string FinancialStatementReviewed = "FinancialStatementReviewed";
     public const string GhostTenantPurged = "GhostTenantPurged";
+    public const string EntityRelationshipDefined = "EntityRelationshipDefined";
+    public const string EntityRelationshipRemoved = "EntityRelationshipRemoved";
+    public const string CompositeHealthComputed = "CompositeHealthComputed";
 }
