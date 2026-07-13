@@ -41,4 +41,26 @@ public class KnowledgePackageManifest : UniversalBaseEntity
     public List<KnowledgeAsset> KnowledgeAssets { get; set; } = [];
 
     public List<AIExtractionTemplateDeclaration> AiExtractionTemplates { get; set; } = [];
+
+    /// <summary>Earlier package drafts this one explicitly replaces (TCEL
+    /// P2.1). Declared by the REPLACING package only — the superseded manifest
+    /// is immutable history. "SupersededBy" is never stored; it is derived by
+    /// scanning other manifests' Supersedes (one source of truth, no drift).</summary>
+    public List<PackageReference> Supersedes { get; set; } = [];
+
+    /// <summary>Package ids this one aggregates/summarizes while they stay
+    /// active (TCEL P2.3) — distinct from Supersedes, which replaces. The
+    /// "consolidation is real" check (P3.2) validates these against content.</summary>
+    public List<string> Consolidates { get; set; } = [];
+}
+
+/// <summary>A reference to another package by id and optional exact version
+/// (TCEL P2.1). Unlike <see cref="PackageDependency"/> (a minimum version that
+/// must be active), this is a pointer to a specific prior draft.</summary>
+public class PackageReference
+{
+    public string PackageId { get; set; } = string.Empty;
+
+    /// <summary>Exact version referenced; null means "any version of it".</summary>
+    public string? PackageVersion { get; set; }
 }

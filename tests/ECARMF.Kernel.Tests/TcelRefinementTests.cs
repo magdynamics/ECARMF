@@ -179,6 +179,84 @@ public class TcelRefinementTests
         Assert.Contains(ledger.Warnings, w => w.Contains("cycle") && w.Contains("cyc.a") && w.Contains("cyc.b"));
     }
 
+    // ---- P2.1 supersedes ----
+
+    [Fact]
+    public void P2_1_self_supersede_is_a_validation_error()
+    {
+        var m = Pkg("pkg.x", "2.0.0");
+        m.Supersedes = [new PackageReference { PackageId = "pkg.x" }];
+        var errors = ManifestValidator.Validate(m, new EventRegistry());
+        Assert.Contains(errors, e => e.Contains("cannot supersede itself"));
+    }
+
+    [Fact]
+    public async Task P2_1_superseding_a_still_active_package_warns_but_does_not_deactivate_it()
+    {
+        var loader = CreateLoader();
+        await loader.LoadAsync(Tenant, Pkg("legacy.pkg", "1.0.0"));
+        await loader.ActivateAsync(Tenant, "legacy.pkg", "1.0.0");
+
+        var replacement = Pkg("new.pkg", "1.0.0");
+        replacement.Supersedes = [new PackageReference { PackageId = "legacy.pkg" }];
+        await loader.LoadAsync(Tenant, replacement);
+        var result = await loader.ActivateAsync(Tenant, "new.pkg", "1.0.0");
+
+        Assert.True(result.Success);
+        Assert.Contains(result.Warnings, w => w.Contains("legacy.pkg") && w.Contains("still active"));
+        // Not auto-deactivated: the legacy package is untouched.
+        var legacy = await _store.GetAsync(Tenant, "legacy.pkg", "1.0.0");
+        Assert.Equal(PackageLoadState.Active, legacy!.State);
+        Assert.Contains(_audit.Items, a => a.Category == "PackageSuperseded");
+    }
+
+    // ---- P2.2 agent Identity block ----
+
+    [Fact]
+    public async Task P2_2_agent_without_owner_loads_with_a_warning()
+    {
+        var loader = CreateLoader();
+        var m = Pkg("agentpkg", "1.0.0");
+        m.Agents = [new AgentDeclaration { AgentId = "coding.ai", Name = "Coding AI", Persona = "You review medical coding." }];
+
+        var result = await loader.LoadAsync(Tenant, m);
+
+        Assert.True(result.Success); // warning never blocks
+        Assert.Contains(result.Warnings, w => w.Contains("coding.ai") && w.Contains("Owner"));
+    }
+
+    [Fact]
+    public async Task P2_2_agent_with_full_identity_block_loads_clean()
+    {
+        var loader = CreateLoader();
+        var m = Pkg("agentpkg2", "1.0.0");
+        m.Agents =
+        [
+            new AgentDeclaration
+            {
+                AgentId = "hipaa.ai", Name = "HIPAA AI", Persona = "You advise on HIPAA.",
+                Owner = "Compliance", IndependentValidator = "Internal Audit", RiskTier = "Regulated",
+                Prohibited = ["never state a breach has legally occurred"]
+            }
+        ];
+
+        var result = await loader.LoadAsync(Tenant, m);
+
+        Assert.True(result.Success);
+        Assert.DoesNotContain(result.Warnings, w => w.Contains("Owner"));
+    }
+
+    // ---- P2.3 consolidates (schema half; behavior is PR4/P3.2) ----
+
+    [Fact]
+    public void P2_3_self_consolidate_is_a_validation_error()
+    {
+        var m = Pkg("master.pkg", "1.0.0");
+        m.Consolidates = ["master.pkg"];
+        var errors = ManifestValidator.Validate(m, new EventRegistry());
+        Assert.Contains(errors, e => e.Contains("cannot consolidate itself"));
+    }
+
     // ---- Regression: the 23 shipped packages ----
 
     [Fact]

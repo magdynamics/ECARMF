@@ -39,6 +39,27 @@ public static class ManifestValidator
                 errors.Add($"Dependency '{dependency.PackageId}' has invalid MinimumVersion '{dependency.MinimumVersion}'.");
         }
 
+        // Supersedes / consolidates (TCEL P2.1/P2.3): structural checks only.
+        // "Consolidation is real" and "still-active superseded package" are
+        // load-time behaviors handled in PackageLoader, not here.
+        foreach (var superseded in manifest.Supersedes)
+        {
+            if (string.IsNullOrWhiteSpace(superseded.PackageId))
+                errors.Add("A 'supersedes' entry is missing its PackageId.");
+            else if (!string.IsNullOrWhiteSpace(manifest.PackageId)
+                && string.Equals(superseded.PackageId, manifest.PackageId, StringComparison.OrdinalIgnoreCase))
+                errors.Add($"Package '{manifest.PackageId}' cannot supersede itself.");
+        }
+
+        foreach (var consolidated in manifest.Consolidates)
+        {
+            if (string.IsNullOrWhiteSpace(consolidated))
+                errors.Add("A 'consolidates' entry is empty.");
+            else if (!string.IsNullOrWhiteSpace(manifest.PackageId)
+                && string.Equals(consolidated, manifest.PackageId, StringComparison.OrdinalIgnoreCase))
+                errors.Add($"Package '{manifest.PackageId}' cannot consolidate itself.");
+        }
+
         CheckNames(errors, "entity", manifest.Entities.Select(e => e.EntityTypeName));
         CheckNames(errors, "event", manifest.Events.Select(e => e.EventName));
         CheckNames(errors, "rule", manifest.Rules.Select(r => r.RuleId));
@@ -207,6 +228,27 @@ public static class ManifestValidator
         }
 
         return errors;
+    }
+
+    /// <summary>
+    /// Non-blocking, manifest-level advisories (TCEL). Kept separate from
+    /// Validate so warnings never leak into the error list that blocks a load.
+    /// Currently: an agent missing its Owner (P2.2 Identity block). Heuristics
+    /// that need the stored/active package set (overlap, consolidation) live in
+    /// PackageLoader, not here.
+    /// </summary>
+    public static IReadOnlyList<string> CollectWarnings(KnowledgePackageManifest manifest)
+    {
+        var warnings = new List<string>();
+
+        foreach (var agent in manifest.Agents)
+        {
+            var label = string.IsNullOrWhiteSpace(agent.AgentId) ? "(unnamed agent)" : agent.AgentId;
+            if (string.IsNullOrWhiteSpace(agent.Owner))
+                warnings.Add($"Agent '{label}' has no Owner — fill in the Identity block (Owner, IndependentValidator, RiskTier).");
+        }
+
+        return warnings;
     }
 
     /// <summary>Pads "1.0" style versions so System.Version accepts one-part versions too.</summary>

@@ -36,4 +36,27 @@ public class AgentDeclaration
     /// consult service, not left as a persona suggestion the model could
     /// drop.</summary>
     public string? OutputDisclaimer { get; set; }
+
+    // ---- Identity block (TCEL P2.2) ----
+    // The T9-002–006 agent-spec structure, restored as first-class fields so
+    // authors fill them in rather than reconstruct them from memory. All
+    // optional (existing packages omit them); a missing Owner is a warning,
+    // never a load error. The "Allowed" side is already ContextSources +
+    // Persona, so only the Prohibited side is added here.
+
+    /// <summary>Team or role accountable for this agent.</summary>
+    public string? Owner { get; set; }
+
+    /// <summary>Who independently validates the agent's outputs (a segregation
+    /// role distinct from the Owner).</summary>
+    public string? IndependentValidator { get; set; }
+
+    /// <summary>Open risk-tier tag (do NOT enum it — same open-tag philosophy
+    /// as ScoreRecord.riskType): e.g. Low, Elevated, Regulated.</summary>
+    public string? RiskTier { get; set; }
+
+    /// <summary>Explicit "must not" list for the agent, beyond the kernel's
+    /// non-negotiable guardrails — e.g. "never quote a specific denial code",
+    /// "never advise on individual compensation".</summary>
+    public List<string> Prohibited { get; set; } = [];
 }

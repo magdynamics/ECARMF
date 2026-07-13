@@ -37,6 +37,9 @@ public static class PackageEndpoints
                 return TenantResolution.MissingTenantResult();
 
             var packages = await store.GetAllAsync(tenantId, ct);
+
+            // supersededBy is DERIVED (TCEL P2.1) — never stored on the older
+            // manifest — by scanning every package's Supersedes list.
             var summaries = packages.Select(p => new
             {
                 p.Manifest.PackageId,
@@ -48,7 +51,16 @@ public static class PackageEndpoints
                 Entities = p.Manifest.Entities.Count,
                 Rules = p.Manifest.Rules.Count,
                 Events = p.Manifest.Events.Count,
-                Capabilities = p.Manifest.Capabilities.Count
+                Capabilities = p.Manifest.Capabilities.Count,
+                Supersedes = p.Manifest.Supersedes.Select(s => s.PackageId).ToList(),
+                Consolidates = p.Manifest.Consolidates,
+                SupersededBy = packages
+                    .Where(other => other.Manifest.Supersedes.Any(s =>
+                        string.Equals(s.PackageId, p.Manifest.PackageId, StringComparison.OrdinalIgnoreCase)
+                        && (string.IsNullOrWhiteSpace(s.PackageVersion)
+                            || string.Equals(s.PackageVersion, p.Manifest.PackageVersion, StringComparison.OrdinalIgnoreCase))))
+                    .Select(other => $"{other.Manifest.PackageId}@{other.Manifest.PackageVersion}")
+                    .ToList()
             });
             return Results.Ok(summaries);
         });

@@ -35,6 +35,11 @@ public static class AgentEndpoints
                 a.Declaration.ContextSources,
                 a.Declaration.SampleQuestions,
                 a.Declaration.OutputDisclaimer,
+                // Identity block (TCEL P2.2) — surfaced read-only.
+                a.Declaration.Owner,
+                a.Declaration.IndependentValidator,
+                a.Declaration.RiskTier,
+                a.Declaration.Prohibited,
                 a.PackageId,
                 a.PackageVersion
             }));

@@ -68,7 +68,7 @@ public class PackageLoader : IPackageLoader
         await _store.AddAsync(tenantId, manifest, PackageLoadState.Staged, null, ct);
         await AuditLifecycleAsync(tenantId, manifest, AuditCategories.PackageLoaded,
             $"Package '{manifest.PackageId}' v{manifest.PackageVersion} staged.", null, ct);
-        return PackageOperationResult.Ok(PackageLoadState.Staged);
+        return PackageOperationResult.Ok(PackageLoadState.Staged, ManifestValidator.CollectWarnings(manifest));
     }
 
     public async Task<PackageOperationResult> ActivateAsync(string tenantId, string packageId, string packageVersion, CancellationToken ct = default)
@@ -122,7 +122,45 @@ public class PackageLoader : IPackageLoader
         await _store.UpdateStateAsync(tenantId, packageId, packageVersion, PackageLoadState.Active, null, ct);
         await AuditLifecycleAsync(tenantId, stored.Manifest, AuditCategories.PackageActivated,
             $"Package '{packageId}' v{packageVersion} activated.", null, ct);
-        return PackageOperationResult.Ok(PackageLoadState.Active);
+
+        // Supersede resolution (TCEL P2.1): warn — do NOT auto-deactivate. A
+        // superseded package that is still active is a deliberate operator
+        // decision to unwind, not a side effect of activating its replacement.
+        var supersedeWarnings = await ResolveSupersedesAsync(tenantId, stored.Manifest, ct);
+        return PackageOperationResult.Ok(PackageLoadState.Active, supersedeWarnings);
+    }
+
+    private async Task<IReadOnlyList<string>> ResolveSupersedesAsync(
+        string tenantId, KnowledgePackageManifest manifest, CancellationToken ct)
+    {
+        if (manifest.Supersedes.Count == 0)
+        {
+            return [];
+        }
+
+        var actives = await _store.GetByStateAsync(tenantId, PackageLoadState.Active, ct);
+        var warnings = new List<string>();
+
+        foreach (var reference in manifest.Supersedes)
+        {
+            var stillActive = actives.Where(p =>
+                string.Equals(p.Manifest.PackageId, reference.PackageId, StringComparison.OrdinalIgnoreCase)
+                && (string.IsNullOrWhiteSpace(reference.PackageVersion)
+                    || string.Equals(p.Manifest.PackageVersion, reference.PackageVersion, StringComparison.OrdinalIgnoreCase)));
+
+            foreach (var superseded in stillActive)
+            {
+                warnings.Add(
+                    $"'{manifest.PackageId}' v{manifest.PackageVersion} supersedes '{superseded.Manifest.PackageId}' " +
+                    $"v{superseded.Manifest.PackageVersion}, which is still active — deactivate it deliberately.");
+                await AuditLifecycleAsync(tenantId, manifest, AuditCategories.PackageSuperseded,
+                    $"Package '{manifest.PackageId}' v{manifest.PackageVersion} supersedes still-active " +
+                    $"'{superseded.Manifest.PackageId}' v{superseded.Manifest.PackageVersion}.",
+                    "Superseded package remains active until the operator deactivates it.", ct);
+            }
+        }
+
+        return warnings;
     }
 
     public async Task<PackageOperationResult> DeactivateAsync(string tenantId, string packageId, string packageVersion, CancellationToken ct = default)
