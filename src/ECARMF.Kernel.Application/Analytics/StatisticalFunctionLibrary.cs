@@ -102,6 +102,34 @@ public static class StatisticalFunctionLibrary
         if (totalWeight == 0) return 0;
         return factors.Sum(f => f.Value * f.Weight) / totalWeight;
     }
+
+    /// <summary>
+    /// Multiplicative multi-factor risk score (Batch 3, Refinement 16, second
+    /// form): the PRODUCT of factors, each optionally raised to its weight —
+    /// Π (valueᵢ ^ weightᵢ). A plain product (all weights 1) models the
+    /// classic risk formula Likelihood × Impact × … × Confidence; weights let
+    /// a package dial each factor's influence without changing the shape. This
+    /// is the multiplicative sibling of <see cref="CalculateWeightedRiskScore"/>
+    /// (which is additive); a risk model is one or the other, so the package
+    /// picks. Kernel arithmetic only — the factors and weights are
+    /// package-defined domain logic, same exception category as NPV/IRR.
+    /// Empty input yields 0 (no risk expressed); a zero-valued factor
+    /// legitimately drives the product to 0.
+    /// </summary>
+    public static decimal CalculateMultiplicativeRiskScore(IReadOnlyList<WeightedFactor> factors)
+    {
+        if (factors is null || factors.Count == 0) return 0;
+        var product = 1m;
+        foreach (var factor in factors)
+        {
+            // weight 1 (the default) is a plain multiplicand; other weights
+            // apply valueᵢ^weightᵢ so a factor can be emphasised or softened.
+            product *= factor.Weight == 1m
+                ? factor.Value
+                : (decimal)Math.Pow((double)factor.Value, (double)factor.Weight);
+        }
+        return product;
+    }
 }
 
 /// <summary>One named, weighted input to <see cref="StatisticalFunctionLibrary

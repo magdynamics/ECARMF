@@ -32,6 +32,29 @@ public class Batch3RefinementTests
     }
 
     [Fact]
+    public void R16_multiplicative_risk_score_is_the_product_of_factors()
+    {
+        // Tenant-10's model: Likelihood x Business Impact x ... (plain product).
+        var factors = new[]
+        {
+            new WeightedFactor("Likelihood", 0.5m, 1m),
+            new WeightedFactor("BusinessImpact", 0.8m, 1m),
+            new WeightedFactor("AIConfidence", 0.9m, 1m)
+        };
+        // 0.5 * 0.8 * 0.9 = 0.36
+        Assert.Equal(0.36m, StatisticalFunctionLibrary.CalculateMultiplicativeRiskScore(factors));
+
+        // A zero factor legitimately zeroes the product; empty is 0.
+        Assert.Equal(0m, StatisticalFunctionLibrary.CalculateMultiplicativeRiskScore(
+            new[] { new WeightedFactor("x", 0m, 1m), new WeightedFactor("y", 0.9m, 1m) }));
+        Assert.Equal(0m, StatisticalFunctionLibrary.CalculateMultiplicativeRiskScore(Array.Empty<WeightedFactor>()));
+
+        // A weight applies value^weight: 0.5^2 * 1 = 0.25.
+        Assert.Equal(0.25m, StatisticalFunctionLibrary.CalculateMultiplicativeRiskScore(
+            new[] { new WeightedFactor("emphasised", 0.5m, 2m), new WeightedFactor("flat", 1m, 1m) }));
+    }
+
+    [Fact]
     public async Task R13_R14_composite_health_rolls_up_child_scores_by_edge_weight()
     {
         var relationships = new InMemoryEntityRelationshipStore();
