@@ -140,6 +140,11 @@ function App() {
   const [navOpen, setNavOpen] = useState(false)
   const [knownTenants, setKnownTenants] = useState<string[]>([])
   const [tenantWarning, setTenantWarning] = useState<string | null>(null)
+  // When the deployment is key-only (header identity disabled), an
+  // unauthenticated visitor must sign in with an access key — the header-mode
+  // Tenant/As controls do nothing. Detect the mode so we can show a real
+  // sign-in screen instead of a dead console.
+  const [keyOnly, setKeyOnly] = useState(false)
 
   function openTab(next: string) {
     setTab(next)
@@ -227,6 +232,15 @@ function App() {
     setUserState(id)
   }
 
+  // Learn whether this deployment allows header identity (dev) or is key-only
+  // (production lockdown) so an unauthenticated visitor gets a sign-in screen.
+  useEffect(() => {
+    fetch('/auth-mode')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((m) => { if (m) setKeyOnly(m.headerIdentityAllowed === false) })
+      .catch(() => {})
+  }, [])
+
   function signIn() {
     setApiKey(apiKeyInput.trim())
     setApiKeyInput('')
@@ -274,6 +288,43 @@ function App() {
       )}
     </section>
   )
+
+  // Key-only deployment, not signed in: show a dedicated sign-in screen so the
+  // access key is the obvious (and only) way in — the header-mode console would
+  // just 401 on every call and look broken.
+  if (keyOnly && !signedInWithKey) {
+    return (
+      <div className="app">
+        <header className="topbar">
+          <div className="brand">
+            <h1>ECARMF <span className="accent">Platform Kernel</span></h1>
+          </div>
+        </header>
+        <div className="signin-screen">
+          <section className="panel signin-card">
+            <h2>Sign in</h2>
+            <p className="muted">
+              This platform requires an access key. Paste your operator or client key to continue.
+            </p>
+            <label className="signin-key">
+              Access key
+              <input
+                type="password"
+                placeholder="ecarmf_…"
+                autoComplete="off"
+                name="ecarmf-access-key"
+                value={apiKeyInput}
+                onChange={(e) => setApiKeyInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && apiKeyInput.trim() && signIn()}
+                autoFocus
+              />
+            </label>
+            <button onClick={signIn} disabled={!apiKeyInput.trim()}>Sign in</button>
+          </section>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="app">

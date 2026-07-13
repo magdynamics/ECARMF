@@ -549,3 +549,27 @@ select {
   padding: 0.45rem 0.6rem;
   font-size: 0.85rem;
 }
+
+/* Key-only sign-in screen (shown when not authenticated on a locked deployment) */
+.signin-screen {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 4rem 1rem;
+}
+.signin-card {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+.signin-card h2 { margin: 0; }
+.signin-key {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+.signin-key input { width: 100%; }
+.signin-card > button { align-self: flex-start; }

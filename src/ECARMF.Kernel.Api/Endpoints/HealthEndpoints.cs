@@ -28,6 +28,14 @@ public static class HealthEndpoints
             utc = DateTimeOffset.UtcNow
         }));
 
+        // Auth mode: public (non-/api so the auth middleware never gates it) so
+        // the UI can show a proper sign-in screen when the deployment is
+        // key-only, instead of a dead header-identity bar.
+        app.MapGet("/auth-mode", (IConfiguration config) => Results.Ok(new
+        {
+            headerIdentityAllowed = config.GetValue("Security:AllowHeaderIdentity", true)
+        }));
+
         // Readiness: can we actually serve requests (is the DB reachable)?
         // A balancer should drain traffic when this returns 503.
         app.MapGet("/health/ready", async (ECARMFDbContext db, CancellationToken ct) =>
