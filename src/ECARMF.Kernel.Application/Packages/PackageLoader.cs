@@ -65,10 +65,59 @@ public class PackageLoader : IPackageLoader
             return PackageOperationResult.Fail(PackageLoadState.Failed, cycleError);
         }
 
+        var stored = await _store.GetAllAsync(tenantId, ct);
+
+        // Consolidation-is-real, error half (TCEL P3.2): consolidating a
+        // package that was never loaded for this tenant is the T9-015-024
+        // failure verbatim — a "master" catalog aggregating nothing.
+        var unknownConsolidations = manifest.Consolidates
+            .Where(c => !string.IsNullOrWhiteSpace(c)
+                && !stored.Any(p => string.Equals(p.Manifest.PackageId, c, StringComparison.OrdinalIgnoreCase)))
+            .Select(c => $"Package '{manifest.PackageId}' declares consolidation of '{c}', which was never loaded for this tenant.")
+            .ToList();
+        if (unknownConsolidations.Count > 0)
+        {
+            var joined = string.Join(" ", unknownConsolidations);
+            await _store.AddAsync(tenantId, manifest, PackageLoadState.Failed, joined, ct);
+            await AuditLifecycleAsync(tenantId, manifest, AuditCategories.PackageFailed,
+                $"Package '{manifest.PackageId}' v{manifest.PackageVersion} rejected: consolidates unknown package(s).", joined, ct);
+            return PackageOperationResult.Fail(PackageLoadState.Failed, unknownConsolidations);
+        }
+
         await _store.AddAsync(tenantId, manifest, PackageLoadState.Staged, null, ct);
         await AuditLifecycleAsync(tenantId, manifest, AuditCategories.PackageLoaded,
             $"Package '{manifest.PackageId}' v{manifest.PackageVersion} staged.", null, ct);
-        return PackageOperationResult.Ok(PackageLoadState.Staged, ManifestValidator.CollectWarnings(manifest));
+
+        // Non-blocking advisories gathered at stage time (P2.2, P3.1, P3.2).
+        var warnings = new List<string>(ManifestValidator.CollectWarnings(manifest));
+        warnings.AddRange(PackageHeuristics.AgentOverlapWarnings(
+            _registries.GetFor(tenantId).Agents.GetAll(), manifest));
+        warnings.AddRange(ConsolidationReferenceWarnings(manifest, stored));
+        return PackageOperationResult.Ok(PackageLoadState.Staged, warnings);
+    }
+
+    /// <summary>P3.2 warning half: a consolidated package that exists but whose
+    /// ids/name the incoming manifest never references — the consolidation may
+    /// be declared but not actually populated (a tripwire, not proof).</summary>
+    private static IReadOnlyList<string> ConsolidationReferenceWarnings(
+        KnowledgePackageManifest manifest, IReadOnlyList<StoredPackage> stored)
+    {
+        var warnings = new List<string>();
+        foreach (var consolidatedId in manifest.Consolidates.Where(c => !string.IsNullOrWhiteSpace(c)))
+        {
+            var consolidated = stored.FirstOrDefault(p =>
+                string.Equals(p.Manifest.PackageId, consolidatedId, StringComparison.OrdinalIgnoreCase));
+            if (consolidated is null) continue; // unknown ids are the error path above
+
+            if (!PackageHeuristics.ReferencesConsolidated(manifest, consolidatedId, consolidated.Manifest))
+            {
+                var idCount = PackageHeuristics.DeclaredIds(consolidated.Manifest).Count;
+                warnings.Add(
+                    $"Package '{manifest.PackageId}' declares consolidation of '{consolidatedId}' but references none " +
+                    $"of its {idCount} declared ids — the consolidation may be declared but not populated.");
+            }
+        }
+        return warnings;
     }
 
     public async Task<PackageOperationResult> ActivateAsync(string tenantId, string packageId, string packageVersion, CancellationToken ct = default)

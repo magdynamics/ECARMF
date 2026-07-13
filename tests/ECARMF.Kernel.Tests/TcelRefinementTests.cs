@@ -257,6 +257,127 @@ public class TcelRefinementTests
         Assert.Contains(errors, e => e.Contains("cannot consolidate itself"));
     }
 
+    // ---- P3.1 agent semantic-overlap (warning only) ----
+
+    private async Task ActivateAgentAsync(string packageId, AgentDeclaration agent)
+    {
+        var loader = CreateLoader();
+        var m = Pkg(packageId, "1.0.0");
+        m.Agents = [agent];
+        await loader.LoadAsync(Tenant, m);
+        await loader.ActivateAsync(Tenant, packageId, "1.0.0");
+    }
+
+    [Fact]
+    public async Task P3_1_overlapping_agent_scope_warns_without_blocking()
+    {
+        await ActivateAgentAsync("exec.pkg", new AgentDeclaration
+        {
+            AgentId = "executive-advisor", Name = "Executive Advisor", Owner = "Exec",
+            Description = "Synthesis of cross domain scores for executive board consumption.",
+            Persona = "You produce an executive board briefing synthesizing cross domain signals."
+        });
+
+        var loader = CreateLoader();
+        var incoming = Pkg("risk.pkg", "1.0.0");
+        incoming.Agents =
+        [
+            new AgentDeclaration
+            {
+                AgentId = "executive-risk", Name = "Executive Risk", Owner = "Risk",
+                Description = "Synthesis of cross domain risk for executive board consumption.",
+                Persona = "You produce an executive board briefing synthesizing cross domain risk signals."
+            }
+        ];
+
+        var result = await loader.LoadAsync(Tenant, incoming);
+
+        Assert.True(result.Success); // overlap never blocks
+        Assert.Contains(result.Warnings, w =>
+            w.Contains("executive-risk") && w.Contains("executive-advisor") && w.Contains("scope terms"));
+    }
+
+    [Fact]
+    public async Task P3_1_distinct_agents_do_not_warn()
+    {
+        await ActivateAgentAsync("coding.pkg", new AgentDeclaration
+        {
+            AgentId = "coding-quality", Name = "Coding Quality", Owner = "Coding",
+            Description = "Reviews medical coding accuracy per coder.",
+            Persona = "You assess procedure and diagnosis coding accuracy."
+        });
+
+        var loader = CreateLoader();
+        var incoming = Pkg("cred.pkg", "1.0.0");
+        incoming.Agents =
+        [
+            new AgentDeclaration
+            {
+                AgentId = "credentialing-status", Name = "Credentialing", Owner = "Cred",
+                Description = "Tracks provider credentialing revalidation deadlines.",
+                Persona = "You monitor payer enrollment and revalidation timelines."
+            }
+        ];
+
+        var result = await loader.LoadAsync(Tenant, incoming);
+
+        Assert.True(result.Success);
+        Assert.DoesNotContain(result.Warnings, w => w.Contains("scope terms"));
+    }
+
+    // ---- P3.2 consolidation-is-real ----
+
+    [Fact]
+    public async Task P3_2_consolidating_an_unknown_package_is_a_load_error()
+    {
+        var loader = CreateLoader();
+        var m = Pkg("master.catalog", "1.0.0");
+        m.Consolidates = ["never.loaded"];
+
+        var result = await loader.LoadAsync(Tenant, m);
+
+        Assert.False(result.Success);
+        Assert.Contains(result.Errors, e => e.Contains("never.loaded") && e.Contains("never loaded"));
+    }
+
+    [Fact]
+    public async Task P3_2_consolidation_without_any_reference_warns()
+    {
+        var loader = CreateLoader();
+        // A real source package with a distinctive control id.
+        await loader.LoadAsync(Tenant, PkgWithRule("source.controls", "1.0.0", "VR-042-distinct"));
+
+        // A "master" that consolidates it but mentions none of its ids.
+        var master = Pkg("master.catalog", "1.0.0");
+        master.Consolidates = ["source.controls"];
+        master.Capabilities = [new CapabilityDeclaration { CapabilityId = "master.cap", Name = "Master", Description = "freshly worded rows" }];
+
+        var result = await loader.LoadAsync(Tenant, master);
+
+        Assert.True(result.Success); // warning, not error
+        Assert.Contains(result.Warnings, w => w.Contains("source.controls") && w.Contains("references none"));
+    }
+
+    [Fact]
+    public async Task P3_2_consolidation_that_references_a_source_id_does_not_warn()
+    {
+        var loader = CreateLoader();
+        await loader.LoadAsync(Tenant, PkgWithRule("source.controls", "1.0.0", "VR-042-distinct"));
+
+        var master = Pkg("master.catalog", "1.0.0");
+        master.Consolidates = ["source.controls"];
+        // The master's own content actually references the source control id.
+        master.Capabilities =
+        [
+            new CapabilityDeclaration { CapabilityId = "master.cap", Name = "Master", Description = "Rolls up VR-042-distinct and peers." }
+        ];
+
+        var result = await loader.LoadAsync(Tenant, master);
+
+        Assert.True(result.Success);
+        Assert.DoesNotContain(result.Warnings, w => w.Contains("references none"));
+    }
+
     // ---- Regression: the 23 shipped packages ----
 
     [Fact]
