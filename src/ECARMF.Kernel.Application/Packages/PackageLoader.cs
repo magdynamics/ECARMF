@@ -48,6 +48,23 @@ public class PackageLoader : IPackageLoader
             return PackageOperationResult.Fail(PackageLoadState.Failed, errors);
         }
 
+        // Cross-package dependency cycle detection (TCEL P1.1). The static
+        // validator cannot see other packages; here we have the store. A cycle
+        // is only NEW if it runs through the incoming package, so we reject the
+        // load when this manifest closes a loop and name the full path — a bare
+        // "cycle detected" was never enough to resolve the TCEL clusters.
+        var cyclePath = await DetectIncomingCycleAsync(tenantId, manifest, ct);
+        if (cyclePath is not null)
+        {
+            var cycleError =
+                $"Activating '{manifest.PackageId}' would create a dependency cycle: {string.Join(" → ", cyclePath)}. " +
+                "A forward/loose coupling must be expressed in the description, never as a package dependency.";
+            await _store.AddAsync(tenantId, manifest, PackageLoadState.Failed, cycleError, ct);
+            await AuditLifecycleAsync(tenantId, manifest, AuditCategories.PackageFailed,
+                $"Package '{manifest.PackageId}' v{manifest.PackageVersion} rejected: dependency cycle.", cycleError, ct);
+            return PackageOperationResult.Fail(PackageLoadState.Failed, cycleError);
+        }
+
         await _store.AddAsync(tenantId, manifest, PackageLoadState.Staged, null, ct);
         await AuditLifecycleAsync(tenantId, manifest, AuditCategories.PackageLoaded,
             $"Package '{manifest.PackageId}' v{manifest.PackageVersion} staged.", null, ct);
@@ -205,6 +222,89 @@ public class PackageLoader : IPackageLoader
                     PackageLoadState.Failed, "Rehydration failed: dependency is no longer active.", ct);
             }
         }
+    }
+
+    /// <summary>
+    /// Returns the dependency cycle the incoming manifest would close, as a
+    /// path of package ids ending back at the incoming id (e.g. [a, b, a]), or
+    /// null when it introduces no cycle. Builds the directed graph
+    /// packageId → dependency packageIds over every stored package for the
+    /// tenant (any state, collapsed across versions) plus the incoming
+    /// manifest, then walks out-edges from the incoming node: a directed cycle
+    /// through a node is always re-entered by following its out-edges. A cycle
+    /// that does NOT include the incoming package is pre-existing state and is
+    /// deliberately ignored here (it never blocks an unrelated load).
+    /// </summary>
+    private async Task<IReadOnlyList<string>?> DetectIncomingCycleAsync(
+        string tenantId, KnowledgePackageManifest manifest, CancellationToken ct)
+    {
+        var incomingId = manifest.PackageId;
+        if (string.IsNullOrWhiteSpace(incomingId) || manifest.Dependencies.Count == 0)
+        {
+            return null;
+        }
+
+        var adjacency = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+
+        void AddEdges(string from, IEnumerable<string> to)
+        {
+            if (string.IsNullOrWhiteSpace(from)) return;
+            if (!adjacency.TryGetValue(from, out var set))
+            {
+                set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                adjacency[from] = set;
+            }
+            foreach (var t in to.Where(t => !string.IsNullOrWhiteSpace(t)))
+            {
+                set.Add(t);
+            }
+        }
+
+        foreach (var stored in await _store.GetAllAsync(tenantId, ct))
+        {
+            AddEdges(stored.Manifest.PackageId, stored.Manifest.Dependencies.Select(d => d.PackageId));
+        }
+        // The incoming manifest's edges override/extend any stored version's.
+        AddEdges(incomingId, manifest.Dependencies.Select(d => d.PackageId));
+
+        var path = new List<string>();
+        var inPath = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var explored = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        bool Walk(string node)
+        {
+            path.Add(node);
+            inPath.Add(node);
+
+            if (adjacency.TryGetValue(node, out var deps))
+            {
+                foreach (var next in deps)
+                {
+                    if (string.Equals(next, incomingId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        path.Add(incomingId); // close the loop for a readable path
+                        return true;
+                    }
+                    // A node already on the current path (but not the incoming
+                    // one) is a pre-existing cycle — skip it, don't recurse.
+                    if (inPath.Contains(next) || explored.Contains(next))
+                    {
+                        continue;
+                    }
+                    if (Walk(next))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            inPath.Remove(node);
+            explored.Add(node);
+            path.RemoveAt(path.Count - 1);
+            return false;
+        }
+
+        return Walk(incomingId) ? path : null;
     }
 
     private async Task<List<string>> ResolveDependenciesAsync(string tenantId, KnowledgePackageManifest manifest, CancellationToken ct)

@@ -27,6 +27,13 @@ public static class ManifestValidator
         {
             if (string.IsNullOrWhiteSpace(dependency.PackageId))
                 errors.Add("A dependency is missing its PackageId.");
+            // Self-dependency (TCEL P1.1): a package depending on itself is an
+            // unsatisfiable declaration and the degenerate 1-node cycle. Caught
+            // here in the pure manifest check; multi-package cycles need the
+            // stored package set and are detected in PackageLoader.
+            else if (!string.IsNullOrWhiteSpace(manifest.PackageId)
+                && string.Equals(dependency.PackageId, manifest.PackageId, StringComparison.OrdinalIgnoreCase))
+                errors.Add($"Package '{manifest.PackageId}' declares a dependency on itself.");
             if (!string.IsNullOrWhiteSpace(dependency.MinimumVersion)
                 && !System.Version.TryParse(NormalizeVersion(dependency.MinimumVersion), out _))
                 errors.Add($"Dependency '{dependency.PackageId}' has invalid MinimumVersion '{dependency.MinimumVersion}'.");
