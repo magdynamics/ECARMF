@@ -1,0 +1,102 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "TCEL Integration, Security & Certification",
+  "version": "1",
+  "status": "Published",
+  "owner": "TCEL",
+  "description": "TCEL Tenant-9 Integration/Security/Certification package (T9-009) - the platform meta-layer that completes the core-platform tier. Depends on Foundation. Several PL- controls (dependency validation, event idempotency, tenant isolation, AI execution separation) are things the ECARMF kernel ALREADY enforces structurally; carried here as declared TCEL controls for traceability, with the expressible ones enforced as rules. Entities: ECARMFCertificationResult, TCELPackageManifest. No domain agent. Does NOT re-declare RecordReceived.",
+
+  "packageId": "ecarmf.ai-tcel-integration-certification",
+  "name": "TCEL Integration, Security & Certification",
+  "packageVersion": "1.0.0",
+  "publisher": "MAG Dynamics",
+  "dependencies": [
+    { "packageId": "ecarmf.ai-tcel-foundation", "minimumVersion": "1.0.0" }
+  ],
+
+  "entities": [
+    {
+      "entityTypeName": "ECARMFCertificationResult",
+      "description": "The result of an ECARMF certification run over TCEL (T9-009 schema): domain scores, deficiencies, maturity level, grant/suspend outcome.",
+      "attributes": [
+        { "name": "certificationId", "dataType": "string", "required": true },
+        { "name": "maturityLevel", "dataType": "string", "required": false },
+        { "name": "criticalDeficiencies", "dataType": "number", "required": false },
+        { "name": "outcome", "dataType": "string", "required": true },
+        { "name": "asOf", "dataType": "string", "required": false }
+      ]
+    },
+    {
+      "entityTypeName": "TCELPackageManifestRecord",
+      "description": "A registered TCEL package-manifest record for platform governance (T9-009 package-manifest.schema.json).",
+      "attributes": [
+        { "name": "packageId", "dataType": "string", "required": true },
+        { "name": "packageVersion", "dataType": "string", "required": true },
+        { "name": "tier", "dataType": "string", "required": false },
+        { "name": "status", "dataType": "string", "required": true }
+      ]
+    }
+  ],
+
+  "events": [
+    { "eventName": "PackageValidated", "description": "Package validation completed." },
+    { "eventName": "SchemaCompatibilityFailed", "description": "Schema compatibility failed." },
+    { "eventName": "ConnectorHealthChanged", "description": "Connector health changed." },
+    { "eventName": "DataQualityIssueOpened", "description": "Quality issue opened." },
+    { "eventName": "SecurityIncidentOpened", "description": "Incident opened." },
+    { "eventName": "DeploymentCompleted", "description": "Deployment completed." },
+    { "eventName": "RollbackCompleted", "description": "Rollback completed." },
+    { "eventName": "DisasterRecoveryTestCompleted", "description": "DR test completed." },
+    { "eventName": "CertificationRunStarted", "description": "Certification started." },
+    { "eventName": "CertificationDomainCompleted", "description": "Domain completed." },
+    { "eventName": "CertificationFailed", "description": "Certification failed." },
+    { "eventName": "CertificationGranted", "description": "Certification granted." },
+    { "eventName": "CertificationSuspended", "description": "Certification suspended." }
+  ],
+
+  "rules": [
+    { "ruleId": "PL-001", "name": "Package dependency validation", "description": "Preventive/Critical (Platform Owner). Reject activation when declared dependencies are not satisfied.", "triggerEvent": "RecordReceived", "priority": 5,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "PackageActivationRequest" }, { "field": "dependenciesSatisfied", "operator": "Equals", "value": "false" } ],
+      "outcomeOnMatch": "Rejected", "reasonTemplate": "PL-001: package {packageId} activation rejected - declared dependencies not satisfied (Platform Owner)." },
+    { "ruleId": "PL-003", "name": "Tenant isolation", "description": "Preventive/Critical (Security). Deny cross-tenant data access.", "triggerEvent": "RecordReceived", "priority": 5,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "DataAccess" }, { "field": "crossTenant", "operator": "Equals", "value": "true" } ],
+      "outcomeOnMatch": "Rejected", "reasonTemplate": "PL-003: access denied - cross-tenant data access is prohibited (Security)." },
+    { "ruleId": "PL-004", "name": "Production deployment approval", "description": "Preventive/Critical (DevOps). Require an approver for a production deployment.", "triggerEvent": "RecordReceived", "priority": 10,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "ProductionDeployment" }, { "field": "approved", "operator": "Equals", "value": "false" } ],
+      "outcomeOnMatch": "Rejected", "reasonTemplate": "PL-004: production deployment rejected - no approver on file (DevOps)." },
+    { "ruleId": "PL-005", "name": "Signed artifacts", "description": "Preventive/Critical (Security). Reject an unsigned artifact.", "triggerEvent": "RecordReceived", "priority": 10,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "ArtifactDeploy" }, { "field": "signed", "operator": "Equals", "value": "false" } ],
+      "outcomeOnMatch": "Rejected", "reasonTemplate": "PL-005: artifact rejected - it is not signed (Security)." },
+    { "ruleId": "PL-008", "name": "Secrets isolation", "description": "Preventive/Critical (Security). Deny an operation that would expose a secret.", "triggerEvent": "RecordReceived", "priority": 5,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "SecretAccess" }, { "field": "wouldExpose", "operator": "Equals", "value": "true" } ],
+      "outcomeOnMatch": "Rejected", "reasonTemplate": "PL-008: denied - the operation would expose a secret (Security)." },
+    { "ruleId": "PL-009", "name": "AI execution separation", "description": "Preventive/Critical (AI Governance). Deny an agent's attempt to take a material action.", "triggerEvent": "RecordReceived", "priority": 5,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "AgentAction" }, { "field": "materialAction", "operator": "Equals", "value": "true" } ],
+      "outcomeOnMatch": "Rejected", "reasonTemplate": "PL-009: denied - an AI agent may not take material actions; execution is separated from advice (AI Governance)." },
+    { "ruleId": "PL-013", "name": "Critical deficiency gate", "description": "Governance/Critical (Certification Committee). Fail certification on a critical deficiency.", "triggerEvent": "RecordReceived", "priority": 10,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "CertificationCheck" }, { "field": "criticalDeficiency", "operator": "Equals", "value": "true" } ],
+      "outcomeOnMatch": "Rejected", "reasonTemplate": "PL-013: certification failed - a critical deficiency is present (Certification Committee)." },
+    { "ruleId": "PL-014", "name": "Model validation status", "description": "Preventive/Critical (Model Risk). Restrict use of a model with expired validation.", "triggerEvent": "RecordReceived", "priority": 10,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "ModelUse" }, { "field": "validationExpired", "operator": "Equals", "value": "true" } ],
+      "outcomeOnMatch": "Rejected", "reasonTemplate": "PL-014: model use restricted - its validation has expired (Model Risk)." }
+  ],
+
+  "capabilities": [
+    { "capabilityId": "ecarmf.tcel-integration-certification.PlatformCertification", "name": "TCEL Platform Integration & Certification", "description": "Package/schema validation, tenant isolation, deployment and secrets security, connector health, DR, and the ECARMF certification framework for the TCEL tenant." }
+  ],
+
+  "knowledgeAssets": [
+    {
+      "assetId": "tcel-platform-control-catalog-2026",
+      "docKey": "tcel-platform-control-catalog",
+      "title": "TCEL Integration, Security & Certification Control Catalog (PL-001..020)",
+      "assetType": "ReferenceManual",
+      "docType": "ControlCatalog",
+      "issuer": "TCEL Certification Committee",
+      "jurisdiction": "US",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "summary": "The 20 deterministic PL- controls. PL-001/003/004/005/008/009/013/014 are enforced as executable rules (several - dependency validation, tenant isolation, AI execution separation - the ECARMF kernel also enforces structurally); the remainder (schema compatibility, connector completeness, event idempotency, audit correlation and data lineage evidence, DR reconciliation, emergency-change and policy-control traceability, dashboard lineage, digital-twin separation, certification expiry) require evidence, lineage, or idempotency mechanisms beyond the declarative condition model and are carried for traceability.",
+      "contentText": "PL-001 Package dependency validation | Preventive | Reject activation | Critical | Platform Owner. PL-002 Schema compatibility | Preventive | Reject breaking deployment | Critical | Architecture. PL-003 Tenant isolation | Preventive | Deny cross-tenant access | Critical | Security. PL-004 Production deployment approval | Preventive | Require approver | Critical | DevOps. PL-005 Signed artifacts | Preventive | Reject unsigned artifact | Critical | Security. PL-006 Connector completeness | Detective | Open quality incident | Critical | Integration Owner. PL-007 Event idempotency | Preventive | Prevent duplicate effect | Critical | Architecture. PL-008 Secrets isolation | Preventive | Deny secret exposure | Critical | Security. PL-009 AI execution separation | Preventive | Deny material action | Critical | AI Governance. PL-010 Audit correlation | Evidence | Require correlation ID | High | Audit. PL-011 Data lineage | Evidence | Require source-to-output lineage | Critical | Data Governance. PL-012 DR reconciliation | Preventive | Do not declare restored | Critical | Resilience Owner. PL-013 Critical deficiency gate | Governance | Fail certification | Critical | Certification Committee. PL-014 Model validation status | Preventive | Restrict expired model | Critical | Model Risk. PL-015 Board pack evidence freeze | Preventive | Reject mutable pack | Critical | Corporate Secretary. PL-016 Emergency change review | Corrective | Require retrospective review | High | Change Manager. PL-017 Policy-control traceability | Evidence | Fail certification if missing | Critical | CCO/CRO. PL-018 Dashboard lineage | Evidence | Restrict uncertified metric | High | Data Governance. PL-019 Digital twin separation | Preventive | Block production mutation | Critical | Architecture. PL-020 Certification expiry/review | Governance | Reassess on material change | High | Certification Committee."
+    }
+  ]
+}

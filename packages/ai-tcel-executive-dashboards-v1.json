@@ -1,0 +1,124 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "TCEL Executive Dashboards & Digital Twin",
+  "version": "1",
+  "status": "Published",
+  "owner": "TCEL",
+  "description": "TCEL Tenant-9 Executive Dashboards & Digital Twin package (T9-008). Depends on Foundation. The dashboards themselves are runtime DashboardDefinition config in the kernel (not package-versioned); this package contributes the GOVERNANCE around them: the widget-payload and digital-twin-scenario entities, the DB-001..020 dashboard/decision-room control catalog as executable rules where expressible plus a traceability knowledge asset, and ExecutiveAdvisor.AI - the SINGLE canonical cross-domain synthesizer for executive/Board decision packs (T9-016/017/038 feed it, never compete; per ADR-2026-07-12 item 9a). Does NOT re-declare RecordReceived.",
+
+  "packageId": "ecarmf.ai-tcel-executive-dashboards",
+  "name": "TCEL Executive Dashboards & Digital Twin",
+  "packageVersion": "1.0.0",
+  "publisher": "MAG Dynamics",
+  "dependencies": [
+    { "packageId": "ecarmf.ai-tcel-foundation", "minimumVersion": "1.0.0" }
+  ],
+
+  "entities": [
+    {
+      "entityTypeName": "DashboardWidgetPayload",
+      "description": "A dashboard widget's data payload with provenance (T9-008 dashboard-widget.schema.json): metric, source, as-of, actual/forecast/scenario label.",
+      "attributes": [
+        { "name": "widgetId", "dataType": "string", "required": true },
+        { "name": "metricId", "dataType": "string", "required": true },
+        { "name": "valueType", "dataType": "string", "required": false },
+        { "name": "source", "dataType": "string", "required": false },
+        { "name": "asOf", "dataType": "string", "required": false }
+      ]
+    },
+    {
+      "entityTypeName": "DigitalTwinScenario",
+      "description": "A digital-twin simulation scenario (T9-008 digital-twin-scenario.schema.json) - strictly separated from production execution and actual records.",
+      "attributes": [
+        { "name": "scenarioId", "dataType": "string", "required": true },
+        { "name": "name", "dataType": "string", "required": true },
+        { "name": "modelVersion", "dataType": "string", "required": false },
+        { "name": "status", "dataType": "string", "required": true }
+      ]
+    }
+  ],
+
+  "events": [
+    { "eventName": "DashboardMetricUpdated", "description": "Metric refreshed." },
+    { "eventName": "DashboardDataRestricted", "description": "Metric restricted due to data quality." },
+    { "eventName": "DigitalTwinSnapshotCreated", "description": "Snapshot created." },
+    { "eventName": "ScenarioCreated", "description": "Scenario created." },
+    { "eventName": "ScenarioCompleted", "description": "Scenario completed." },
+    { "eventName": "ScenarioFailed", "description": "Scenario failed." },
+    { "eventName": "DecisionRoomOpened", "description": "Decision room opened." },
+    { "eventName": "DecisionAlternativeAdded", "description": "Alternative added." },
+    { "eventName": "ExecutiveDecisionRecorded", "description": "Decision recorded." },
+    { "eventName": "DecisionOutcomeRecorded", "description": "Outcome recorded." },
+    { "eventName": "BoardPackFrozen", "description": "Board pack frozen." },
+    { "eventName": "BoardPackApproved", "description": "Board pack approved." },
+    { "eventName": "CriticalAlertOpened", "description": "Critical alert created." },
+    { "eventName": "AlertEscalated", "description": "Alert escalated." },
+    { "eventName": "MetricDefinitionChanged", "description": "Metric definition changed." }
+  ],
+
+  "rules": [
+    { "ruleId": "DB-001", "name": "Metric requires approved definition", "description": "Governance/Critical (Data Governance). Block publication of a metric with no approved definition.", "triggerEvent": "RecordReceived", "priority": 10,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "MetricPublication" }, { "field": "definitionApproved", "operator": "Equals", "value": "false" } ],
+      "outcomeOnMatch": "Rejected", "reasonTemplate": "DB-001: metric {metricId} publication blocked - no approved definition (Data Governance)." },
+    { "ruleId": "DB-003", "name": "Actual/forecast/scenario labeling", "description": "Preventive/Critical (Dashboard Owner). Block an ambiguous, unlabeled display.", "triggerEvent": "RecordReceived", "priority": 10,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "DashboardWidget" }, { "field": "valueTypeLabeled", "operator": "Equals", "value": "false" } ],
+      "outcomeOnMatch": "Rejected", "reasonTemplate": "DB-003: widget {widgetId} blocked - actual/forecast/scenario is not labeled (Dashboard Owner)." },
+    { "ruleId": "DB-004", "name": "Role-based dashboard access", "description": "Preventive/Critical (Security). Deny an unauthorized dashboard view.", "triggerEvent": "RecordReceived", "priority": 5,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "DashboardAccess" }, { "field": "authorized", "operator": "Equals", "value": "false" } ],
+      "outcomeOnMatch": "Rejected", "reasonTemplate": "DB-004: dashboard access denied - viewer is not authorized for this dashboard (Security)." },
+    { "ruleId": "DB-005", "name": "Digital twin separated from production", "description": "Preventive/Critical (Architecture). Deny a digital-twin action that touches production execution.", "triggerEvent": "RecordReceived", "priority": 5,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "DigitalTwinAction" }, { "field": "touchesProduction", "operator": "Equals", "value": "true" } ],
+      "outcomeOnMatch": "Rejected", "reasonTemplate": "DB-005: digital-twin action denied - it would touch production execution; the twin is strictly separated (Architecture)." },
+    { "ruleId": "DB-011", "name": "Stale data indicator", "description": "Preventive/Critical (Data Governance). Display a stale metric as Data Restricted.", "triggerEvent": "RecordReceived", "priority": 15,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "DashboardMetric" }, { "field": "stale", "operator": "Equals", "value": "true" } ],
+      "outcomeOnMatch": "Flagged", "reasonTemplate": "DB-011: metric {metricId} is stale - displayed as Data Restricted (Data Governance)." },
+    { "ruleId": "DB-012", "name": "Cross-tenant drill-down", "description": "Preventive/Critical (Security). Deny a cross-tenant drill-down.", "triggerEvent": "RecordReceived", "priority": 5,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "DashboardDrilldown" }, { "field": "crossTenant", "operator": "Equals", "value": "true" } ],
+      "outcomeOnMatch": "Rejected", "reasonTemplate": "DB-012: drill-down denied - cross-tenant access is not permitted (Security)." },
+    { "ruleId": "DB-015", "name": "Scenario cannot alter actual records", "description": "Preventive/Critical (Architecture). An immutable separation - a scenario may not write actual records.", "triggerEvent": "RecordReceived", "priority": 5,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "ScenarioWrite" }, { "field": "targetsActualRecords", "operator": "Equals", "value": "true" } ],
+      "outcomeOnMatch": "Rejected", "reasonTemplate": "DB-015: scenario write denied - a scenario may not alter actual records; separation is immutable (Architecture)." }
+  ],
+
+  "capabilities": [
+    { "capabilityId": "ecarmf.tcel-executive-dashboards.ExecutiveIntelligence", "name": "TCEL Executive Intelligence", "description": "Executive/Board dashboards, digital-twin simulation, decision rooms, board packs, and cross-domain synthesis for the TCEL tenant." }
+  ],
+
+  "agents": [
+    {
+      "agentId": "tcel.executiveadvisor.ai",
+      "name": "ExecutiveAdvisor.AI",
+      "description": "The SINGLE canonical cross-domain synthesizer for TCEL: assembles bank, trading, enterprise-risk, capital-allocation, and compliance outputs into executive/Board-facing decision packs. Advisory-only. Boundary: T9-016 DecisionIntelligence.AI, T9-017 ExecutiveInsights.AI, and T9-038 decision-support are FEEDERS to this agent, never competing synthesizers (ADR-2026-07-12 item 9a).",
+      "persona": "You are ExecutiveAdvisor.AI, the single cross-domain synthesizer for TCEL's executive and Board decision packs. You aggregate the outputs of BankRisk.AI, TradingRisk.AI, EnterpriseRisk.AI, CapitalAllocation.AI, and Compliance.AI into a coherent, evidence-backed executive picture - grounded ONLY in those governed outputs and the approved data you can see, always labeling each figure as actual, forecast, or scenario and citing its source and as-of time. You surface material dissent rather than hiding it. Every decision pack states scope, assumptions, confidence, alternatives, and the required decision authority. You synthesize and recommend; you never decide, approve, execute, or alter any record.",
+      "contextSources": ["scores", "deviations", "benchmarks", "allocations", "tasks"],
+      "sampleQuestions": [
+        "Give me the enterprise decision pack for this quarter's Board meeting.",
+        "Where do the risk, allocation, and compliance views disagree right now?",
+        "What are the top cross-domain issues needing an executive decision?"
+      ],
+      "owner": "CEO",
+      "independentValidator": "AI Governance / Model Risk Committee",
+      "riskTier": "Critical",
+      "prohibited": [
+        "decide, approve, or execute any action; alter any record",
+        "suppress material dissent; present a scenario or forecast as an actual; act as a competing synthesizer to the feeder agents"
+      ],
+      "outputDisclaimer": "Advisory only - ExecutiveAdvisor.AI synthesizes and recommends; every executive and Board decision is made by the authorized humans, not by this agent."
+    }
+  ],
+
+  "knowledgeAssets": [
+    {
+      "assetId": "tcel-dashboard-control-catalog-2026",
+      "docKey": "tcel-dashboard-control-catalog",
+      "title": "TCEL Executive Dashboard & Digital Twin Control Catalog (DB-001..020)",
+      "assetType": "ReferenceManual",
+      "docType": "ControlCatalog",
+      "issuer": "TCEL Data Governance",
+      "jurisdiction": "US",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "summary": "The 20 deterministic DB- controls. DB-001/003/004/005/011/012/015 are enforced as executable rules; the remainder (source/as-of evidence, simulation reproducibility snapshots, material-dissent visibility, board-pack freeze and export controls, alert-escalation timers, outcome tracking, model-version and data-quality gates, board decision audit retention) require evidence checks, timers, or retention beyond the declarative condition model and are carried for traceability.",
+      "contentText": "DB-001 Metric requires approved definition | Governance | Block publication | Critical | Data Governance. DB-002 Widget shows source and as-of | Evidence | Mark invalid if missing | High | Dashboard Owner. DB-003 Actual/forecast/scenario labeling | Preventive | Block ambiguous display | Critical | Dashboard Owner. DB-004 Role-based dashboard access | Preventive | Deny unauthorized view | Critical | Security. DB-005 Digital twin separated from production execution | Preventive | Deny execution | Critical | Architecture. DB-006 Simulation reproducibility | Evidence | Require snapshot/model/assumptions | High | Model Risk. DB-007 Material dissent visible | Governance | Block decision pack if suppressed | Critical | CRO/AI Governance. DB-008 Expired recommendation | Preventive | Block approval | High | Decision Owner. DB-009 Board pack frozen cut-off | Preventive | Version/freeze data | High | Corporate Secretary. DB-010 Manual metric override | Preventive | Require approval and disclosure | High | Data Owner. DB-011 Stale data indicator | Preventive | Display Data Restricted | Critical | Data Governance. DB-012 Cross-tenant drill-down | Preventive | Deny | Critical | Security. DB-013 Privileged matter access | Preventive | Need-to-know enforcement | Critical | Legal/CCO. DB-014 Alert escalation timer | Corrective | Escalate overdue alert | High | Risk Owner. DB-015 Scenario cannot alter actual records | Preventive | Immutable separation | Critical | Architecture. DB-016 Dashboard export control | Preventive | Watermark/log/restrict | High | Security. DB-017 Outcome tracking for material decision | Detective | Create follow-up task | High | Decision Owner. DB-018 Model version visible | Evidence | Block material scenario if missing | High | Model Risk. DB-019 Data-quality threshold | Preventive | Restrict metric/decision | Critical | Data Governance. DB-020 Board decision audit | Evidence | Retain rationale/approvals | Critical | Corporate Secretary."
+    }
+  ]
+}

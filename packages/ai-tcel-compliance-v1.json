@@ -1,0 +1,140 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "TCEL Compliance, Legal & Conduct",
+  "version": "1",
+  "status": "Published",
+  "owner": "TCEL",
+  "description": "TCEL Tenant-9 Compliance/Legal package (T9-006). Depends on Foundation + the core financial/risk/allocation packages (T9-001..005). Entities from the T9-006 schemas (ComplianceInvestigation, ManagerComplianceStatus, RegulatoryObligation - the last feeds CapitalAllocation.AI's Frozen/Restricted gates via ManagerComplianceStatusChanged); CP-001..020 control catalog as executable rules where expressible plus a traceability knowledge asset; Compliance.AI governed advisory agent. Boundary vs T9-002/003 domain compliance checks: this package owns enterprise compliance obligations, policy, conduct, financial crime, investigations, and legal holds. Omits PolicyPublished (Foundation owns) and ModelDriftDetected (Banking owns) to avoid event collisions; does NOT re-declare RecordReceived.",
+
+  "packageId": "ecarmf.ai-tcel-compliance",
+  "name": "TCEL Compliance, Legal & Conduct",
+  "packageVersion": "1.0.0",
+  "publisher": "MAG Dynamics",
+  "dependencies": [
+    { "packageId": "ecarmf.ai-tcel-foundation", "minimumVersion": "1.0.0" }
+  ],
+
+  "entities": [
+    {
+      "entityTypeName": "ComplianceInvestigation",
+      "description": "A compliance/legal investigation case (T9-006 schema).",
+      "attributes": [
+        { "name": "investigationId", "dataType": "string", "required": true },
+        { "name": "subjectType", "dataType": "string", "required": false },
+        { "name": "subjectId", "dataType": "string", "required": false },
+        { "name": "category", "dataType": "string", "required": false },
+        { "name": "severity", "dataType": "string", "required": false },
+        { "name": "status", "dataType": "string", "required": true }
+      ]
+    },
+    {
+      "entityTypeName": "ManagerComplianceStatus",
+      "description": "A manager's compliance/allocation-eligibility status (T9-006 schema). Frozen/Restricted gates CapitalAllocation.AI.",
+      "attributes": [
+        { "name": "managerId", "dataType": "string", "required": true },
+        { "name": "status", "dataType": "string", "required": true },
+        { "name": "openCriticalIssues", "dataType": "number", "required": false },
+        { "name": "asOf", "dataType": "string", "required": false }
+      ]
+    },
+    {
+      "entityTypeName": "RegulatoryObligation",
+      "description": "A mapped regulatory obligation applicable to TCEL activities (T9-006 schema).",
+      "attributes": [
+        { "name": "obligationId", "dataType": "string", "required": true },
+        { "name": "title", "dataType": "string", "required": true },
+        { "name": "jurisdiction", "dataType": "string", "required": false },
+        { "name": "applicability", "dataType": "string", "required": false },
+        { "name": "status", "dataType": "string", "required": true }
+      ]
+    }
+  ],
+
+  "events": [
+    { "eventName": "RegulatorySourceDiscovered", "description": "Source found." },
+    { "eventName": "ObligationApplicabilityChanged", "description": "Applicability approved/changed." },
+    { "eventName": "PolicyExceptionRequested", "description": "Exception requested." },
+    { "eventName": "ComplianceBreachDetected", "description": "Breach detected." },
+    { "eventName": "RestrictedTradeRejected", "description": "Trade rejected." },
+    { "eventName": "PersonalTradeAlertOpened", "description": "Alert opened." },
+    { "eventName": "SanctionsPotentialMatch", "description": "Potential match." },
+    { "eventName": "FinancialCrimeCaseOpened", "description": "Case opened." },
+    { "eventName": "ConflictDisclosed", "description": "Conflict disclosed." },
+    { "eventName": "InvestigationOpened", "description": "Case opened." },
+    { "eventName": "ComplaintReceived", "description": "Complaint received." },
+    { "eventName": "LegalHoldIssued", "description": "Hold issued." },
+    { "eventName": "RegulatoryFilingDue", "description": "Filing due." },
+    { "eventName": "ComplianceRecommendationCreated", "description": "AI recommendation created." },
+    { "eventName": "ManagerComplianceStatusChanged", "description": "Manager allocation-eligibility status changed." }
+  ],
+
+  "rules": [
+    { "ruleId": "CP-002", "name": "Restricted security", "description": "Preventive/Critical (CCO). Reject a trade in a restricted security.", "triggerEvent": "RecordReceived", "priority": 5,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "TradeComplianceCheck" }, { "field": "securityRestricted", "operator": "Equals", "value": "true" } ],
+      "outcomeOnMatch": "Rejected", "reasonTemplate": "CP-002: trade rejected - security {securityId} is restricted (CCO)." },
+    { "ruleId": "CP-003", "name": "Personal trade preclearance", "description": "Preventive/High (Compliance). Hold/reject an un-precleared personal trade.", "triggerEvent": "RecordReceived", "priority": 15,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "PersonalTrade" }, { "field": "precleared", "operator": "Equals", "value": "false" } ],
+      "outcomeOnMatch": "Flagged", "reasonTemplate": "CP-003: personal trade held - not precleared (Compliance)." },
+    { "ruleId": "CP-004", "name": "Unauthorized bank beneficiary", "description": "Preventive/Critical (Treasury/CCO). Reject a payment to an unauthorized beneficiary.", "triggerEvent": "RecordReceived", "priority": 5,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "CompliancePayment" }, { "field": "beneficiaryAuthorized", "operator": "Equals", "value": "false" } ],
+      "outcomeOnMatch": "Rejected", "reasonTemplate": "CP-004: payment rejected - beneficiary is not authorized (Treasury/CCO)." },
+    { "ruleId": "CP-005", "name": "Sanctions potential match", "description": "Preventive/Critical (Sanctions Officer). Hold and route a potential sanctions match for review.", "triggerEvent": "RecordReceived", "priority": 5,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "SanctionsScreen" }, { "field": "potentialMatch", "operator": "Equals", "value": "true" } ],
+      "outcomeOnMatch": "Flagged", "reasonTemplate": "CP-005: potential sanctions match - held and routed for review (Sanctions Officer)." },
+    { "ruleId": "CP-011", "name": "Legal hold deletion", "description": "Preventive/Critical (Legal). Block deletion of a record under legal hold.", "triggerEvent": "RecordReceived", "priority": 5,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "RecordDeletion" }, { "field": "underLegalHold", "operator": "Equals", "value": "true" } ],
+      "outcomeOnMatch": "Rejected", "reasonTemplate": "CP-011: deletion blocked - the record is under a legal hold (Legal)." },
+    { "ruleId": "CP-015", "name": "Unapproved policy activation", "description": "Preventive/Critical (CCO). Reject activation of an unapproved policy.", "triggerEvent": "RecordReceived", "priority": 10,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "PolicyActivation" }, { "field": "approved", "operator": "Equals", "value": "false" } ],
+      "outcomeOnMatch": "Rejected", "reasonTemplate": "CP-015: policy activation rejected - not approved (CCO)." },
+    { "ruleId": "CP-016", "name": "AI waiver/filing boundary", "description": "Preventive/Critical (Model Risk). Deny an agent's attempt to waive compliance or file directly.", "triggerEvent": "RecordReceived", "priority": 5,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "AgentAction" }, { "field": "actionClass", "operator": "Equals", "value": "ComplianceWaiver" } ],
+      "outcomeOnMatch": "Rejected", "reasonTemplate": "CP-016: denied - an AI agent may not waive compliance or file on its own; agents are advisory-only (Model Risk)." },
+    { "ruleId": "CP-019", "name": "Source authenticity/hash", "description": "Evidence/High (Compliance Technology). Block approval when the source hash is missing.", "triggerEvent": "RecordReceived", "priority": 20,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "ComplianceApproval" }, { "field": "sourceHashPresent", "operator": "Equals", "value": "false" } ],
+      "outcomeOnMatch": "Rejected", "reasonTemplate": "CP-019: compliance approval blocked - source authenticity hash missing (Compliance Technology)." }
+  ],
+
+  "capabilities": [
+    { "capabilityId": "ecarmf.tcel-compliance.ComplianceLegalIntelligence", "name": "TCEL Compliance & Legal Intelligence", "description": "Regulatory obligations, policy, conduct, financial crime, investigations, legal holds, and manager compliance status for the TCEL tenant." }
+  ],
+
+  "agents": [
+    {
+      "agentId": "tcel.compliance.ai",
+      "name": "Compliance.AI",
+      "description": "Governed compliance officer: researches approved official sources, maps obligations to TCEL activities, monitors policies and transactions, and prioritizes cases. Advisory-only. Boundary vs BankRisk.AI/TradingRisk.AI: those own domain risk; Compliance.AI owns regulatory obligations, conduct, and financial-crime compliance.",
+      "persona": "You are Compliance.AI, a governed compliance officer for TCEL. You research approved official sources, map obligations to TCEL activities, monitor policies and transactions, identify gaps and suspicious patterns, prioritize cases, and produce evidence-backed recommendations - grounded ONLY in the approved sources and data you can see, citing the specific obligation and source you relied on. You never assert that a violation has legally occurred, waive a requirement, approve an exception, or file on TCEL's behalf; a licensed compliance officer and General Counsel decide those. Every recommendation states its confidence, the obligation/policy reference, assumptions, and required approvers.",
+      "contextSources": ["references", "scores", "deviations", "records:ComplianceInvestigation", "records:ManagerComplianceStatus"],
+      "sampleQuestions": [
+        "Which regulatory obligations apply to a new manager's strategy?",
+        "Are there personal-trade or conflict issues open this week?",
+        "Which managers are Frozen or Restricted for allocation right now?",
+        "What sanctions or financial-crime cases need prioritization?"
+      ],
+      "owner": "Chief Compliance Officer",
+      "independentValidator": "Model Risk Committee",
+      "riskTier": "Critical",
+      "prohibited": [
+        "assert that a violation has legally occurred; waive a requirement; approve an exception",
+        "file on TCEL's behalf; alter a policy; delete or alter investigation evidence; change its own permissions"
+      ],
+      "outputDisclaimer": "Advisory only - Compliance.AI researches and recommends; a licensed compliance officer and General Counsel make every compliance and legal determination, not this agent."
+    }
+  ],
+
+  "knowledgeAssets": [
+    {
+      "assetId": "tcel-compliance-control-catalog-2026",
+      "docKey": "tcel-compliance-control-catalog",
+      "title": "TCEL Compliance & Legal Control Catalog (CP-001..020)",
+      "assetType": "ReferenceManual",
+      "docType": "ControlCatalog",
+      "issuer": "TCEL Chief Compliance Officer",
+      "jurisdiction": "US",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "summary": "The 20 deterministic CP- controls. CP-002/003/004/005/011/015/016/019 are enforced as executable rules; the remainder (obligation-applicability governance, AML/KYC deficiency scoping, conflict/related-party enhanced approval, self-approval SoD, complaint/filing SLA timers, attestation and near-limit conduct monitoring, Board escalation) require registry lookup, cross-field comparison, workflow, or timers beyond the declarative condition model and are carried for traceability.",
+      "contentText": "CP-001 Active obligation applicability required | Governance | Block control activation without approval | Critical | CCO/Legal. CP-002 Restricted security | Preventive | Reject trade | Critical | CCO. CP-003 Personal trade preclearance | Preventive | Hold/reject | High | Compliance. CP-004 Unauthorized bank beneficiary | Preventive | Reject payment | Critical | Treasury/CCO. CP-005 Sanctions potential match | Preventive | Hold and route review | Critical | Sanctions Officer. CP-006 Critical AML/KYC deficiency where applicable | Preventive | Restrict relevant activity | Critical | AML Officer. CP-007 Conflict disclosure required | Preventive | Hold decision | High | CCO. CP-008 Related-party transaction | Preventive | Enhanced approval | High | CCO/Board. CP-009 Manager approves own exception | Preventive | Reject | Critical | CCO. CP-010 Policy expired review | Detective | Escalate owner | High | Compliance. CP-011 Legal hold deletion | Preventive | Block deletion and alert | Critical | Legal. CP-012 Investigation evidence alteration | Preventive | Deny and alert | Critical | Legal/Security. CP-013 Complaint SLA breach | Detective | Escalate | High | CCO. CP-014 Regulatory filing due | Preventive/Detective | Workflow and escalation | Critical | CCO. CP-015 Unapproved policy activation | Preventive | Reject | Critical | CCO. CP-016 AI waiver/filing boundary | Preventive | Deny action | Critical | Model Risk. CP-017 Missing required attestation | Detective | Restrict/escalate | High | Compliance. CP-018 Repeated near-limit conduct | Detective | Conduct alert | Medium | Compliance. CP-019 Source authenticity/hash | Evidence | Block approval if missing | High | Compliance Technology. CP-020 Critical issue Board escalation | Corrective | Notify and track | Critical | CCO."
+    }
+  ]
+}

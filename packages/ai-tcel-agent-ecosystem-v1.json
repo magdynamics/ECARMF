@@ -1,0 +1,92 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "TCEL AI Agent Ecosystem",
+  "version": "1",
+  "status": "Published",
+  "owner": "TCEL",
+  "description": "TCEL Tenant-9 AI Agent Ecosystem package (T9-007) - the agent-governance layer. In ECARMF the individual agents (BankRisk.AI, TradingRisk.AI, EnterpriseRisk.AI, CapitalAllocation.AI, Compliance.AI, ...) are declared by their own domain packages and auto-register in the kernel AgentRegistry; this package contributes the GOVERNANCE metadata around them: the agent-record and decision-council entities, the agent-lifecycle/permission event catalog, and AI-governance controls (deny high-risk tools without approval; route dissent to a human). Depends on Foundation. Omits ModelDriftDetected (Banking owns it); does NOT re-declare RecordReceived.",
+
+  "packageId": "ecarmf.ai-tcel-agent-ecosystem",
+  "name": "TCEL AI Agent Ecosystem",
+  "packageVersion": "1.0.0",
+  "publisher": "MAG Dynamics",
+  "dependencies": [
+    { "packageId": "ecarmf.ai-tcel-foundation", "minimumVersion": "1.0.0" }
+  ],
+
+  "entities": [
+    {
+      "entityTypeName": "AIAgentRecord",
+      "description": "Governance record for a registered AI agent (T9-007 ai-agent-record.schema.json): owner, validator, risk tier, lifecycle status.",
+      "attributes": [
+        { "name": "agentId", "dataType": "string", "required": true },
+        { "name": "owner", "dataType": "string", "required": false },
+        { "name": "independentValidator", "dataType": "string", "required": false },
+        { "name": "riskTier", "dataType": "string", "required": false },
+        { "name": "status", "dataType": "string", "required": true }
+      ]
+    },
+    {
+      "entityTypeName": "AIDecisionCouncilRecord",
+      "description": "A multi-agent decision-council record (T9-007 ai-decision-council.schema.json): participating agents, dissent, and the human decision required.",
+      "attributes": [
+        { "name": "councilId", "dataType": "string", "required": true },
+        { "name": "topic", "dataType": "string", "required": false },
+        { "name": "dissentPresent", "dataType": "boolean", "required": false },
+        { "name": "humanDecisionRequired", "dataType": "boolean", "required": false },
+        { "name": "status", "dataType": "string", "required": true }
+      ]
+    }
+  ],
+
+  "events": [
+    { "eventName": "AgentRegistered", "description": "Agent added." },
+    { "eventName": "AgentActivated", "description": "Agent activated." },
+    { "eventName": "AgentRestricted", "description": "Agent restricted." },
+    { "eventName": "AgentSuspended", "description": "Agent suspended." },
+    { "eventName": "AgentTaskRequested", "description": "Task requested." },
+    { "eventName": "AgentTaskCompleted", "description": "Task completed." },
+    { "eventName": "AgentDisagreementDetected", "description": "Dissent detected." },
+    { "eventName": "HumanDecisionRequired", "description": "Human decision required." },
+    { "eventName": "ToolPermissionDenied", "description": "Tool denied." },
+    { "eventName": "HighRiskToolRequested", "description": "High-risk tool requested." },
+    { "eventName": "AIIncidentOpened", "description": "Incident opened." },
+    { "eventName": "KnowledgeConflictDetected", "description": "Conflict detected." },
+    { "eventName": "RecommendationOutcomeRecorded", "description": "Outcome recorded." }
+  ],
+
+  "rules": [
+    {
+      "ruleId": "AI-GOV-001",
+      "name": "High-risk tool requires approval",
+      "description": "Preventive/Critical (AI Governance). Deny an agent's high-risk tool request that lacks approval.",
+      "triggerEvent": "RecordReceived",
+      "priority": 5,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "AgentToolRequest" },
+        { "field": "highRisk", "operator": "Equals", "value": "true" },
+        { "field": "approved", "operator": "Equals", "value": "false" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "AI-GOV-001: agent {agentId} high-risk tool request denied - no approval on file (AI Governance)."
+    },
+    {
+      "ruleId": "AI-GOV-002",
+      "name": "Material dissent routes to a human",
+      "description": "Governance/Critical (CRO/AI Governance). A decision-council record with unresolved material dissent must route to a human, not auto-resolve.",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "DecisionCouncilResult" },
+        { "field": "materialDissent", "operator": "Equals", "value": "true" },
+        { "field": "humanDecisionRecorded", "operator": "Equals", "value": "false" }
+      ],
+      "outcomeOnMatch": "Flagged",
+      "reasonTemplate": "AI-GOV-002: decision council {councilId} has unresolved material dissent - routed for a human decision (CRO/AI Governance)."
+    }
+  ],
+
+  "capabilities": [
+    { "capabilityId": "ecarmf.tcel-agent-ecosystem.AIGovernance", "name": "TCEL AI Governance", "description": "Agent registry governance, lifecycle, tool permissions, decision council, and AI incident handling for the TCEL tenant." }
+  ]
+}

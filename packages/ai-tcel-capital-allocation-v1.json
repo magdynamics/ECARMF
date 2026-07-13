@@ -1,0 +1,252 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "TCEL Capital Allocation & Optimization",
+  "version": "1",
+  "status": "Published",
+  "owner": "TCEL",
+  "description": "TCEL Tenant-9 Capital Allocation package (T9-005), onboarded as ECARMF knowledge-package metadata. Depends on Foundation (T9-001), Banking (T9-002), Trading (T9-003), and Enterprise Risk (T9-004). Entities from the T9-005 schemas (CapitalAllocationRecommendation, ManagerAllocationScore); the CA-001..020 decision-control catalog becomes executable rules where expressible plus a traceability knowledge asset; CapitalAllocation.AI is a governed advisory optimizer (no autonomous execution/transfer). Manager allocation scores ride the KPI mechanism. Boundary vs T9-004 (Enterprise Risk): T9-004 owns the risk aggregation this package CONSUMES as constraints; T9-005 owns allocation decisions and recommendations. Omits ModelDriftDetected (Banking owns it) to avoid a cross-package event collision; does NOT re-declare RecordReceived.",
+
+  "packageId": "ecarmf.ai-tcel-capital-allocation",
+  "name": "TCEL Capital Allocation & Optimization",
+  "packageVersion": "1.0.0",
+  "publisher": "MAG Dynamics",
+  "dependencies": [
+    { "packageId": "ecarmf.ai-tcel-foundation", "minimumVersion": "1.0.0" },
+    { "packageId": "ecarmf.ai-tcel-banking", "minimumVersion": "1.0.0" },
+    { "packageId": "ecarmf.ai-tcel-trading", "minimumVersion": "1.0.0" },
+    { "packageId": "ecarmf.ai-tcel-enterprise-risk", "minimumVersion": "1.0.0" }
+  ],
+
+  "entities": [
+    {
+      "entityTypeName": "CapitalAllocationRecommendation",
+      "description": "A CapitalAllocation.AI allocation recommendation - advisory, human-approved (T9-005 schema).",
+      "attributes": [
+        { "name": "recommendationId", "dataType": "string", "required": true },
+        { "name": "scenarioId", "dataType": "string", "required": true },
+        { "name": "expectedReturn", "dataType": "number", "required": false },
+        { "name": "expectedRisk", "dataType": "number", "required": false },
+        { "name": "confidence", "dataType": "number", "required": false },
+        { "name": "status", "dataType": "string", "required": true },
+        { "name": "modelVersion", "dataType": "string", "required": false },
+        { "name": "createdAt", "dataType": "string", "required": true }
+      ]
+    },
+    {
+      "entityTypeName": "ManagerAllocationScore",
+      "description": "A manager's allocation eligibility/score (T9-005 manager-allocation-score.schema.json).",
+      "attributes": [
+        { "name": "managerId", "dataType": "string", "required": true },
+        { "name": "score", "dataType": "number", "required": true },
+        { "name": "eligibilityStatus", "dataType": "string", "required": true },
+        { "name": "capacity", "dataType": "number", "required": false },
+        { "name": "openCriticalIssues", "dataType": "number", "required": false },
+        { "name": "dataConfidence", "dataType": "number", "required": false },
+        { "name": "asOf", "dataType": "string", "required": true }
+      ]
+    }
+  ],
+
+  "events": [
+    { "eventName": "CapitalAvailable", "description": "Capital becomes available." },
+    { "eventName": "ManagerAllocationRequested", "description": "Manager requests capital." },
+    { "eventName": "ManagerEligibilityChanged", "description": "Eligibility state changed." },
+    { "eventName": "ManagerScoreUpdated", "description": "Manager score updated." },
+    { "eventName": "AllocationScenarioCompleted", "description": "Scenario completed." },
+    { "eventName": "CapitalAllocationRecommended", "description": "Recommendation created." },
+    { "eventName": "CapitalAllocationApproved", "description": "Allocation approved." },
+    { "eventName": "CapitalAllocationRejected", "description": "Allocation rejected." },
+    { "eventName": "CapitalTransferRequested", "description": "Approved transfer requested." },
+    { "eventName": "CapitalAllocated", "description": "Capital delivered." },
+    { "eventName": "CapitalRecallInitiated", "description": "Recall started." },
+    { "eventName": "CapitalRecalled", "description": "Capital returned." },
+    { "eventName": "AllocationFreezeApplied", "description": "New allocation frozen." },
+    { "eventName": "AllocationOutcomeEvaluated", "description": "Actual outcome evaluated." }
+  ],
+
+  "rules": [
+    {
+      "ruleId": "CA-001",
+      "name": "Manager eligibility required",
+      "description": "Preventive/Critical (Owner: CIO/CRO). Reject allocation to an ineligible manager.",
+      "triggerEvent": "RecordReceived",
+      "priority": 5,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "ManagerAllocationRequest" },
+        { "field": "eligible", "operator": "Equals", "value": "false" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "CA-001: allocation to manager {managerId} rejected - manager is not eligible (CIO/CRO)."
+    },
+    {
+      "ruleId": "CA-002",
+      "name": "Manager compliance frozen",
+      "description": "Preventive/Critical (Owner: CCO). Reject/freeze allocation to a manager whose compliance status is Frozen.",
+      "triggerEvent": "RecordReceived",
+      "priority": 5,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "ManagerAllocationRequest" },
+        { "field": "complianceStatus", "operator": "Equals", "value": "Frozen" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "CA-002: allocation to manager {managerId} rejected - compliance status is Frozen (CCO)."
+    },
+    {
+      "ruleId": "CA-003",
+      "name": "Minimum liquidity reserve",
+      "description": "Preventive/Critical (Owner: CFO). Reject or reduce allocation that breaches the minimum liquidity reserve.",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "ManagerAllocationRequest" },
+        { "field": "belowLiquidityReserve", "operator": "Equals", "value": "true" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "CA-003: allocation rejected - it would breach the minimum liquidity reserve (CFO)."
+    },
+    {
+      "ruleId": "CA-004",
+      "name": "Enterprise risk appetite",
+      "description": "Preventive/Critical (Owner: CRO). Reject or constrain an allocation that breaches enterprise risk appetite.",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "ManagerAllocationRequest" },
+        { "field": "riskAppetiteBreach", "operator": "Equals", "value": "true" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "CA-004: allocation rejected - it breaches enterprise risk appetite (CRO)."
+    },
+    {
+      "ruleId": "CA-008",
+      "name": "Stale or incomplete data",
+      "description": "Preventive/Critical (Owner: Model Risk). Set DataRestricted on stale/incomplete allocation inputs.",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "AllocationInput" },
+        { "field": "stale", "operator": "Equals", "value": "true" }
+      ],
+      "outcomeOnMatch": "Flagged",
+      "reasonTemplate": "CA-008: allocation input is stale/incomplete - DataRestricted (Model Risk)."
+    },
+    {
+      "ruleId": "CA-009",
+      "name": "Unresolved critical reconciliation",
+      "description": "Preventive/Critical (Owner: Accounting). Block allocation while a critical reconciliation is unresolved.",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "ManagerAllocationRequest" },
+        { "field": "unresolvedCriticalReconciliation", "operator": "Equals", "value": "true" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "CA-009: allocation blocked - an unresolved critical reconciliation exists (Accounting)."
+    },
+    {
+      "ruleId": "CA-011",
+      "name": "AI execution boundary",
+      "description": "Preventive/Critical (Owner: Model Risk). Deny an agent's attempt to execute a capital transfer.",
+      "triggerEvent": "RecordReceived",
+      "priority": 5,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "CapitalTransfer" },
+        { "field": "initiatedByAgent", "operator": "Equals", "value": "true" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "CA-011: capital transfer denied - an AI agent may not execute transfers; agents are advisory-only (Model Risk)."
+    },
+    {
+      "ruleId": "CA-019",
+      "name": "Tax/legal restriction validation",
+      "description": "Preventive/Critical (Owner: Legal/Tax). Reject or route for review an allocation with a tax/legal restriction.",
+      "triggerEvent": "RecordReceived",
+      "priority": 15,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "ManagerAllocationRequest" },
+        { "field": "taxLegalRestricted", "operator": "Equals", "value": "true" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "CA-019: allocation rejected - a tax/legal restriction applies; routed for review (Legal/Tax)."
+    },
+    {
+      "ruleId": "CA-020",
+      "name": "Scenario stress limit",
+      "description": "Preventive/Critical (Owner: CRO). Reject an allocation that fails the stress scenario.",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "ManagerAllocationRequest" },
+        { "field": "failsStressScenario", "operator": "Equals", "value": "true" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "CA-020: allocation rejected - it fails the stress scenario limit (CRO)."
+    }
+  ],
+
+  "capabilities": [
+    { "capabilityId": "ecarmf.tcel-capital-allocation.CapitalAllocationIntelligence", "name": "TCEL Capital Allocation Intelligence", "description": "Manager scoring, allocation optimization, decision controls, recall, and outcome monitoring for the TCEL tenant." }
+  ],
+
+  "performanceFrameworks": [
+    {
+      "frameworkId": "tcel-manager-allocation-v1",
+      "name": "TCEL Manager Allocation Scoring v1",
+      "industry": "Financial-Services",
+      "description": "Per-manager allocation eligibility score (subjectType Manager). The score (0-100) rides the KPI mechanism; capacity and open critical issues inform allocation ceilings.",
+      "kpis": [
+        {
+          "kpiId": "manager-allocation-score",
+          "name": "Manager allocation score",
+          "formula": "score",
+          "triggerRecordType": "ManagerAllocationScore",
+          "subjectField": "managerId",
+          "subjectType": "Manager",
+          "unit": "score",
+          "targetValue": 60,
+          "direction": "higher"
+        }
+      ],
+      "okrs": []
+    }
+  ],
+
+  "agents": [
+    {
+      "agentId": "tcel.capitalallocation.ai",
+      "name": "CapitalAllocation.AI",
+      "description": "Governed capital-allocation optimizer: recommends allocation, reduction, recall, debt repayment, reserve levels, and rebalancing using enterprise-wide data and approved constraints. Advisory-only. Boundary vs EnterpriseRisk.AI (T9-004): EnterpriseRisk.AI produces the risk view; CapitalAllocation.AI consumes it as a constraint and recommends allocation.",
+      "persona": "You are CapitalAllocation.AI, a governed capital-allocation optimizer for TCEL. You rank managers, calculate allocation alternatives, run optimization and scenarios, and explain trade-offs - using manager scores, current allocations, available capital, liquidity/reserves, bank/trading/enterprise risk, borrowing/covenants, compliance status, capacity, diversification, taxes, and data confidence, grounded ONLY in the approved data you can see and citing the constraints and data as-of times you relied on. Every recommendation states current and proposed allocation, binding constraints, expected return and risk, confidence, alternatives, and required approvals. You recommend increase/maintain/reduce/recall and create approval tasks; you never execute transfers, approve allocations, change limits or mandates, or override compliance.",
+      "contextSources": ["scores", "deviations", "records:ManagerAllocationScore", "records:CapitalAllocationRecommendation", "references"],
+      "sampleQuestions": [
+        "Which managers should we increase or reduce given current risk and capacity?",
+        "What is the optimal reallocation if we must raise the liquidity reserve?",
+        "Which allocations fail the latest stress scenario?",
+        "Where is enterprise concentration constraining new allocation?"
+      ],
+      "owner": "CIO",
+      "independentValidator": "Model Risk Committee",
+      "riskTier": "Critical",
+      "prohibited": [
+        "execute transfers; approve allocations; change limits; change mandates",
+        "override compliance; alter policy; train on unapproved data; change its own permissions"
+      ],
+      "outputDisclaimer": "Advisory only - CapitalAllocation.AI recommends and optimizes; every allocation, transfer, and recall is approved by the Investment Committee/CIO and executed by authorized humans, not by this agent."
+    }
+  ],
+
+  "knowledgeAssets": [
+    {
+      "assetId": "tcel-capital-allocation-control-catalog-2026",
+      "docKey": "tcel-capital-allocation-control-catalog",
+      "title": "TCEL Capital Allocation Control Catalog (CA-001..020)",
+      "assetType": "ReferenceManual",
+      "docType": "ControlCatalog",
+      "issuer": "TCEL Investment Committee",
+      "jurisdiction": "US",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "summary": "The 20 deterministic CA- controls. CA-001/002/003/004/008/009/011/019/020 are enforced as executable rules; the remainder (Restricted-status caps, capacity and concentration constraint optimization, covenant feasibility, self-approval SoD, material-allocation committee gates, evidence completeness, model-version and related-party governance, recall/outcome/override monitoring) require optimization, registry lookup, cross-field comparison, approval workflow, or aggregation beyond the declarative condition model and are carried for traceability.",
+      "contentText": "CA-001 Manager eligibility required | Preventive | Reject allocation | Critical | CIO/CRO. CA-002 ManagerComplianceStatus=Frozen | Preventive | Reject/freeze allocation | Critical | CCO. CA-002a ManagerComplianceStatus=Restricted | Preventive | Cap or hold pending CCO review | High | CCO. CA-003 Minimum liquidity reserve | Preventive | Reject or reduce allocation | Critical | CFO. CA-004 Enterprise risk appetite | Preventive | Reject or constrain optimization | Critical | CRO. CA-005 Manager capacity limit | Preventive | Cap allocation | High | CIO/CRO. CA-006 Concentration limits | Preventive | Constrain allocation | Critical | CRO. CA-007 Borrowing/covenant feasibility | Preventive | Reject or defer | Critical | CFO. CA-008 Stale/incomplete data | Preventive | Set DataRestricted | Critical | Model Risk. CA-009 Unresolved critical reconciliation | Preventive | Block allocation | Critical | Accounting. CA-010 Manager self-approval | Preventive | Reject | Critical | CRO. CA-011 AI execution boundary | Preventive | Deny transfer execution | Critical | Model Risk. CA-012 Material allocation approval | Preventive | Investment Committee required | Critical | Investment Committee. CA-013 Allocation evidence completeness | Evidence | Block finalization | High | Internal Audit. CA-014 Model version approval | Governance | Reject unapproved model | Critical | Model Risk. CA-015 Capital recall on critical breach | Corrective | Create recall workflow | Critical | CRO/CIO. CA-016 Outcome monitoring | Detective | Compare expected vs actual | High | CIO/CRO. CA-017 Override frequency monitoring | Detective | Alert excessive overrides | High | Model Risk. CA-018 Related-party allocation review | Preventive | Enhanced approval | High | CCO. CA-019 Tax/legal restriction validation | Preventive | Reject or route review | Critical | Legal/Tax. CA-020 Scenario stress limit | Preventive | Reject allocation failing stress | Critical | CRO."
+    }
+  ]
+}
