@@ -103,6 +103,23 @@ public static class PackageEndpoints
             return result.Success ? Results.Ok(result) : Results.BadRequest(result);
         });
 
+        // The ID ledger (TCEL P1.2): read-only projection of every registered
+        // id per kind, with provenance. Scoped to Registry:Read — an authoring
+        // pipeline polls it before generating the next wave and does not need
+        // package-management rights to do so.
+        app.MapGroup("/api/packages/id-ledger")
+            .RequirePermission(Domain.Identity.Permissions.RegistryRead)
+            .MapGet("/", async (
+                HttpContext context,
+                IPackageIdLedgerService ledger,
+                CancellationToken ct) =>
+            {
+                if (!TenantResolution.TryGetTenant(context, out var tenantId))
+                    return TenantResolution.MissingTenantResult();
+
+                return Results.Ok(await ledger.BuildAsync(tenantId, ct));
+            });
+
         return app;
     }
 }

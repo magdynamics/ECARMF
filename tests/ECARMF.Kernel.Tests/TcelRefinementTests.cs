@@ -132,6 +132,53 @@ public class TcelRefinementTests
         Assert.True(result.Success);
     }
 
+    // ---- P1.2 ID ledger ----
+
+    private static KnowledgePackageManifest PkgWithRule(string id, string version, string ruleId) => new()
+    {
+        PackageId = id,
+        Name = id,
+        PackageVersion = version,
+        Publisher = "TCEL tests",
+        Events = [new EventDeclaration { EventName = $"{id}.Ev" }],
+        Rules =
+        [
+            new RuleDeclaration
+            {
+                RuleId = ruleId, Name = "r", TriggerEvent = $"{id}.Ev",
+                OutcomeOnMatch = "Flagged", ReasonTemplate = "x"
+            }
+        ]
+    };
+
+    [Fact]
+    public async Task P1_2_ledger_lists_every_id_with_provenance_before_activation()
+    {
+        var loader = CreateLoader();
+        // Both merely STAGED — staging never touches the registries, so a
+        // collision would not yet be rejected. The ledger must show it anyway.
+        await loader.LoadAsync(Tenant, PkgWithRule("pkg.one", "1.0.0", "shared.rule"));
+        await loader.LoadAsync(Tenant, PkgWithRule("pkg.two", "1.0.0", "shared.rule"));
+
+        var ledger = await new PackageIdLedgerService(_store).BuildAsync(Tenant);
+
+        var shared = ledger.Ids["rules"].Single(e => e.Id == "shared.rule");
+        Assert.Contains("pkg.one@1.0.0", shared.DeclaredBy);
+        Assert.Contains("pkg.two@1.0.0", shared.DeclaredBy); // collision visible before activation rejects it
+        Assert.Contains(ledger.Ids["events"], e => e.Id == "pkg.one.Ev");
+    }
+
+    [Fact]
+    public async Task P1_2_ledger_warns_about_pre_existing_dependency_cycle()
+    {
+        await _store.AddAsync(Tenant, Pkg("cyc.a", "1.0.0", "cyc.b"), PackageLoadState.Staged, null);
+        await _store.AddAsync(Tenant, Pkg("cyc.b", "1.0.0", "cyc.a"), PackageLoadState.Staged, null);
+
+        var ledger = await new PackageIdLedgerService(_store).BuildAsync(Tenant);
+
+        Assert.Contains(ledger.Warnings, w => w.Contains("cycle") && w.Contains("cyc.a") && w.Contains("cyc.b"));
+    }
+
     // ---- Regression: the 23 shipped packages ----
 
     [Fact]

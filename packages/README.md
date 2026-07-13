@@ -37,3 +37,26 @@ All four depend on treasury-controls ≥ 1.0.0 and activate side by side.
 | `finance-gaap-controls-v1.json` | ecarmf.finance-gaap-controls 1.0.0 | GAAP journal-entry posting controls: unbalanced entries and closed-period postings are JournalHeld, material manual adjustments (> $100k) are Flagged for dual approval, clean entries auto-approve with a ControlCompliance score. Ships a `gaap-journal-json` SchemaTemplate for connector/document intake. |
 | `coso-internal-controls-v1.json` | ecarmf.coso-internal-controls 1.0.0 | COSO 2013 as executable metadata: control assessments score ControlEffectiveness per control and COSOComponentHealth per component, material weaknesses / significant deficiencies / sub-0.6 ratings log ControlDeficiencyLogged and route to the Auditor + a remediation task, and the coso-maturity-v1 KPI framework tracks components against the 0.8 target. |
 | `regd-offering-compliance-v1.json` | ecarmf.regd-offering-compliance 1.0.0 | SEC Regulation D: 506(c) subscriptions without verified accreditation are Rejected, 506(b) offerings reject generally-solicited investors, pending accreditations queue as compliance tasks, verified subscriptions approve with an InvestorAccreditation score per offering. |
+
+## Authoring checklist (TCEL refinements)
+
+Rules that recurred across the Tenant 9 (TCEL) build and are now enforced or
+required. Follow them before a package is considered ready.
+
+1. **Consume the ID ledger before generating a follow-on or multi-wave
+   package.** Fetch `GET /api/packages/id-ledger` (tenant-scoped, requires
+   `Registry:Read`) and treat every id it lists — for rules, capabilities,
+   schema templates, frameworks, workflows, agents, knowledge assets,
+   extraction templates, events, entities — as **reserved**. The ledger is a
+   live projection over every stored package version (staged and inactive
+   included), so it cannot go stale. A wave produced without consulting it is
+   a delivery error, not a style issue. (Documentation banners were tried and
+   failed six times; read the machine state.)
+2. **Declare dependencies strictly cumulatively** — a package depends only on
+   lower-numbered / already-existing packages. This is cycle-free by
+   construction. The loader now **rejects** any manifest that would close a
+   dependency cycle (self-dependency, or `a → b → a`), naming the full path.
+3. **Never express a forward or loose coupling as a `PackageDependency`.** If
+   a package consumes data a later package will publish, state that in the
+   manifest `description` as published-data-only — a live dependency edge
+   would create a cycle and be rejected.
