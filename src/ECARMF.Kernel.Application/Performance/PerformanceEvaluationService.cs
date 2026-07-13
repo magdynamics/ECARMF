@@ -85,8 +85,9 @@ public class PerformanceEvaluationService : IPerformanceEvaluator, IFrameworkRec
 
                 actuals[kpi.KpiId] = value;
                 var subject = ResolveSubject(kernelEvent, kpi.SubjectField);
+                var riskType = ResolveRiskType(kernelEvent, kpi.RiskType);
 
-                var actualScore = await EmitAsync(kernelEvent, framework, "KPIActual", $"{kpi.KpiId}@{subject}", value, ct, kpi.SubjectType, kpi.RiskType);
+                var actualScore = await EmitAsync(kernelEvent, framework, "KPIActual", $"{kpi.KpiId}@{subject}", value, ct, kpi.SubjectType, riskType);
 
                 // Deviation monitoring runs in the same pass: actual vs the
                 // KPI target (or the latest forecast when no target exists).
@@ -158,6 +159,32 @@ public class PerformanceEvaluationService : IPerformanceEvaluator, IFrameworkRec
         }
 
         return kernelEvent.CorrelationId.ToString();
+    }
+
+    /// <summary>
+    /// Resolves a KPI's riskType tag (tenant-10-driven refinement). A literal
+    /// like "PHIBreach" is used as-is; a "{field}" token is resolved from the
+    /// record payload, so a single risk-register KPI over one record type can
+    /// stamp per-record risk categories (riskType "{category}") instead of
+    /// forcing a separate record type + KPI per category. An unresolvable token
+    /// yields null (untagged) rather than emitting the literal "{category}".
+    /// </summary>
+    private static string? ResolveRiskType(KernelEvent kernelEvent, string? riskType)
+    {
+        if (string.IsNullOrWhiteSpace(riskType))
+        {
+            return null;
+        }
+
+        if (riskType.Length > 2 && riskType[0] == '{' && riskType[^1] == '}')
+        {
+            var field = riskType[1..^1];
+            var value = kernelEvent.Payload.FirstOrDefault(kv =>
+                string.Equals(kv.Key, field, StringComparison.OrdinalIgnoreCase)).Value;
+            return string.IsNullOrWhiteSpace(value) ? null : value;
+        }
+
+        return riskType;
     }
 
     private async Task<ScoreRecord> EmitAsync(

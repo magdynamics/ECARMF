@@ -113,6 +113,11 @@ public static class StatisticalFunctionLibrary
     /// (which is additive); a risk model is one or the other, so the package
     /// picks. Kernel arithmetic only — the factors and weights are
     /// package-defined domain logic, same exception category as NPV/IRR.
+    /// NOTE: packages currently reach a multiplicative risk index through the
+    /// KPI formula evaluator's own `*` operator (see the Tenant-10 register),
+    /// so this primitive has no direct caller yet — it is the natural home for
+    /// a future factor-based ScoreEmission that needs exponent-weighted
+    /// aggregation beyond what the inline formula evaluator expresses.
     /// Empty input yields 0 (no risk expressed); a zero-valued factor
     /// legitimately drives the product to 0.
     /// </summary>

@@ -1,5 +1,9 @@
 using ECARMF.Kernel.Application.Analytics;
+using ECARMF.Kernel.Application.Events;
+using ECARMF.Kernel.Application.Performance;
+using ECARMF.Kernel.Application.Registries;
 using ECARMF.Kernel.Domain.Compliance;
+using ECARMF.Kernel.Domain.Packages;
 using ECARMF.Kernel.Domain.Relationships;
 using ECARMF.Kernel.Domain.Scoring;
 using ECARMF.Kernel.Tests.Fakes;
@@ -13,6 +17,51 @@ namespace ECARMF.Kernel.Tests;
 public class Batch3RefinementTests
 {
     private const string Tenant = "batch3";
+
+    [Fact]
+    public async Task Dynamic_kpi_risk_type_token_lets_one_kpi_tag_per_record_category()
+    {
+        // Tenant-10-driven refinement: a single risk-register KPI over ONE
+        // record type stamps per-record risk categories via a {token}, instead
+        // of a separate record type + KPI per category.
+        var registries = new TenantRegistryProvider();
+        var scores = new InMemoryScoreStore();
+        var evaluator = new PerformanceEvaluationService(registries, scores, new InMemoryAuditLog());
+
+        registries.GetFor(Tenant).PerformanceFrameworks.Register(new PerformanceFrameworkDeclaration
+        {
+            FrameworkId = "risk-register-v1", Name = "Risk Register", Industry = "Any",
+            Kpis =
+            [
+                new KPIDefinition
+                {
+                    KpiId = "risk-index", Formula = "likelihood * impact",
+                    TriggerRecordType = "RiskAssessment", SubjectField = "area",
+                    SubjectType = "Risk", RiskType = "{category}", // resolved per record
+                    TargetValue = 20, Direction = "lower"
+                }
+            ]
+        }, "ecarmf.ai-tcel", "1.0.0");
+
+        await evaluator.EvaluateAsync(new KernelEvent(Tenant, "RecordReceived", Guid.NewGuid(),
+            new Dictionary<string, string>
+            {
+                ["recordType"] = "RiskAssessment", ["area"] = "patient-portal",
+                ["category"] = "PHIBreach", ["likelihood"] = "4", ["impact"] = "5"
+            }, DateTimeOffset.UtcNow));
+
+        await evaluator.EvaluateAsync(new KernelEvent(Tenant, "RecordReceived", Guid.NewGuid(),
+            new Dictionary<string, string>
+            {
+                ["recordType"] = "RiskAssessment", ["area"] = "payer-aetna",
+                ["category"] = "ClaimDenial", ["likelihood"] = "3", ["impact"] = "3"
+            }, DateTimeOffset.UtcNow));
+
+        var actuals = scores.Items.Where(s => s.ScoreType == "KPIActual").ToList();
+        // Same KPI, one record type — different riskType per record's category.
+        Assert.Equal("PHIBreach", actuals.Single(s => s.SubjectId == "risk-index@patient-portal").RiskType);
+        Assert.Equal("ClaimDenial", actuals.Single(s => s.SubjectId == "risk-index@payer-aetna").RiskType);
+    }
 
     [Fact]
     public void R16_weighted_risk_score_is_the_weight_normalized_mean()
