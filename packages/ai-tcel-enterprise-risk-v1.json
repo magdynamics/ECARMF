@@ -1,0 +1,247 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "TCEL Enterprise Risk Management",
+  "version": "1",
+  "status": "Published",
+  "owner": "TCEL",
+  "description": "TCEL Tenant-9 Enterprise Risk package (T9-004), onboarded as ECARMF knowledge-package metadata. Depends on the TCEL Foundation (T9-001). The EnterpriseRiskRecord schema is a native risk register - its 'domain' field drives the riskType tag directly via the dynamic {domain} token, so ONE record type + ONE KPI covers the whole enterprise taxonomy. Entities from the T9-004 schemas (EnterpriseRiskRecord, StressScenario); the ER-001..014 control catalog becomes executable rules where expressible plus a traceability knowledge asset; EnterpriseRisk.AI is the governed cross-domain risk aggregator (advisory-only). Boundary vs T9-002 (Banking) and T9-003 (Trading): those own their DOMAIN risk; T9-004 owns enterprise AGGREGATION, appetite, concentration-across-managers, VaR/ES, stress testing, and cross-package reconciliation. Omits RiskLimitBreached (declared by Trading) and ModelDriftDetected (declared by Banking) to avoid a cross-package event-name collision - the exact case the ID ledger surfaces. Does NOT re-declare RecordReceived.",
+
+  "packageId": "ecarmf.ai-tcel-enterprise-risk",
+  "name": "TCEL Enterprise Risk Management",
+  "packageVersion": "1.0.0",
+  "publisher": "MAG Dynamics",
+  "dependencies": [
+    { "packageId": "ecarmf.ai-tcel-foundation", "minimumVersion": "1.0.0" }
+  ],
+
+  "entities": [
+    {
+      "entityTypeName": "EnterpriseRiskRecord",
+      "description": "An enterprise risk-register entry (T9-004 enterprise-risk.schema.json). 'domain' is the risk category; inherentLikelihood x inherentImpact is the inherent score.",
+      "attributes": [
+        { "name": "riskId", "dataType": "string", "required": true },
+        { "name": "title", "dataType": "string", "required": true },
+        { "name": "domain", "dataType": "string", "required": true },
+        { "name": "ownerId", "dataType": "string", "required": true },
+        { "name": "inherentLikelihood", "dataType": "number", "required": true },
+        { "name": "inherentImpact", "dataType": "number", "required": true },
+        { "name": "residualScore", "dataType": "number", "required": false },
+        { "name": "riskAppetiteCategory", "dataType": "string", "required": false },
+        { "name": "status", "dataType": "string", "required": true }
+      ]
+    },
+    {
+      "entityTypeName": "StressScenario",
+      "description": "An enterprise stress/scenario definition and result (T9-004 stress-scenario.schema.json).",
+      "attributes": [
+        { "name": "scenarioId", "dataType": "string", "required": true },
+        { "name": "name", "dataType": "string", "required": true },
+        { "name": "scenarioType", "dataType": "string", "required": true },
+        { "name": "status", "dataType": "string", "required": true },
+        { "name": "methodologyVersion", "dataType": "string", "required": false }
+      ]
+    }
+  ],
+
+  "events": [
+    { "eventName": "RiskIdentified", "description": "New risk created." },
+    { "eventName": "RiskAssessmentUpdated", "description": "Risk score updated." },
+    { "eventName": "RiskLimitWarning", "description": "Approaching limit." },
+    { "eventName": "EnterpriseConcentrationDetected", "description": "Hidden aggregate concentration identified." },
+    { "eventName": "LiquidityStressDetected", "description": "Stress liquidity issue." },
+    { "eventName": "CounterpartyRiskChanged", "description": "Counterparty rating changed." },
+    { "eventName": "OperationalIncidentOpened", "description": "Incident opened." },
+    { "eventName": "RiskAcceptanceRequested", "description": "Acceptance requested." },
+    { "eventName": "RemediationOverdue", "description": "Action overdue." },
+    { "eventName": "StressScenarioCompleted", "description": "Scenario completed." },
+    { "eventName": "ReverseStressThresholdReached", "description": "Failure threshold identified." },
+    { "eventName": "EnterpriseRiskRecommendationCreated", "description": "AI recommendation created." }
+  ],
+
+  "rules": [
+    {
+      "ruleId": "ER-002",
+      "name": "Enterprise risk appetite breach",
+      "description": "Preventive/Critical (Owner: CRO). Block dependent decisions and escalate on an appetite breach.",
+      "triggerEvent": "RecordReceived",
+      "priority": 5,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "RiskAppetiteCheck" },
+        { "field": "appetiteBreach", "operator": "Equals", "value": "true" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "ER-002: enterprise risk appetite breached ({domain}) - dependent decisions blocked and escalated (CRO)."
+    },
+    {
+      "ruleId": "ER-005",
+      "name": "Liquidity coverage below minimum",
+      "description": "Preventive/Critical (Owner: CFO). Trigger the critical liquidity workflow.",
+      "triggerEvent": "RecordReceived",
+      "priority": 5,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "LiquidityCoverage" },
+        { "field": "belowMinimum", "operator": "Equals", "value": "true" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "ER-005: liquidity coverage below minimum - critical liquidity workflow triggered (CFO)."
+    },
+    {
+      "ruleId": "ER-006",
+      "name": "Stale data feeding aggregation",
+      "description": "Preventive/Critical (Owner: Model Risk). Set DataRestricted and exclude from the aggregate score.",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "RiskAggregationInput" },
+        { "field": "stale", "operator": "Equals", "value": "true" }
+      ],
+      "outcomeOnMatch": "Flagged",
+      "reasonTemplate": "ER-006: stale data in the risk aggregation - DataRestricted, excluded from the aggregate score (Model Risk)."
+    },
+    {
+      "ruleId": "ER-007",
+      "name": "Risk acceptance without expiration",
+      "description": "Preventive/Critical (Owner: CRO). Reject a risk acceptance with no expiration.",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "RiskAcceptance" },
+        { "field": "expirationSet", "operator": "Equals", "value": "false" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "ER-007: risk acceptance {riskId} rejected - no expiration set (CRO)."
+    },
+    {
+      "ruleId": "ER-008",
+      "name": "Unapproved risk register entry",
+      "description": "Preventive/High (Owner: Enterprise Risk Office). Block publication of an unapproved entry.",
+      "triggerEvent": "RecordReceived",
+      "priority": 20,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "RiskRegisterPublication" },
+        { "field": "approved", "operator": "Equals", "value": "false" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "ER-008: risk register entry {riskId} publication blocked - not approved (Enterprise Risk Office)."
+    },
+    {
+      "ruleId": "ER-009",
+      "name": "Stress test overdue",
+      "description": "Detective/High (Owner: Enterprise Risk Office). Escalate to CRO and Board.",
+      "triggerEvent": "RecordReceived",
+      "priority": 30,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "StressTestStatus" },
+        { "field": "overdue", "operator": "Equals", "value": "true" }
+      ],
+      "outcomeOnMatch": "Flagged",
+      "reasonTemplate": "ER-009: stress test {scenarioId} is overdue - escalated to CRO and Board (Enterprise Risk Office)."
+    },
+    {
+      "ruleId": "ER-011",
+      "name": "Cross-package risk score conflict",
+      "description": "Detective/Critical (Owner: Enterprise Risk Office). Flag for reconciliation; block downstream use until resolved.",
+      "triggerEvent": "RecordReceived",
+      "priority": 15,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "RiskScoreReconciliation" },
+        { "field": "conflict", "operator": "Equals", "value": "true" }
+      ],
+      "outcomeOnMatch": "Flagged",
+      "reasonTemplate": "ER-011: cross-package risk score conflict on {riskId} - flagged for reconciliation, downstream use blocked (Enterprise Risk Office)."
+    },
+    {
+      "ruleId": "ER-012",
+      "name": "Aggregation excludes a material entity",
+      "description": "Preventive/Critical (Owner: Enterprise Risk Office). Block certification of the aggregate score.",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "AggregateCertification" },
+        { "field": "materialEntityExcluded", "operator": "Equals", "value": "true" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "ER-012: aggregate score certification blocked - a material entity is excluded from the enterprise aggregation (Enterprise Risk Office)."
+    },
+    {
+      "ruleId": "ER-013",
+      "name": "AI recommendation without required context",
+      "description": "Preventive/High (Owner: Model Risk). Reject or lower confidence when required context is missing.",
+      "triggerEvent": "RecordReceived",
+      "priority": 20,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "AgentRecommendation" },
+        { "field": "requiredContextComplete", "operator": "Equals", "value": "false" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "ER-013: EnterpriseRisk.AI recommendation rejected - required context is incomplete (Model Risk)."
+    }
+  ],
+
+  "capabilities": [
+    { "capabilityId": "ecarmf.tcel-enterprise-risk.EnterpriseRiskIntelligence", "name": "TCEL Enterprise Risk Intelligence", "description": "Enterprise risk aggregation, appetite, cross-manager concentration, VaR/ES, stress testing, cross-package reconciliation, and the enterprise risk register for the TCEL tenant." }
+  ],
+
+  "performanceFrameworks": [
+    {
+      "frameworkId": "tcel-enterprise-risk-register-v1",
+      "name": "TCEL Enterprise Risk Register v1",
+      "industry": "Financial-Services",
+      "description": "The enterprise risk register straight off the EnterpriseRiskRecord schema: ONE record type + ONE KPI, with the record's own 'domain' field driving the riskType tag via the dynamic {domain} token (Market, Credit, Liquidity, Operational, Compliance, Cyber, ModelRisk, ...). inherentLikelihood x inherentImpact is the inherent index; higher = worse (direction lower).",
+      "kpis": [
+        {
+          "kpiId": "enterprise-risk-index",
+          "name": "Enterprise inherent risk index",
+          "formula": "inherentLikelihood * inherentImpact",
+          "triggerRecordType": "EnterpriseRiskRecord",
+          "subjectField": "riskId",
+          "subjectType": "Risk",
+          "riskType": "{domain}",
+          "unit": "index",
+          "targetValue": 12,
+          "direction": "lower"
+        }
+      ],
+      "okrs": []
+    }
+  ],
+
+  "agents": [
+    {
+      "agentId": "tcel.enterpriserisk.ai",
+      "name": "EnterpriseRisk.AI",
+      "description": "Governed cross-domain risk aggregator across all managers, banking, trading, counterparties, borrowing, operations, compliance, technology, customers, and AI models. Advisory-only. Boundary vs BankRisk.AI (T9-002) and TradingRisk.AI (T9-003): those analyze their own domain; EnterpriseRisk.AI aggregates and reconciles across domains and is the sole cross-domain enterprise-risk synthesizer.",
+      "persona": "You are EnterpriseRisk.AI, the governed enterprise-risk aggregator for TCEL. You aggregate and interpret risk across all managers, bank accounts, portfolios, counterparties, borrowing facilities, operations, compliance obligations, technology systems, customers, and AI models; calculate scores and trends; detect hidden concentration and correlation; run scenarios; and prepare Board and CRO reports - grounded ONLY in the approved data you can see, citing data as-of times, affected managers/entities, and the policy and limit references you relied on. Every recommendation states scope, assumptions, risk impact, confidence, alternatives, and the required decision authority. You aggregate, alert, and recommend; you never approve exceptions, modify limits, suspend managers, execute trades or transfers, or alter policies.",
+      "contextSources": ["scores", "deviations", "benchmarks", "records:EnterpriseRiskRecord"],
+      "sampleQuestions": [
+        "What is our aggregate enterprise risk by domain right now?",
+        "Is there hidden concentration correlated across managers?",
+        "Which risks are outside appetite and trending worse?",
+        "What does the latest reverse-stress scenario tell us about our failure points?"
+      ],
+      "owner": "CRO",
+      "independentValidator": "Model Risk Committee",
+      "riskTier": "Critical",
+      "prohibited": [
+        "approve risk exceptions; modify limits; suspend managers without authorized human action",
+        "execute trades or transfers; alter policies; close investigations; change its own authority"
+      ],
+      "outputDisclaimer": "Advisory only - EnterpriseRisk.AI aggregates and recommends; every risk-acceptance, limit, and manager decision is made by the CRO/Board and authorized humans, not by this agent."
+    }
+  ],
+
+  "knowledgeAssets": [
+    {
+      "assetId": "tcel-enterprise-risk-control-catalog-2026",
+      "docKey": "tcel-enterprise-risk-control-catalog",
+      "title": "TCEL Enterprise Risk Control Catalog (ER-001..014)",
+      "assetType": "ReferenceManual",
+      "docType": "ControlCatalog",
+      "issuer": "TCEL Enterprise Risk Office",
+      "jurisdiction": "US",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "summary": "The 14 deterministic ER- controls. ER-002/005/006/007/008/009/011/012/013 are enforced as executable rules; the remainder (manager-vs-enterprise conditional logging, hidden cross-manager concentration correlation, aggregate VaR/ES computation, KRI-age and Board-escalation timers) require aggregation, correlation, or timers beyond the declarative condition model and are carried for traceability.",
+      "contentText": "ER-001 Manager-level limit breach with enterprise-level compliance | Detective | Log only if enterprise limit intact | Medium | CRO. ER-002 Enterprise risk appetite breach | Preventive | Block dependent decisions and escalate | Critical | CRO. ER-003 Hidden concentration across managers | Detective | Flag correlated exposure and alert | Critical | CRO. ER-004 Aggregate VaR/ES limit breach | Preventive | Alert and require CRO review | Critical | CRO. ER-005 Liquidity coverage below minimum | Preventive | Trigger critical liquidity workflow | Critical | CFO. ER-006 Stale data feeding aggregation | Preventive | Set DataRestricted and exclude from score | Critical | Model Risk. ER-007 Risk acceptance without expiration | Preventive | Reject registration | Critical | CRO. ER-008 Unapproved risk register entry | Preventive | Block publication | High | Enterprise Risk Office. ER-009 Stress test overdue | Detective | Escalate to CRO and Board | High | Enterprise Risk Office. ER-010 KRI threshold breach unacknowledged | Detective | Escalate by age | High | Risk Owner. ER-011 Cross-package risk score conflict | Detective | Flag for reconciliation, block downstream use until resolved | Critical | Enterprise Risk Office. ER-012 Enterprise aggregation excludes a material entity | Preventive | Block certification of aggregate score | Critical | Enterprise Risk Office. ER-013 EnterpriseRisk.AI recommendation without required context | Preventive | Reject/lower confidence | High | Model Risk. ER-014 Critical risk event Board escalation | Corrective | Notify and track to closure | Critical | CRO."
+    }
+  ]
+}
