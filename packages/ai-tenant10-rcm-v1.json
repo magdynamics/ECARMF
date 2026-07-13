@@ -1,0 +1,301 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "AI Tenant-10 RCM",
+  "version": "1",
+  "status": "Published",
+  "owner": "Tenant-10 (Medical Insurance Billing / Revenue-Cycle Management)",
+  "description": "Tenant-10 revenue-cycle-management package (ninth test case, reference tenant). Arrived already in risk-engine language and maps onto existing mechanism: the Risk Register is riskType-tagged scores (Batch 2 R11) whose multiplicative index uses the kernel CalculateMultiplicativeRiskScore-equivalent formula (Batch 3 R16) written inline as a KPI formula; the denials->AR->churn chain is EntityRelationship edges (R13); Business Health / Revenue Cycle rollups are CompositeHealth (R14); churn/burnout predictions are Classification forecasts (R15); OIG monthly exclusion screening is a recurring ComplianceRenewal (R17); HIPAA/OIG places the tenant at the Regulated sensitivity tier (R6). Boundary vs ecarmf.ai-financial-analyst: underpayment/overpayment financial analysis is delegated to the shared Financial Analyst agent, not re-implemented here.",
+
+  "packageId": "ecarmf.ai-tenant10-rcm",
+  "name": "AI Tenant-10 RCM",
+  "packageVersion": "1.0.0",
+  "publisher": "MAG Dynamics",
+  "dependencies": [],
+
+  "entities": [
+    {
+      "entityTypeName": "PhiRiskAssessment",
+      "description": "One PHI/HIPAA risk-register entry, scored by the multiplicative risk index. Factors are 1-5 severity scales except aiConfidence (0-1).",
+      "attributes": [
+        { "name": "area", "dataType": "string", "required": true },
+        { "name": "likelihood", "dataType": "number", "required": true },
+        { "name": "businessImpact", "dataType": "number", "required": true },
+        { "name": "complianceImpact", "dataType": "number", "required": true },
+        { "name": "financialImpact", "dataType": "number", "required": true },
+        { "name": "reputationImpact", "dataType": "number", "required": true },
+        { "name": "recoveryTime", "dataType": "number", "required": true },
+        { "name": "aiConfidence", "dataType": "number", "required": true }
+      ]
+    },
+    {
+      "entityTypeName": "DenialRiskAssessment",
+      "description": "Claim-denial risk-register entry per payer, same 7-factor model.",
+      "attributes": [
+        { "name": "payer", "dataType": "string", "required": true },
+        { "name": "likelihood", "dataType": "number", "required": true },
+        { "name": "businessImpact", "dataType": "number", "required": true },
+        { "name": "complianceImpact", "dataType": "number", "required": true },
+        { "name": "financialImpact", "dataType": "number", "required": true },
+        { "name": "reputationImpact", "dataType": "number", "required": true },
+        { "name": "recoveryTime", "dataType": "number", "required": true },
+        { "name": "aiConfidence", "dataType": "number", "required": true }
+      ]
+    },
+    {
+      "entityTypeName": "CredentialingRiskAssessment",
+      "description": "Credentialing/revalidation-delay risk-register entry per provider, same 7-factor model.",
+      "attributes": [
+        { "name": "provider", "dataType": "string", "required": true },
+        { "name": "likelihood", "dataType": "number", "required": true },
+        { "name": "businessImpact", "dataType": "number", "required": true },
+        { "name": "complianceImpact", "dataType": "number", "required": true },
+        { "name": "financialImpact", "dataType": "number", "required": true },
+        { "name": "reputationImpact", "dataType": "number", "required": true },
+        { "name": "recoveryTime", "dataType": "number", "required": true },
+        { "name": "aiConfidence", "dataType": "number", "required": true }
+      ]
+    },
+    {
+      "entityTypeName": "CyberRiskAssessment",
+      "description": "Cybersecurity/ransomware risk-register entry per system, same 7-factor model.",
+      "attributes": [
+        { "name": "system", "dataType": "string", "required": true },
+        { "name": "likelihood", "dataType": "number", "required": true },
+        { "name": "businessImpact", "dataType": "number", "required": true },
+        { "name": "complianceImpact", "dataType": "number", "required": true },
+        { "name": "financialImpact", "dataType": "number", "required": true },
+        { "name": "reputationImpact", "dataType": "number", "required": true },
+        { "name": "recoveryTime", "dataType": "number", "required": true },
+        { "name": "aiConfidence", "dataType": "number", "required": true }
+      ]
+    },
+    {
+      "entityTypeName": "RevenueCycleReport",
+      "description": "A department/client revenue-cycle period snapshot: the inputs to the denials->AR->cash->churn chain and the Revenue Cycle composite.",
+      "attributes": [
+        { "name": "department", "dataType": "string", "required": true },
+        { "name": "periodEnd", "dataType": "string", "required": true },
+        { "name": "coderAccuracy", "dataType": "number", "required": false },
+        { "name": "denialRate", "dataType": "number", "required": false },
+        { "name": "cleanClaimRate", "dataType": "number", "required": false },
+        { "name": "arDays", "dataType": "number", "required": false },
+        { "name": "cashCollectedRatio", "dataType": "number", "required": false }
+      ]
+    },
+    {
+      "entityTypeName": "CoderPeriod",
+      "description": "One coder's period productivity/accuracy - the input to compensation-relevant per-USER KPIs (Batch 2 R7).",
+      "attributes": [
+        { "name": "coderId", "dataType": "string", "required": true },
+        { "name": "periodEnd", "dataType": "string", "required": true },
+        { "name": "chartsCoded", "dataType": "number", "required": true },
+        { "name": "chartsAccurate", "dataType": "number", "required": true }
+      ]
+    },
+    {
+      "entityTypeName": "BillerPeriod",
+      "description": "One biller's period productivity/accuracy - per-USER KPIs.",
+      "attributes": [
+        { "name": "billerId", "dataType": "string", "required": true },
+        { "name": "periodEnd", "dataType": "string", "required": true },
+        { "name": "claimsEntered", "dataType": "number", "required": true },
+        { "name": "entriesAccurate", "dataType": "number", "required": true },
+        { "name": "eraLinesPosted", "dataType": "number", "required": false },
+        { "name": "eraLinesAccurate", "dataType": "number", "required": false }
+      ]
+    }
+  ],
+
+  "events": [
+    { "eventName": "RecordReceived", "description": "A record has been durably persisted and is ready for KPI evaluation." }
+  ],
+  "rules": [],
+  "capabilities": [
+    { "capabilityId": "ecarmf.tenant10-rcm.RevenueCycleIntelligence", "name": "Revenue-Cycle Intelligence", "description": "Risk register, revenue-cycle health, and workforce KPIs for the Tenant-10 medical-billing tenant." }
+  ],
+
+  "schemaTemplates": [
+    {
+      "templateId": "tenant10-revenue-cycle-json",
+      "name": "Revenue-cycle period report (JSON) - clearinghouse/835-ERA roll-up, reference until vendor details arrive",
+      "sourceFormat": "json",
+      "targetEntityType": "RevenueCycleReport",
+      "fieldMappings": [
+        { "rawField": "department", "targetField": "department", "transform": "none", "required": true },
+        { "rawField": "periodEnding", "targetField": "periodEnd", "transform": "parseDate", "required": true },
+        { "rawField": "coderAccuracyPct", "targetField": "coderAccuracy", "transform": "none", "required": false },
+        { "rawField": "denialRatePct", "targetField": "denialRate", "transform": "none", "required": false },
+        { "rawField": "cleanClaimRatePct", "targetField": "cleanClaimRate", "transform": "none", "required": false },
+        { "rawField": "arDays", "targetField": "arDays", "transform": "none", "required": false },
+        { "rawField": "cashCollectedRatio", "targetField": "cashCollectedRatio", "transform": "none", "required": false }
+      ]
+    },
+    {
+      "templateId": "tenant10-coder-period-json",
+      "name": "Coder period productivity (JSON)",
+      "sourceFormat": "json",
+      "targetEntityType": "CoderPeriod",
+      "fieldMappings": [
+        { "rawField": "coderEmail", "targetField": "coderId", "transform": "none", "required": true },
+        { "rawField": "periodEnding", "targetField": "periodEnd", "transform": "parseDate", "required": true },
+        { "rawField": "chartsCoded", "targetField": "chartsCoded", "transform": "none", "required": true },
+        { "rawField": "chartsAccurate", "targetField": "chartsAccurate", "transform": "none", "required": true }
+      ]
+    }
+  ],
+
+  "performanceFrameworks": [
+    {
+      "frameworkId": "tenant10-risk-register-v1",
+      "name": "Tenant-10 Risk Register v1",
+      "industry": "Healthcare-RCM",
+      "description": "The Risk Register as riskType-tagged KPIs (R11). Each KPI's formula is the multiplicative risk index (R16): Likelihood x Business x Compliance x Financial x Reputation x Recovery x AI-Confidence, written inline over the assessment's factor fields; higher index = higher risk (direction lower). Distinct trigger record types keep each category's riskType tag exact.",
+      "kpis": [
+        { "kpiId": "phi-breach-risk", "name": "PHI breach risk index", "formula": "likelihood * businessImpact * complianceImpact * financialImpact * reputationImpact * recoveryTime * aiConfidence", "triggerRecordType": "PhiRiskAssessment", "subjectField": "area", "subjectType": "Risk", "riskType": "PHIBreach", "unit": "index", "targetValue": 400, "direction": "lower" },
+        { "kpiId": "claim-denial-risk", "name": "Claim denial risk index", "formula": "likelihood * businessImpact * complianceImpact * financialImpact * reputationImpact * recoveryTime * aiConfidence", "triggerRecordType": "DenialRiskAssessment", "subjectField": "payer", "subjectType": "Risk", "riskType": "ClaimDenial", "unit": "index", "targetValue": 400, "direction": "lower" },
+        { "kpiId": "credentialing-delay-risk", "name": "Credentialing delay risk index", "formula": "likelihood * businessImpact * complianceImpact * financialImpact * reputationImpact * recoveryTime * aiConfidence", "triggerRecordType": "CredentialingRiskAssessment", "subjectField": "provider", "subjectType": "Risk", "riskType": "CredentialingDelay", "unit": "index", "targetValue": 400, "direction": "lower" },
+        { "kpiId": "cyber-ransomware-risk", "name": "Cybersecurity risk index", "formula": "likelihood * businessImpact * complianceImpact * financialImpact * reputationImpact * recoveryTime * aiConfidence", "triggerRecordType": "CyberRiskAssessment", "subjectField": "system", "subjectType": "Risk", "riskType": "Cybersecurity", "unit": "index", "targetValue": 400, "direction": "lower" }
+      ],
+      "okrs": []
+    },
+    {
+      "frameworkId": "tenant10-revenue-cycle-v1",
+      "name": "Tenant-10 Revenue Cycle KPI Framework v1",
+      "industry": "Healthcare-RCM",
+      "description": "Departmental revenue-cycle health: coder accuracy, denial rate (riskType ClaimDenial), clean-claim rate, AR aging, cash collection. These are the child scores a Revenue Cycle CompositeHealth rolls up (R14).",
+      "kpis": [
+        { "kpiId": "rc-coder-accuracy", "name": "Coder accuracy", "formula": "coderAccuracy", "triggerRecordType": "RevenueCycleReport", "subjectField": "department", "subjectType": "OrganizationalUnit", "unit": "ratio", "targetValue": 0.95, "direction": "higher" },
+        { "kpiId": "rc-denial-rate", "name": "Denial rate", "formula": "denialRate", "triggerRecordType": "RevenueCycleReport", "subjectField": "department", "subjectType": "OrganizationalUnit", "riskType": "ClaimDenial", "unit": "ratio", "targetValue": 0.05, "direction": "lower" },
+        { "kpiId": "rc-clean-claim-rate", "name": "Clean claim rate", "formula": "cleanClaimRate", "triggerRecordType": "RevenueCycleReport", "subjectField": "department", "subjectType": "OrganizationalUnit", "unit": "ratio", "targetValue": 0.95, "direction": "higher" },
+        { "kpiId": "rc-ar-days", "name": "AR days", "formula": "arDays", "triggerRecordType": "RevenueCycleReport", "subjectField": "department", "subjectType": "OrganizationalUnit", "riskType": "CashFlow", "unit": "days", "targetValue": 40, "direction": "lower" },
+        { "kpiId": "rc-cash-collected", "name": "Cash collected ratio", "formula": "cashCollectedRatio", "triggerRecordType": "RevenueCycleReport", "subjectField": "department", "subjectType": "OrganizationalUnit", "unit": "ratio", "targetValue": 0.96, "direction": "higher" }
+      ],
+      "okrs": [
+        {
+          "okrId": "rc-excellence",
+          "objective": "Collect faster with fewer denials",
+          "keyResults": [
+            { "krId": "kr-denial", "kpiId": "rc-denial-rate", "targetValue": 0.05 },
+            { "krId": "kr-cash", "kpiId": "rc-cash-collected", "targetValue": 0.96 }
+          ]
+        }
+      ]
+    },
+    {
+      "frameworkId": "tenant10-workforce-v1",
+      "name": "Tenant-10 Workforce KPI Framework v1",
+      "industry": "Healthcare-RCM",
+      "description": "Per-USER coder/biller accuracy and productivity (Batch 2 R7: subjectType User). Targets are baselines pending leadership review; once adjusted, the human number is authoritative. Boundary vs tenant10-revenue-cycle-v1: those are department-level, these are person-level.",
+      "kpis": [
+        { "kpiId": "wf-coder-accuracy", "name": "Coder accuracy (person)", "formula": "chartsAccurate / chartsCoded", "triggerRecordType": "CoderPeriod", "subjectField": "coderId", "subjectType": "User", "unit": "ratio", "targetValue": 0.95, "direction": "higher" },
+        { "kpiId": "wf-biller-entry-accuracy", "name": "Biller entry accuracy (person)", "formula": "entriesAccurate / claimsEntered", "triggerRecordType": "BillerPeriod", "subjectField": "billerId", "subjectType": "User", "unit": "ratio", "targetValue": 0.98, "direction": "higher" },
+        { "kpiId": "wf-era-posting-accuracy", "name": "ERA posting accuracy (person)", "formula": "eraLinesAccurate / eraLinesPosted", "triggerRecordType": "BillerPeriod", "subjectField": "billerId", "subjectType": "User", "unit": "ratio", "targetValue": 0.99, "direction": "higher" }
+      ],
+      "okrs": []
+    }
+  ],
+
+  "workflows": [
+    {
+      "workflowId": "ecarmf.tenant10-rcm.WF-DEV-ESCALATE",
+      "triggerEvent": "DeviationDetected",
+      "steps": [
+        { "type": "notify", "target": "RiskComplianceOfficer", "message": "A Tenant-10 metric breached its threshold - review the risk register and revenue-cycle board." }
+      ]
+    }
+  ],
+
+  "knowledgeAssets": [
+    {
+      "assetId": "hipaa-security-rule-2026",
+      "docKey": "hipaa-security-rule",
+      "title": "HIPAA Security Rule - safeguards summary",
+      "assetType": "ReferenceManual",
+      "docType": "Regulation",
+      "issuer": "HHS OCR",
+      "jurisdiction": "Federal",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "summary": "Administrative, physical, and technical safeguards for ePHI; risk analysis and risk management are required, not optional.",
+      "relationships": [
+        { "relatedAssetId": "hipaa-breach-notification-2026", "relationshipType": "relatedTo" }
+      ]
+    },
+    {
+      "assetId": "hipaa-breach-notification-2026",
+      "docKey": "hipaa-breach-notification",
+      "title": "HIPAA Breach Notification Rule - obligations summary",
+      "assetType": "ReferenceManual",
+      "docType": "Regulation",
+      "issuer": "HHS OCR",
+      "jurisdiction": "Federal",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "summary": "Notification timelines and thresholds after a breach of unsecured PHI; the 60-day outer limit and the 500-record HHS/media threshold."
+    },
+    {
+      "assetId": "oig-exclusion-screening-sop-2026",
+      "docKey": "oig-exclusion-screening-sop",
+      "title": "OIG exclusion screening SOP (monthly)",
+      "assetType": "SOP",
+      "docType": "Policy",
+      "issuer": "Tenant-10 Compliance",
+      "jurisdiction": "Federal",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "summary": "Screen every employee, contractor, and vendor against the OIG LEIE monthly. This is a recurring re-verification (ComplianceRenewal recurrenceMonths=1), never a one-time expiry."
+    }
+  ],
+
+  "agents": [
+    {
+      "agentId": "compliance-hipaa-guide",
+      "name": "Compliance & HIPAA Guide",
+      "description": "Grounded HIPAA/OIG guidance over the knowledge graph and the risk register. Boundary vs cybersecurity-guide: this agent covers regulatory obligations; technical posture is the cybersecurity guide's.",
+      "persona": "You are the compliance and HIPAA guide for a medical-billing / revenue-cycle-management company. You answer only from the HIPAA and OIG knowledge assets provided and the compliance-tagged risk scores and deviations you can see, citing the specific asset and its effective date. You explain obligations and flag risk; you never assert that a breach has legally occurred or that an obligation has been met - a qualified compliance officer decides that.",
+      "contextSources": ["references", "scores", "deviations"],
+      "sampleQuestions": [
+        "Which PHI-breach risks are trending worst right now?",
+        "What does the Breach Notification Rule require if a laptop with ePHI is lost?",
+        "Are we current on OIG exclusion screening?"
+      ],
+      "owner": "Compliance",
+      "independentValidator": "Internal Audit",
+      "riskTier": "Regulated",
+      "prohibited": [
+        "never state that a reportable breach has legally occurred",
+        "never confirm an OIG/HIPAA obligation is satisfied - only that evidence is present or missing"
+      ],
+      "outputDisclaimer": "Guidance only - a licensed compliance officer, not this agent, makes HIPAA/OIG determinations."
+    },
+    {
+      "agentId": "revenue-cycle-guide",
+      "name": "Revenue Cycle Guide",
+      "description": "Watches the denials -> AR -> cash -> churn chain and the Revenue Cycle composite. Boundary vs ecarmf.ai-financial-analyst: underpayment/overpayment statement analysis is delegated to the shared Financial Analyst.",
+      "persona": "You are the revenue-cycle advisor for a medical-billing company. You read departmental revenue-cycle KPIs (coder accuracy, denial rate, clean-claim rate, AR days, cash collected), risk-tagged deviations, and the CompositeHealth rollups. You explain where the revenue cycle is leaking and which upstream driver (coder accuracy, a specific payer's denials) is most responsible, and you recommend - never claim an action was taken.",
+      "contextSources": ["scores", "deviations", "records:RevenueCycleReport"],
+      "sampleQuestions": [
+        "Why is Revenue Cycle health down this period?",
+        "Which payer is driving denials?",
+        "Is AR aging getting worse in any department?"
+      ],
+      "owner": "Operations",
+      "independentValidator": "Finance",
+      "riskTier": "Elevated",
+      "outputDisclaimer": "Guidance only - operational and financial decisions are made by Tenant-10 leadership."
+    },
+    {
+      "agentId": "executive-risk-guide",
+      "name": "Executive Risk Guide",
+      "description": "Orchestrates the risk register, correlation chain, composite health, and predictions into an executive view. Boundary vs revenue-cycle-guide: this agent is enterprise-wide risk synthesis, not revenue-cycle operations.",
+      "persona": "You are the executive risk advisor for a medical-billing company. You synthesize the risk register (all riskType-tagged scores), the CompositeHealth rollups, and the classification predictions into a board-level picture, prioritizing by index and trajectory. You present risk and recommendations; you never decide or claim to have acted.",
+      "contextSources": ["scores", "deviations", "benchmarks"],
+      "sampleQuestions": [
+        "What are our top five enterprise risks this quarter?",
+        "Which clients are most likely to churn?",
+        "Where is compliance risk concentrated?"
+      ],
+      "owner": "Executive",
+      "independentValidator": "Risk & Compliance",
+      "riskTier": "Regulated",
+      "outputDisclaimer": "Guidance only - the board and executive team make the decisions; this agent synthesizes risk signals."
+    }
+  ]
+}
