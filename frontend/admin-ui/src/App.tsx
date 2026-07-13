@@ -121,7 +121,16 @@ function App() {
   // (/api/me) from the operator home tenant first — starting on a persisted
   // client tenant would make an operator look like a client. Non-operator
   // client keys resolve to their own tenant regardless (act-as is ignored).
-  const [tenant, setTenantState] = useState(getApiKey() ? 'platform' : tenantFromUrlOrStorage())
+  // Persist 'platform' to storage too (not just React state): api.ts reads the
+  // act-as tenant from storage, so a stale stored tenant would otherwise be
+  // sent on the very first /api/me and mask an operator as a client.
+  const [tenant, setTenantState] = useState(() => {
+    if (getApiKey()) {
+      setTenant('platform')
+      return 'platform'
+    }
+    return tenantFromUrlOrStorage()
+  })
   const [tenantInput, setTenantInput] = useState(tenant)
   const [user, setUserState] = useState(getUser())
   const [apiKeyInput, setApiKeyInput] = useState('')
