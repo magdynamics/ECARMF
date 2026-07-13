@@ -1,0 +1,285 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "TCEL Trading & Portfolio Management",
+  "version": "1",
+  "status": "Published",
+  "owner": "TCEL",
+  "description": "TCEL Tenant-9 Trading/Portfolio package (T9-003), onboarded as ECARMF knowledge-package metadata. Depends on the TCEL Foundation (T9-001) for Manager master data. Entities from the T9-003 schemas (TradingOrder, PortfolioPosition); the TR-001..020 control catalog becomes executable order-time rules where the declarative condition model allows, plus a traceability knowledge asset for the full catalog; TradingRisk.AI is a governed advisory agent (no autonomous execution). The trading-risk register uses the dynamic riskType {category} token. Boundary vs T9-002 (Banking) and T9-004 (Enterprise Risk): this package owns ONLY order management, execution/settlement, portfolio positions, valuation, and trading-risk controls; enterprise-wide risk aggregation is T9-004. Does NOT re-declare RecordReceived - the Foundation provides it.",
+
+  "packageId": "ecarmf.ai-tcel-trading",
+  "name": "TCEL Trading & Portfolio Management",
+  "packageVersion": "1.0.0",
+  "publisher": "MAG Dynamics",
+  "dependencies": [
+    { "packageId": "ecarmf.ai-tcel-foundation", "minimumVersion": "1.0.0" }
+  ],
+
+  "entities": [
+    {
+      "entityTypeName": "TradingOrder",
+      "description": "A TCEL trading order through the OMS (T9-003 trading-order.schema.json).",
+      "attributes": [
+        { "name": "orderId", "dataType": "string", "required": true },
+        { "name": "managerId", "dataType": "string", "required": true },
+        { "name": "portfolioId", "dataType": "string", "required": true },
+        { "name": "securityId", "dataType": "string", "required": true },
+        { "name": "side", "dataType": "string", "required": true },
+        { "name": "quantity", "dataType": "number", "required": true },
+        { "name": "notional", "dataType": "number", "required": false },
+        { "name": "orderType", "dataType": "string", "required": true },
+        { "name": "brokerId", "dataType": "string", "required": false },
+        { "name": "strategyId", "dataType": "string", "required": false },
+        { "name": "status", "dataType": "string", "required": true },
+        { "name": "idempotencyKey", "dataType": "string", "required": false }
+      ]
+    },
+    {
+      "entityTypeName": "PortfolioPosition",
+      "description": "A TCEL portfolio position snapshot (T9-003 portfolio-position.schema.json).",
+      "attributes": [
+        { "name": "portfolioId", "dataType": "string", "required": true },
+        { "name": "managerId", "dataType": "string", "required": true },
+        { "name": "securityId", "dataType": "string", "required": true },
+        { "name": "quantity", "dataType": "number", "required": true },
+        { "name": "costBasis", "dataType": "number", "required": false },
+        { "name": "marketValue", "dataType": "number", "required": true },
+        { "name": "currency", "dataType": "string", "required": true },
+        { "name": "unrealizedPnl", "dataType": "number", "required": false },
+        { "name": "priceSource", "dataType": "string", "required": false },
+        { "name": "priceConfidence", "dataType": "number", "required": false },
+        { "name": "asOf", "dataType": "string", "required": true }
+      ]
+    },
+    {
+      "entityTypeName": "TradingRiskAssessment",
+      "description": "One trading/portfolio risk-register entry. category drives the riskType tag via the dynamic {category} token.",
+      "attributes": [
+        { "name": "area", "dataType": "string", "required": true },
+        { "name": "category", "dataType": "string", "required": true },
+        { "name": "likelihood", "dataType": "number", "required": true },
+        { "name": "businessImpact", "dataType": "number", "required": true },
+        { "name": "controlGap", "dataType": "number", "required": true }
+      ]
+    }
+  ],
+
+  "events": [
+    { "eventName": "ManagerMandateActivated", "description": "Manager mandate becomes active." },
+    { "eventName": "OrderSubmitted", "description": "Order submitted." },
+    { "eventName": "OrderHeld", "description": "Order held for review." },
+    { "eventName": "OrderRejected", "description": "Order rejected." },
+    { "eventName": "OrderRouted", "description": "Order routed." },
+    { "eventName": "ExecutionReceived", "description": "Fill received." },
+    { "eventName": "TradeAllocated", "description": "Execution allocated." },
+    { "eventName": "TradeConfirmed", "description": "Broker/custodian confirmation matched." },
+    { "eventName": "SettlementFailed", "description": "Trade failed settlement." },
+    { "eventName": "SettlementCompleted", "description": "Trade settled." },
+    { "eventName": "PositionUpdated", "description": "Position changed." },
+    { "eventName": "PriceUpdated", "description": "Price received." },
+    { "eventName": "ValuationExceptionOpened", "description": "Price/valuation issue." },
+    { "eventName": "RiskLimitBreached", "description": "Manager or enterprise breach." },
+    { "eventName": "SurveillanceAlertOpened", "description": "Pattern detected." },
+    { "eventName": "TradingRiskRecommendationCreated", "description": "AI recommendation created." }
+  ],
+
+  "rules": [
+    {
+      "ruleId": "TR-001",
+      "name": "Active mandate required",
+      "description": "Preventive/Critical (Owner: CIO). Reject an order without an active manager mandate.",
+      "triggerEvent": "RecordReceived",
+      "priority": 5,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "TradingOrder" },
+        { "field": "mandateActive", "operator": "Equals", "value": "false" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "TR-001: order {orderId} rejected - manager {managerId} has no active mandate (CIO)."
+    },
+    {
+      "ruleId": "TR-002",
+      "name": "Restricted security check",
+      "description": "Preventive/Critical (Owner: CCO). Reject an order in a restricted security.",
+      "triggerEvent": "RecordReceived",
+      "priority": 5,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "TradingOrder" },
+        { "field": "securityRestricted", "operator": "Equals", "value": "true" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "TR-002: order {orderId} rejected - security {securityId} is on the restricted list (CCO)."
+    },
+    {
+      "ruleId": "TR-003",
+      "name": "Manager instrument authority",
+      "description": "Preventive/Critical (Owner: CRO). Reject an order the manager is not authorized to trade.",
+      "triggerEvent": "RecordReceived",
+      "priority": 5,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "TradingOrder" },
+        { "field": "instrumentAuthorized", "operator": "Equals", "value": "false" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "TR-003: order {orderId} rejected - manager {managerId} lacks authority for this instrument (CRO)."
+    },
+    {
+      "ruleId": "TR-005",
+      "name": "Enterprise concentration limit",
+      "description": "Preventive/Critical (Owner: CRO). Reject or hold an order that breaches enterprise concentration.",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "TradingOrder" },
+        { "field": "concentrationBreach", "operator": "Equals", "value": "true" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "TR-005: order {orderId} rejected - enterprise concentration limit breached (CRO)."
+    },
+    {
+      "ruleId": "TR-006",
+      "name": "Available cash and settlement capacity",
+      "description": "Preventive/Critical (Owner: Treasury/Operations). Reject an order without sufficient cash/settlement capacity.",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "TradingOrder" },
+        { "field": "sufficientCash", "operator": "Equals", "value": "false" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "TR-006: order {orderId} rejected - insufficient available cash or settlement capacity (Treasury/Operations)."
+    },
+    {
+      "ruleId": "TR-007",
+      "name": "Leverage and margin limit",
+      "description": "Preventive/Critical (Owner: CRO). Reject an order breaching leverage/margin limits.",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "TradingOrder" },
+        { "field": "leverageBreach", "operator": "Equals", "value": "true" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "TR-007: order {orderId} rejected - leverage/margin limit breached (CRO)."
+    },
+    {
+      "ruleId": "TR-008",
+      "name": "Critical drawdown state",
+      "description": "Preventive/Critical (Owner: CRO). Suspend new purchases while in a critical drawdown state.",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "TradingOrder" },
+        { "field": "side", "operator": "Equals", "value": "Buy" },
+        { "field": "drawdownState", "operator": "Equals", "value": "Critical" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "TR-008: buy order {orderId} suspended - manager is in a critical drawdown state (CRO)."
+    },
+    {
+      "ruleId": "TR-009",
+      "name": "Approved broker/counterparty",
+      "description": "Preventive/High (Owner: CCO). Reject routing to an unapproved broker.",
+      "triggerEvent": "RecordReceived",
+      "priority": 15,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "TradingOrder" },
+        { "field": "brokerApproved", "operator": "Equals", "value": "false" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "TR-009: order {orderId} route rejected - broker {brokerId} is not approved (CCO)."
+    },
+    {
+      "ruleId": "TR-013",
+      "name": "Stale price control",
+      "description": "Detective/High (Owner: Accounting). Flag valuation on a stale price.",
+      "triggerEvent": "RecordReceived",
+      "priority": 30,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "PriceUpdate" },
+        { "field": "stale", "operator": "Equals", "value": "true" }
+      ],
+      "outcomeOnMatch": "Flagged",
+      "reasonTemplate": "TR-013: price for {securityId} is stale - valuation flagged (Accounting)."
+    },
+    {
+      "ruleId": "TR-018",
+      "name": "AI execution boundary",
+      "description": "Preventive/Critical (Owner: Model Risk). Deny an agent's attempt to place a trade directly.",
+      "triggerEvent": "RecordReceived",
+      "priority": 5,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "TradingOrder" },
+        { "field": "placedByAgent", "operator": "Equals", "value": "true" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "TR-018: order {orderId} denied - an AI agent may not place or route trades directly; agents are advisory-only (Model Risk)."
+    }
+  ],
+
+  "capabilities": [
+    { "capabilityId": "ecarmf.tcel-trading.TradingPortfolioIntelligence", "name": "TCEL Trading & Portfolio Intelligence", "description": "Order management, execution/settlement, portfolio positions, valuation, trading-risk controls, and the trading-risk register for the TCEL tenant." }
+  ],
+
+  "performanceFrameworks": [
+    {
+      "frameworkId": "tcel-trading-risk-register-v1",
+      "name": "TCEL Trading Risk Register v1",
+      "industry": "Financial-Services",
+      "description": "The trading/portfolio risk register as ONE record type + ONE KPI using the dynamic riskType {category} token (MarketRisk, Concentration, Leverage, Settlement, Valuation, Surveillance, ...). Multiplicative index Likelihood x BusinessImpact x ControlGap; higher = worse (direction lower).",
+      "kpis": [
+        {
+          "kpiId": "trading-risk-index",
+          "name": "Trading risk index",
+          "formula": "likelihood * businessImpact * controlGap",
+          "triggerRecordType": "TradingRiskAssessment",
+          "subjectField": "area",
+          "subjectType": "Risk",
+          "riskType": "{category}",
+          "unit": "index",
+          "targetValue": 40,
+          "direction": "lower"
+        }
+      ],
+      "okrs": []
+    }
+  ],
+
+  "agents": [
+    {
+      "agentId": "tcel.tradingrisk.ai",
+      "name": "TradingRisk.AI",
+      "description": "Governed trading-risk officer across proposed and executed trading activity, manager behavior, portfolio exposures, valuation quality, settlement risk, and enterprise concentration. Advisory-only. Boundary vs BankRisk.AI (T9-002) and EnterpriseRisk.AI (T9-004): TradingRisk.AI owns trading/portfolio risk only.",
+      "persona": "You are TradingRisk.AI, a governed trading-risk officer for TCEL. You continuously analyze orders and executions, positions, prices, manager mandates, enterprise risk limits, restricted lists, and broker/custodian data; calculate and explain risk; detect patterns; rank risk alternatives; and simulate trade and portfolio effects - grounded ONLY in the approved data you can see, citing the facts, as-of times, and policy/control references you relied on. Every recommendation states manager and enterprise impact, assumptions, confidence, alternatives, and required approvers. You recommend, alert, and escalate; you never place or route trades, change limits, approve exceptions, or alter mandates.",
+      "contextSources": ["scores", "deviations", "records:TradingOrder", "records:PortfolioPosition", "references"],
+      "sampleQuestions": [
+        "Which managers are closest to a position or concentration limit?",
+        "Are there unusual cancellation or trade-splitting patterns this week?",
+        "What is the enterprise exposure if this proposed order fills?",
+        "Where is valuation quality weakest across the book right now?"
+      ],
+      "owner": "CRO",
+      "independentValidator": "Model Risk Committee",
+      "riskTier": "Critical",
+      "prohibited": [
+        "place or route trades; change limits; approve exceptions; alter mandates",
+        "clear investigations; modify source evidence; change its own permissions"
+      ],
+      "outputDisclaimer": "Advisory only - TradingRisk.AI analyzes and recommends; every trade, limit, mandate, and exception decision is made and executed by an authorized human, not by this agent."
+    }
+  ],
+
+  "knowledgeAssets": [
+    {
+      "assetId": "tcel-trading-control-catalog-2026",
+      "docKey": "tcel-trading-control-catalog",
+      "title": "TCEL Trading Risk Control Catalog (TR-001..020)",
+      "assetType": "ReferenceManual",
+      "docType": "ControlCatalog",
+      "issuer": "TCEL Trading Risk",
+      "jurisdiction": "US",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "summary": "The 20 deterministic TR- controls. TR-001/002/003/005/006/007/008/009/013/018 are enforced as executable rules; the remainder (position-limit and fair-allocation holds, execution/position reconciliation breaks, settlement-fail and alert escalation timers, trade-splitting and cancellation surveillance aggregation, manual-price-override and model-version governance) require registry lookup, aggregation, timers, or approval workflow beyond the declarative condition model and are carried for traceability.",
+      "contentText": "TR-001 Active mandate required | Preventive | Reject order | Critical | CIO. TR-002 Restricted security check | Preventive | Reject order | Critical | CCO. TR-003 Manager instrument authority | Preventive | Reject order | Critical | CRO. TR-004 Manager position limit | Preventive | Reject or hold | High | CRO. TR-005 Enterprise concentration limit | Preventive | Reject or hold | Critical | CRO. TR-006 Available cash and settlement capacity | Preventive | Reject order | Critical | Treasury/Operations. TR-007 Leverage and margin limit | Preventive | Reject order | Critical | CRO. TR-008 Critical drawdown state | Preventive | Suspend new purchases | Critical | CRO. TR-009 Approved broker/counterparty | Preventive | Reject route | High | CCO. TR-010 Fair allocation | Preventive/Detective | Hold and review allocation | High | Operations. TR-011 Execution-to-confirmation match | Detective | Open break | High | Operations. TR-012 Settlement fail escalation | Detective/Corrective | Escalate by age/severity | High | Operations. TR-013 Stale price control | Detective | Flag valuation | High | Accounting. TR-014 Manual price override approval | Preventive | Require independent approval | High | Accounting. TR-015 Position reconciliation | Detective | Open break | High | Operations. TR-016 Trade splitting/limit avoidance | Detective | Aggregate and alert | High | Compliance. TR-017 Unusual cancellation pattern | Detective | Surveillance alert | Medium | Compliance. TR-018 AI execution boundary | Preventive | Deny direct trade execution | Critical | Model Risk. TR-019 Model/version traceability | Governance | Block unapproved model use | Critical | Model Risk. TR-020 Critical alert escalation | Corrective | Assign and escalate | Critical | Trading Risk."
+    }
+  ]
+}
