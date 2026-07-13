@@ -1,0 +1,156 @@
+{
+  "_comment": "TCEL P4.1 — LITERAL starting-point skeleton for a Knowledge Package manifest. Copy this file, rename it, and fill it in. Every section the kernel accepts is present with one fully-populated placeholder element. _comment keys are ignored by the loader (unknown properties are dropped) and exist only to explain each field. Delete the sections you do not use — empty arrays are fine. Before authoring a follow-on or multi-wave package, FIRST consult GET /api/packages/id-ledger and treat every id it lists as reserved.",
+
+  "_comment_identity": "Required: packageId, name, packageVersion. packageId is the stable identity; a changed manifest is a NEW packageVersion, never an overwrite.",
+  "packageId": "ecarmf.example-domain",
+  "name": "Example Domain Package",
+  "packageVersion": "1.0.0",
+  "publisher": "Your Team",
+
+  "_comment_dependencies": "Optional. Declare ONLY lower-numbered / already-existing packages (strictly cumulative — cycle-free by construction). The loader REJECTS any manifest that would close a dependency cycle. A forward/loose coupling belongs in prose here, never as a dependency edge.",
+  "dependencies": [
+    { "packageId": "ecarmf.treasury-controls", "minimumVersion": "1.0.0" }
+  ],
+
+  "_comment_supersedes": "Optional (P2.1). Earlier drafts THIS package replaces. Declared by the replacing package only; supersededBy is derived, never stored. Superseding a still-active package warns — the operator deactivates it deliberately.",
+  "supersedes": [
+    { "packageId": "ecarmf.example-domain-legacy", "packageVersion": "0.9.0" }
+  ],
+
+  "_comment_consolidates": "Optional (P2.3). Package ids this one aggregates while they STAY active (distinct from supersedes, which replaces). Consolidating a package that was never loaded is a load ERROR; consolidating one whose ids you never reference is a WARNING — populate the mapping.",
+  "consolidates": [],
+
+  "_comment_entities": "Domain record/entity types this package contributes.",
+  "entities": [
+    {
+      "entityTypeName": "ExampleRecord",
+      "description": "One example domain record.",
+      "attributes": [
+        { "name": "subjectId", "dataType": "string", "required": true },
+        { "name": "amount", "dataType": "number", "required": false }
+      ]
+    }
+  ],
+
+  "_comment_events": "Kernel events this package declares. Rules trigger on these (or on events an active dependency declares).",
+  "events": [
+    { "eventName": "ExampleReceived" }
+  ],
+
+  "_comment_rules": "Deterministic rules. A rule must do something: an OutcomeOnMatch, EmitScores, or both. riskType tags ride KPI/score emissions, not a bespoke risk entity.",
+  "rules": [
+    {
+      "ruleId": "ecarmf.example-domain.R-001",
+      "name": "Flag large example amounts",
+      "description": "System behavior: amounts over the threshold are flagged for review.",
+      "triggerEvent": "ExampleReceived",
+      "priority": 100,
+      "conditions": [
+        { "field": "amount", "operator": "GreaterThan", "value": "50000" }
+      ],
+      "outcomeOnMatch": "Flagged",
+      "reasonTemplate": "amount {amount} exceeds the review threshold",
+      "emitScores": [
+        { "scoreType": "ExampleRisk", "value": "0.75", "subjectType": "ExampleRecord", "subjectIdField": "subjectId" }
+      ]
+    }
+  ],
+
+  "_comment_capabilities": "Named capabilities this package offers (metadata).",
+  "capabilities": [
+    { "capabilityId": "ecarmf.example-domain.Intelligence", "name": "Example Intelligence", "description": "What this package does, in one line." }
+  ],
+
+  "_comment_schemaTemplates": "Declarative field mappings from a raw source shape to a target entity. sourceFormat is json | csv | text.",
+  "schemaTemplates": [
+    {
+      "templateId": "example-json",
+      "name": "Example source (JSON)",
+      "sourceFormat": "json",
+      "targetEntityType": "ExampleRecord",
+      "fieldMappings": [
+        { "rawField": "id", "targetField": "subjectId", "transform": "none", "required": true },
+        { "rawField": "value", "targetField": "amount", "transform": "none", "required": false }
+      ]
+    }
+  ],
+
+  "_comment_performanceFrameworks": "KPI/OKR frameworks. A KPI formula supports + - * / and parentheses over payload fields; riskType tags a KPI as a risk-register entry. subjectType may be OrganizationalUnit, User, or any entity type.",
+  "performanceFrameworks": [
+    {
+      "frameworkId": "example-kpis-v1",
+      "name": "Example KPI Framework v1",
+      "industry": "Example",
+      "description": "Boundary vs <neighbor-packageId>: state here what this framework deliberately does NOT cover when a neighbor already exists.",
+      "kpis": [
+        {
+          "kpiId": "example-accuracy",
+          "name": "Example accuracy",
+          "formula": "correct / total",
+          "triggerRecordType": "ExampleRecord",
+          "subjectField": "subjectId",
+          "subjectType": "User",
+          "unit": "ratio",
+          "targetValue": 0.95,
+          "direction": "higher"
+        }
+      ],
+      "okrs": []
+    }
+  ],
+
+  "_comment_workflows": "Trigger event + steps (notify | createTask | publishEvent).",
+  "workflows": [
+    {
+      "workflowId": "ecarmf.example-domain.WF-001",
+      "triggerEvent": "ExampleReceived",
+      "steps": [
+        { "type": "notify", "target": "RiskComplianceOfficer", "message": "An example record needs review." }
+      ]
+    }
+  ],
+
+  "_comment_agents": "Agent spec — see agent-template.json for the full Identity block. A missing owner is a load WARNING. Before adding an agent, check the tenant's active agents (and GET /api/packages/id-ledger) for semantic overlap; the loader warns on overlapping scope.",
+  "agents": [
+    {
+      "agentId": "example-guide",
+      "name": "Example Guide",
+      "description": "One-line scope. Boundary vs <neighbor-agentId>: what it deliberately does not do.",
+      "persona": "You are ... You ground every answer in the provided context and never invent facts.",
+      "contextSources": ["scores", "deviations", "records:ExampleRecord"],
+      "sampleQuestions": ["What example records need review right now?"],
+      "owner": "Your Team",
+      "independentValidator": "Internal Audit",
+      "riskTier": "Elevated",
+      "prohibited": ["never state a determination the tenant's licensed professional must make"],
+      "outputDisclaimer": "Guidance only — decisions are made by a qualified human, not this agent."
+    }
+  ],
+
+  "_comment_knowledgeAssets": "Effective-dated reference content, optionally with knowledge-graph relationship edges.",
+  "knowledgeAssets": [
+    {
+      "assetId": "example-ref-2026",
+      "docKey": "example-ref",
+      "title": "Example Reference",
+      "assetType": "ReferenceManual",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "summary": "What this reference covers.",
+      "relationships": []
+    }
+  ],
+
+  "_comment_aiExtractionTemplates": "AI-driven extraction from unstructured documents, with a per-field confidence review threshold in (0,1].",
+  "aiExtractionTemplates": [
+    {
+      "templateId": "example-extract",
+      "targetType": "ExampleRecord",
+      "reviewThreshold": 0.8,
+      "documentKinds": ["pdf"],
+      "fields": [
+        { "name": "subjectId" },
+        { "name": "amount" }
+      ]
+    }
+  ]
+}

@@ -60,3 +60,26 @@ required. Follow them before a package is considered ready.
    a package consumes data a later package will publish, state that in the
    manifest `description` as published-data-only — a live dependency edge
    would create a cycle and be rejected.
+4. **Start from the templates in `packages/templates/`** — `package-template.json`
+   (every section, one filled-in placeholder each, `_comment` keys) and
+   `agent-template.json` (the full Identity block: `owner`,
+   `independentValidator`, `riskTier`, `prohibited`). A missing agent `owner`
+   loads with a warning. Deviating from a template is allowed — but call the
+   deviation out in the package, since drift can be an improvement and only
+   *silent* drift is the bug. CSV header templates for control catalogs
+   (`Control ID,Control,Type,System Behavior,Severity,Owner,Evidence`) and
+   backlogs (`Epic,Name,Priority,Scope,Owner,Dependency`) live there too.
+5. **State a boundary when you enter an existing domain.** If a package for a
+   domain already exists for the tenant, the new package must include, in its
+   `description`, an explicit `Boundary vs <packageId>:` sentence saying what
+   it deliberately does *not* cover. Same for agents whose scope neighbours an
+   existing one — the loader warns on overlapping scope terms; resolve or
+   record the decomposition.
+6. **Derive bundles, never author them.** A delivery bundle is assembled from
+   the exact standalone files with `scripts/build-bundle.ps1` (which also
+   writes a SHA-256 manifest) — never hand-built as a separate artifact that
+   can silently diverge.
+
+Two repo scripts back these rules: `scripts/id-ledger.ps1` (offline id
+projection, same shape as `GET /api/packages/id-ledger`) and
+`scripts/build-bundle.ps1` (bundle-from-standalone).
