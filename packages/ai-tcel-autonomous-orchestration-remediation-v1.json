@@ -1,0 +1,305 @@
+{
+    "entityType": "KnowledgePackageManifest",
+    "entityName": "TCEL T9-041-Autonomous-Orchestration-Remediation",
+    "version": "1",
+    "status": "Published",
+    "owner": "TCEL",
+    "description": "TCEL Tenant-9 T9-041 Enterprise Autonomous Orchestration & Remediation Engine (EAORE), generated from the spec manifest as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant control enforced as an executable rule; full control/boundary catalog carried as a knowledge asset for traceability). Governed autonomous execution: Observe -> Detect -> Correlate -> Analyze -> Recommend -> Govern -> Authorize -> Execute -> Verify -> Learn. Depends on Foundation; does NOT re-declare RecordReceived. NOTE: the spec's control prefix 'AO-' collides tenant-wide with T9-040 (ref refinements doc S10.1); the executable boundary rule is namespaced 'AOR-' here to avoid the collision.",
+    "packageId": "ecarmf.ai-tcel-autonomous-orchestration-remediation",
+    "name": "TCEL T9-041-Autonomous-Orchestration-Remediation",
+    "packageVersion": "1.1.0",
+    "publisher": "MAG Dynamics",
+    "dependencies": [
+        {
+            "packageId": "ecarmf.ai-tcel-foundation",
+            "minimumVersion": "1.0.0"
+        }
+    ],
+    "entities": [
+        {
+            "entityTypeName": "AffectedPaymentObligation",
+            "description": " (generated from schema affected-payment-obligation.schema.json)",
+            "attributes": [
+                {
+                    "name": "affectedPaymentObligationId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "entityTypeName": "AlternateFundingSource",
+            "description": " (generated from schema alternate-funding-source.schema.json)",
+            "attributes": [
+                {
+                    "name": "alternateFundingSourceId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "entityTypeName": "ApprovalRequest",
+            "description": " (generated from schema approval-request.schema.json)",
+            "attributes": [
+                {
+                    "name": "approvalRequestId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "entityTypeName": "AutonomousActionIncident",
+            "description": " (generated from schema autonomous-action-incident.schema.json)",
+            "attributes": [
+                {
+                    "name": "autonomousActionIncidentId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "entityTypeName": "AutonomousActionRequest",
+            "description": " (generated from schema autonomous-action-request.schema.json)",
+            "attributes": [
+                {
+                    "name": "autonomousActionRequestId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "entityTypeName": "BankRestrictionEvent",
+            "description": " (generated from schema bank-restriction-event.schema.json)",
+            "attributes": [
+                {
+                    "name": "bankRestrictionEventId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "entityTypeName": "ExecutionPlan",
+            "description": " (generated from schema execution-plan.schema.json)",
+            "attributes": [
+                {
+                    "name": "executionPlanId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "entityTypeName": "ExecutionStep",
+            "description": " (generated from schema execution-step.schema.json)",
+            "attributes": [
+                {
+                    "name": "executionStepId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "entityTypeName": "KillSwitchState",
+            "description": " (generated from schema kill-switch-state.schema.json)",
+            "attributes": [
+                {
+                    "name": "killSwitchStateId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "entityTypeName": "LiquidityImpactAssessment",
+            "description": " (generated from schema liquidity-impact-assessment.schema.json)",
+            "attributes": [
+                {
+                    "name": "liquidityImpactAssessmentId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "entityTypeName": "PaymentReroutingDecision",
+            "description": " (generated from schema payment-rerouting-decision.schema.json)",
+            "attributes": [
+                {
+                    "name": "paymentReroutingDecisionId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "entityTypeName": "Playbook",
+            "description": " (generated from schema playbook.schema.json)",
+            "attributes": [
+                {
+                    "name": "playbookId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "entityTypeName": "PolicyDecision",
+            "description": " (generated from schema policy-decision.schema.json)",
+            "attributes": [
+                {
+                    "name": "policyDecisionId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "entityTypeName": "RollbackPlan",
+            "description": " (generated from schema rollback-plan.schema.json)",
+            "attributes": [
+                {
+                    "name": "rollbackPlanId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "entityTypeName": "VerificationResult",
+            "description": " (generated from schema verification-result.schema.json)",
+            "attributes": [
+                {
+                    "name": "verificationResultId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        }
+    ],
+    "events": [],
+    "rules": [
+        {
+            "ruleId": "AOR-014",
+            "name": "Cross-tenant denial",
+            "description": "Preventive/Critical. The universal AI-execution-boundary: deny any action, agent, or workflow reference that resolves outside the current tenant.",
+            "triggerEvent": "RecordReceived",
+            "priority": 5,
+            "conditions": [
+                {
+                    "field": "recordType",
+                    "operator": "Equals",
+                    "value": "DataAccess"
+                },
+                {
+                    "field": "crossTenant",
+                    "operator": "Equals",
+                    "value": "true"
+                }
+            ],
+            "outcomeOnMatch": "Rejected",
+            "reasonTemplate": "AOR-014: access denied - cross-tenant access is prohibited."
+        }
+    ],
+    "capabilities": [
+        {
+            "capabilityId": "ecarmf.ai-tcel-autonomous-orchestration-remediation.Capability",
+            "name": "TCEL T9-041-Autonomous-Orchestration-Remediation",
+            "description": "Domain capability generated from the T9 spec."
+        }
+    ],
+    "knowledgeAssets": [
+        {
+            "assetId": "tcel-eaore-control-catalog-2026",
+            "docKey": "tcel-eaore-control-catalog",
+            "title": "TCEL T9-041-Autonomous-Orchestration-Remediation Control Catalog",
+            "assetType": "ReferenceManual",
+            "docType": "ControlCatalog",
+            "issuer": "TCEL",
+            "jurisdiction": "US",
+            "effectiveFrom": "2026-01-01T00:00:00Z",
+            "summary": "T9-041 EAORE deterministic controls and non-negotiable boundaries. Enforced as an executable rule: AOR-014 (universal cross-tenant / AI-execution boundary). 70 controls (prefix AO- in the source spec) carried here for traceability; the six non-negotiable boundaries are the governing constraints.",
+            "contentText": "NON-NEGOTIABLE BOUNDARIES: (1) No autonomous action without an approved policy and action profile. (2) No action beyond delegated authority. (3) No execution using unapproved tools or integrations. (4) No silent override of human decisions. (5) No high-impact irreversible action without the required human approval. (6) Every action, decision, side effect, failure, rollback, and outcome is auditable. ENGINE: policy-decision, human-authority, orchestration, verification and learning engines; 11 playbooks incl. PB-011 Bank-Lien/Account-Freeze Response; kill-switch halts all in-flight/queued actions (Board-authorized restart only); 30 autonomous actions classified by reversibility and materiality; 30 events; 15 schemas (autonomous-action-request/incident, execution-plan/step, policy-decision, approval-request, rollback-plan, kill-switch-state, verification-result, bank-restriction-event, liquidity-impact-assessment, affected-payment-obligation, alternate-funding-source, payment-rerouting-decision, playbook). v1.1.0 adds the bank lien/account-freeze financial-continuity response model. Control prefix in source: AO-001..AO-070 (collides with T9-040 AO-; namespaced AOR- in this ECARMF representation)."
+        }
+    ]
+}

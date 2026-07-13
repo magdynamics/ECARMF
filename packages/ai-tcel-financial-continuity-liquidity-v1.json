@@ -1,0 +1,242 @@
+{
+    "entityType": "KnowledgePackageManifest",
+    "entityName": "TCEL T9-042-Financial-Continuity-Liquidity",
+    "version": "1",
+    "status": "Published",
+    "owner": "TCEL",
+    "description": "TCEL Tenant-9 T9-042 Enterprise Financial Continuity & Liquidity Orchestration (EFCL), generated from the spec manifest as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant control enforced as an executable rule; full control catalog carried as a knowledge asset for traceability). Decides financial-continuity actions (banking, liquidity, funding, payment, payroll, customer-money, debt-service, covenant, cash-flow) and invokes T9-041 to execute. Closed loop: Detect -> Validate -> Quantify -> Prioritize -> Fund -> Execute through T9-041 -> Verify -> Reconcile -> Monitor -> Resolve -> Learn. Depends on Foundation; does NOT re-declare RecordReceived. Entity AlternateFundingSource is omitted here (already declared by T9-041, its primaryRuntimeDependency) per the cross-package claimed-names rule.",
+    "packageId": "ecarmf.ai-tcel-financial-continuity-liquidity",
+    "name": "TCEL T9-042-Financial-Continuity-Liquidity",
+    "packageVersion": "1.0.1",
+    "publisher": "MAG Dynamics",
+    "dependencies": [
+        {
+            "packageId": "ecarmf.ai-tcel-foundation",
+            "minimumVersion": "1.0.0"
+        }
+    ],
+    "primaryRuntimeDependency": "ecarmf.ai-tcel-autonomous-orchestration-remediation",
+    "entities": [
+        {
+            "entityTypeName": "BankRestriction",
+            "description": " (generated from schema bank-restriction.schema.json)",
+            "attributes": [
+                {
+                    "name": "bankRestrictionId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "entityTypeName": "CashRunwayForecast",
+            "description": " (generated from schema cash-runway-forecast.schema.json)",
+            "attributes": [
+                {
+                    "name": "cashRunwayForecastId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "entityTypeName": "CustomerFundProtection",
+            "description": " (generated from schema customer-fund-protection.schema.json)",
+            "attributes": [
+                {
+                    "name": "customerFundProtectionId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "entityTypeName": "DebtCovenant",
+            "description": " (generated from schema debt-covenant.schema.json)",
+            "attributes": [
+                {
+                    "name": "debtCovenantId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "entityTypeName": "FinancialContinuityEvent",
+            "description": " (generated from schema financial-continuity-event.schema.json)",
+            "attributes": [
+                {
+                    "name": "financialContinuityEventId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "entityTypeName": "FinancialContinuityIncident",
+            "description": " (generated from schema financial-continuity-incident.schema.json)",
+            "attributes": [
+                {
+                    "name": "financialContinuityIncidentId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "entityTypeName": "FinancialDecisionPackage",
+            "description": " (generated from schema financial-decision-package.schema.json)",
+            "attributes": [
+                {
+                    "name": "financialDecisionPackageId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "entityTypeName": "LiquidityPosition",
+            "description": " (generated from schema liquidity-position.schema.json)",
+            "attributes": [
+                {
+                    "name": "liquidityPositionId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "entityTypeName": "PaymentObligation",
+            "description": " (generated from schema payment-obligation.schema.json)",
+            "attributes": [
+                {
+                    "name": "paymentObligationId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "entityTypeName": "PaymentPriorityDecision",
+            "description": " (generated from schema payment-priority-decision.schema.json)",
+            "attributes": [
+                {
+                    "name": "paymentPriorityDecisionId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        },
+        {
+            "entityTypeName": "PaymentReroutingProposal",
+            "description": " (generated from schema payment-rerouting-proposal.schema.json)",
+            "attributes": [
+                {
+                    "name": "paymentReroutingProposalId",
+                    "dataType": "string",
+                    "required": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "required": true
+                }
+            ]
+        }
+    ],
+    "events": [],
+    "rules": [
+        {
+            "ruleId": "FC-014",
+            "name": "Cross-tenant denial",
+            "description": "Preventive/Critical. The universal AI-execution-boundary: deny any action, agent, or workflow reference that resolves outside the current tenant.",
+            "triggerEvent": "RecordReceived",
+            "priority": 5,
+            "conditions": [
+                {
+                    "field": "recordType",
+                    "operator": "Equals",
+                    "value": "DataAccess"
+                },
+                {
+                    "field": "crossTenant",
+                    "operator": "Equals",
+                    "value": "true"
+                }
+            ],
+            "outcomeOnMatch": "Rejected",
+            "reasonTemplate": "FC-014: access denied - cross-tenant access is prohibited."
+        }
+    ],
+    "capabilities": [
+        {
+            "capabilityId": "ecarmf.ai-tcel-financial-continuity-liquidity.Capability",
+            "name": "TCEL T9-042-Financial-Continuity-Liquidity",
+            "description": "Domain capability generated from the T9 spec."
+        }
+    ],
+    "knowledgeAssets": [
+        {
+            "assetId": "tcel-efcl-control-catalog-2026",
+            "docKey": "tcel-efcl-control-catalog",
+            "title": "TCEL T9-042-Financial-Continuity-Liquidity Control Catalog",
+            "assetType": "ReferenceManual",
+            "docType": "ControlCatalog",
+            "issuer": "TCEL",
+            "jurisdiction": "US",
+            "effectiveFrom": "2026-01-01T00:00:00Z",
+            "summary": "T9-042 EFCL deterministic controls. Enforced as an executable rule: FC-014 (universal cross-tenant / AI-execution boundary). 45 controls (prefix FC-) carried here for traceability. T9-042 DECIDES; T9-041 GOVERNS AND EXECUTES.",
+            "contentText": "PRINCIPLE: T9-042 decides what financial continuity action is appropriate; T9-041 governs and executes it (primaryRuntimeDependency). MODULES: financial-continuity engine, liquidity intelligence, payment-priority framework, bank lien/freeze management, alternate-funding engine, debt & covenant monitoring. 10 financial playbooks: FPB-001 Bank-Lien/Freeze, FPB-002 Bank-Failure, FPB-003 Payment-Network-Outage, FPB-004 Payroll-Continuity, FPB-005 Liquidity-Shortfall, FPB-006 Credit-Facility-Failure, FPB-007 Covenant-Breach, FPB-008 Customer-Fund-Protection, FPB-009 Margin/Collateral-Call, FPB-010 Multi-Bank-Failover. 12 schemas: financial-continuity-event/incident, financial-decision-package, liquidity-position, cash-runway-forecast, payment-obligation, payment-priority-decision, payment-rerouting-proposal, bank-restriction, alternate-funding-source, debt-covenant, customer-fund-protection. 20 events; 45 controls FC-001..FC-045."
+        }
+    ]
+}
