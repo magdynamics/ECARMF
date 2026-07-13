@@ -573,3 +573,69 @@ select {
 }
 .signin-key input { width: 100%; }
 .signin-card > button { align-self: flex-start; }
+
+/* ---- Operator tenant picker (dropdown) ---- */
+.tenant-select {
+  min-width: 190px;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  background: #0f141a;
+  color: #e6edf3;
+  border: 1px solid #2c343f;
+  font-size: 0.9rem;
+}
+.tenant-select:hover { border-color: #3d8bfd; }
+
+/* ---- Operator home: client grid ---- */
+.client-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+.client-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+  padding: 0.9rem 1rem;
+  background: #10161d;
+  border: 1px solid #2c343f;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.12s ease, transform 0.12s ease, background 0.12s ease;
+}
+.client-card:hover {
+  border-color: #3d8bfd;
+  transform: translateY(-2px);
+  background: #131b24;
+}
+.client-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.client-card-head strong { font-size: 1.02rem; }
+.client-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.client-card-cta {
+  color: #3d8bfd;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.tier-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: #3a2a00;
+  color: #ffcf70;
+  border: 1px solid #7a5c12;
+}
+.error-text { color: #ff8f8f; }

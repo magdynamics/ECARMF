@@ -12,6 +12,7 @@ import { DataEntry } from './components/DataEntry'
 import { EmailSettings } from './components/EmailSettings'
 import { HealthBoard } from './components/HealthBoard'
 import { Home } from './components/Home'
+import { OperatorHome } from './components/OperatorHome'
 import { Integrations } from './components/Integrations'
 import { Library } from './components/Library'
 import { Organization } from './components/Organization'
@@ -343,26 +344,19 @@ function App() {
                 <span className="muted">· {operator ? effectiveTenant : (me?.tenantName ?? me?.tenantId)}</span>
               </span>
               {operator && (
-                <>
-                  <label>
-                    View
-                    <input
-                      placeholder="platform"
-                      autoComplete="off"
-                      name="ecarmf-tenant-id"
-                      list="ecarmf-known-tenants"
-                      value={tenantInput}
-                      onChange={(e) => setTenantInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && applyTenant()}
-                    />
-                    <datalist id="ecarmf-known-tenants">
-                      {knownTenants.map((t) => (
-                        <option key={t} value={t} />
-                      ))}
-                    </datalist>
-                  </label>
-                  <button onClick={() => applyTenant()} disabled={!tenantInput.trim()}>Switch</button>
-                </>
+                <label>
+                  View
+                  <select
+                    className="tenant-select"
+                    value={knownTenants.includes(effectiveTenant) ? effectiveTenant : ''}
+                    onChange={(e) => applyTenant(e.target.value)}
+                  >
+                    {!knownTenants.includes(effectiveTenant) && <option value="">Select a client…</option>}
+                    {knownTenants.map((t) => (
+                      <option key={t} value={t}>{t === 'platform' ? 'platform (operator)' : t}</option>
+                    ))}
+                  </select>
+                </label>
               )}
               <button onClick={signOut}>Sign out</button>
             </>
@@ -469,7 +463,21 @@ function App() {
           ) : isPlatformTab && !onPlatformTenant ? (
             <OperatorGate />
           ) : tab === 'home' ? (
-            <Home tenant={effectiveTenant} user={effectiveUser} go={setTab} />
+            operator && onPlatformTenant ? (
+              <OperatorHome onPick={(id) => { applyTenant(id); setTab('home') }} />
+            ) : (
+              <Home tenant={effectiveTenant} user={effectiveUser} go={setTab} />
+            )
+          ) : operator && onPlatformTenant && !isPlatformTab ? (
+            <section className="panel">
+              <h2>Nothing here on the operator tenant</h2>
+              <p className="muted">
+                <strong>{tab}</strong> shows a client's data, but you're on <code>platform</code> —
+                the operator console, which has no business data of its own. Pick a client to see its{' '}
+                {tab}.
+              </p>
+              <button onClick={() => setTab('home')}>← Choose a client</button>
+            </section>
           ) : tab === 'organization' ? (
             <Organization tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'packages' ? (
