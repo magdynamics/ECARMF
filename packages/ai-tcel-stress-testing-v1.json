@@ -1,0 +1,182 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-022-Stress-Testing-Simulation",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-022-Stress-Testing-Simulation package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-stress-testing",
+    "name":  "TCEL T9-022-Stress-Testing-Simulation",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "RecoveryAction",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "actionId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "scenarioId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "ownerId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "ScenarioLibraryEntry",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "libraryId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "version",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "StressResult",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "resultId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "runId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "StressRun",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "runId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "scenarioId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "baseSnapshotId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "ST-020",
+                      "name":  "AI execution prohibition",
+                      "description":  "Preventive/Critical (AI Governance). AI execution boundary.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "AgentAction"
+                                         },
+                                         {
+                                             "field":  "materialAction",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "ST-020: denied - an AI agent may not take material actions; agents are advisory-only (AI Governance)."
+                  },
+                  {
+                      "ruleId":  "ST-022",
+                      "name":  "Cross-tenant denial",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "ST-022: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-stress-testing.Capability",
+                             "name":  "TCEL T9-022-Stress-Testing-Simulation",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-stress-testing-control-catalog-2026",
+                                "docKey":  "tcel-stress-testing-control-catalog",
+                                "title":  "TCEL T9-022-Stress-Testing-Simulation Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: ST-020/ST-022 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "ST-001 Approved scenario methodology | Governance | Reject unapproved methodology | Critical | CRO. ST-002 Certified base snapshot | Preventive | Reject uncertified snapshot | Critical | Data Governance. ST-003 Scenario assumptions versioned | Evidence | Require version on assumption change | Critical | CRO. ST-004 Source data completeness | Preventive | Block run if incomplete | Critical | Data Governance. ST-005 Market shock validation | Detective | Validate shock magnitude vs. approved range | High | Model Risk. ST-006 Liquidity stress validation | Preventive | Reject unvalidated liquidity assumption | Critical | CFO. ST-007 Counterparty default mapping | Preventive | Require mapped default assumptions | Critical | CRO. ST-008 Operational dependency mapping | Evidence | Require documented dependency map | High | COO. ST-009 Cyber/vendor scenario integration | Preventive | Require published cyber/vendor reference data | High | CRO. ST-010 Combined scenario governance | Governance | Reject unapproved combined scenario | Critical | CRO. ST-011 Reverse stress required | Governance | Require reverse-stress coverage for certification | High | CRO. ST-012 Survival horizon calculation | Evidence | Require documented methodology | Critical | CRO. ST-013 Recovery action ownership | Preventive | Reject recovery action without owner | High | CRO. ST-014 Result reproducibility | Evidence | Require reproducible inputs/model version | Critical | Model Risk. ST-015 Model versions retained | Evidence | Require version retention on all runs | Critical | Model Risk. ST-016 Actual vs scenario labeling | Preventive | Block ambiguous display | Critical | Dashboard Owner. ST-017 Risk appetite comparison | Evidence | Require comparison to T9-004 appetite | Critical | CRO. ST-018 Capital/liquidity impact reconciliation | Detective | Reconcile to T9-019 accounting | Critical | CFO. ST-019 Human approval of certified scenario | Preventive | Reject uncertified scenario publication | Critical | CRO. ST-020 AI execution prohibition | Preventive | Deny AI certification/execution permission | Critical | AI Governance. ST-021 Production isolation | Preventive | Deny production mutation from simulation | Critical | Architecture. ST-022 Cross-tenant denial | Preventive | Deny | Critical | Security. ST-023 Stale snapshot restriction | Preventive | Mark Data Restricted | Critical | Data Governance. ST-024 Outcome/back-testing | Detective | Compare scenario vs. subsequent actual | High | CRO. ST-025 Board escalation for severe results | Corrective | Escalate to Board | Critical | CRO."
+                            }
+                        ]
+}

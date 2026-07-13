@@ -1,0 +1,297 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-017-Data-Warehouse-BI",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-017-Data-Warehouse-BI package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-data-warehouse-bi",
+    "name":  "TCEL T9-017-Data-Warehouse-BI",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "DataProduct",
+                         "description":  "DataProduct (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "dataProductId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "name",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "ownerId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "sourceAssetIds",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "certificationStatus",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "DataQualityRule",
+                         "description":  "DataQualityRule (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "ruleId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "assetId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "condition",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "severity",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "threshold",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "ForecastRecord",
+                         "description":  "ForecastRecord (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "forecastId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "metricId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "horizon",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "modelVersion",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "confidence",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "LineageRecord",
+                         "description":  "LineageRecord (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "lineageId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "sourceAssetId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "targetAssetId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "transformationId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "MetricDefinition",
+                         "description":  "MetricDefinition (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "metricId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "name",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "formula",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "unit",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "ownerId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "version",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+                   {
+                       "eventName":  "DataSourceRegistered",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "DataBatchIngested",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "DataBatchQuarantined",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "DataProductCertified",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "SemanticModelPublished",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "MetricCertified",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "KPIStatusChanged",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "LineageGapDetected",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "ReportPublished",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "ForecastCompleted",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "ForecastDriftDetected",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "ExecutiveInsightCreated",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "WarehouseRefreshFailed",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "DataCorrectionPublished",
+                       "description":  "Domain event."
+                   }
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "BI-022",
+                      "name":  "AI operational execution prohibited",
+                      "description":  "Preventive/Critical (AI Governance). AI execution boundary.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "AgentAction"
+                                         },
+                                         {
+                                             "field":  "materialAction",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "BI-022: denied - an AI agent may not take material actions; agents are advisory-only (AI Governance)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-data-warehouse-bi.Capability",
+                             "name":  "TCEL T9-017-Data-Warehouse-BI",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-data-warehouse-bi-control-catalog-2026",
+                                "docKey":  "tcel-data-warehouse-bi-control-catalog",
+                                "title":  "TCEL T9-017-Data-Warehouse-BI Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: BI-022 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "BI-001 Registered source required | Preventive | Reject unregistered source ingestion | Critical | Data Governance. BI-002 Source schema validation | Preventive | Quarantine on mismatch | Critical | Data Governance. BI-003 Duplicate ingestion prevention | Preventive | Idempotent reject | Critical | Platform. BI-004 Immutable raw archive | Evidence | Block mutation of raw layer | Critical | Data Governance. BI-005 Certified data product approval | Governance | Block publication until certified | Critical | Data Governance. BI-006 Metric owner required | Preventive | Reject metric without owner | High | Data Governance. BI-007 Metric formula and source required | Evidence | Reject undocumented metric | Critical | Data Governance. BI-008 KPI certification required | Governance | Block uncertified KPI use in dashboards | Critical | Data Governance. BI-009 Certified/exploratory labeling | Preventive | Reject ambiguous presentation | Critical | BI Owner. BI-010 Tenant isolation | Preventive | Deny cross-tenant access | Critical | Security. BI-011 Row and column security | Preventive | Deny unauthorized field access | Critical | Security. BI-012 Restricted data masking | Preventive | Mask on unauthorized query | Critical | Security. BI-013 Lineage required | Evidence | Block certification without lineage | Critical | Data Governance. BI-014 Quality score required | Evidence | Restrict metric below threshold | High | Data Governance. BI-015 Stale source restriction | Preventive | Mark Data Restricted | Critical | Data Governance. BI-016 Reconciliation failure restriction | Preventive | Restrict affected metric | Critical | Data Governance. BI-017 Semantic model versioning | Evidence | Require version on change | High | Data Governance. BI-018 Breaking metric change approval | Governance | Require approval and notice | Critical | BI Owner. BI-019 Controlled report publication | Preventive | Require approval before external use | High | BI Owner. BI-020 Controlled export | Preventive | Require approval and watermark | High | Security. BI-021 AI source mutation prohibited | Preventive | Deny write to source systems | Critical | AI Governance. BI-022 AI operational execution prohibited | Preventive | Deny execution permission | Critical | AI Governance. BI-023 Forecast model validation | Governance | Reject unvalidated model in production | Critical | Model Risk. BI-024 Forecast uncertainty visible | Preventive | Require range/confidence display | High | BI Owner. BI-025 Legal hold overrides deletion | Preventive | Block deletion under hold | Critical | Legal. BI-026 Data retention enforcement | Preventive | Auto-purge per retention schedule | High | Data Governance. BI-027 Cross-border data restriction | Preventive | Block prohibited transfer | High | Legal/Security. BI-028 Pipeline failure escalation | Corrective | Escalate by severity | High | Platform. BI-029 Warehouse refresh monitoring | Detective | Alert on missed refresh | High | Platform. BI-030 Downstream impact notification | Corrective | Notify dependent dashboards/packages | High | Data Governance."
+                            }
+                        ]
+}

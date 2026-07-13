@@ -1,0 +1,157 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-032-Digital-Identity-Access",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-032-Digital-Identity-Access package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-digital-identity",
+    "name":  "TCEL T9-032-Digital-Identity-Access",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "IdentityDecision",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "decisionId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "IdentityEvent",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "eventId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "eventType",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "IdentityEvidence",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "evidenceId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "hash",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "IdentityPolicy",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "policyId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "version",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "IdentityRecord",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "recordId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "IAM-018",
+                      "name":  "Cross-tenant denial",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "IAM-018: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-digital-identity.Capability",
+                             "name":  "TCEL T9-032-Digital-Identity-Access",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-digital-identity-control-catalog-2026",
+                                "docKey":  "tcel-digital-identity-control-catalog",
+                                "title":  "TCEL T9-032-Digital-Identity-Access Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: IAM-018 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "IAM-001 Identity registration | Governance | Require documented compliance: Identity registration | Critical | Security. IAM-002 Joiner mover leaver | Governance | Require documented compliance: Joiner mover leaver | Critical | Security. IAM-003 MFA | Governance | Require documented compliance: MFA | Critical | Security. IAM-004 SSO | Governance | Require documented compliance: SSO | Critical | Security. IAM-005 Access request | Governance | Require documented compliance: Access request | Critical | Security. IAM-006 Manager approval | Preventive | Reject/block if not satisfied: Manager approval | Critical | Security. IAM-007 Role approval | Preventive | Reject/block if not satisfied: Role approval | Critical | Security. IAM-008 Entitlement catalog | Governance | Require documented compliance: Entitlement catalog | Critical | Security. IAM-009 SoD enforcement | Governance | Require documented compliance: SoD enforcement | Critical | Security. IAM-010 Privileged access | Governance | Require documented compliance: Privileged access | Critical | Security. IAM-011 Service identity | Governance | Require documented compliance: Service identity | Critical | Security. IAM-012 Agent identity | Governance | Require documented compliance: Agent identity | Critical | Security. IAM-013 Access certification | Governance | Require documented compliance: Access certification | Critical | Security. IAM-014 Emergency access | Governance | Require documented compliance: Emergency access | Critical | Security. IAM-015 Session logging | Governance | Require documented compliance: Session logging | Critical | Security. IAM-016 Credential rotation | Governance | Require documented compliance: Credential rotation | High | Security. IAM-017 Dormant access removal | Governance | Require documented compliance: Dormant access removal | High | Security. IAM-018 Cross-tenant denial | Preventive | Deny cross-tenant access | High | Security. IAM-019 Least privilege | Governance | Require documented compliance: Least privilege | High | Security. IAM-020 Attribute validation | Governance | Require documented compliance: Attribute validation | High | Security. IAM-021 Delegation expiry | Governance | Require documented compliance: Delegation expiry | High | Security. IAM-022 Access revocation | Governance | Require documented compliance: Access revocation | High | Security. IAM-023 Break-glass review | Governance | Require documented compliance: Break-glass review | High | Security. IAM-024 Audit trail | Evidence | Require documented evidence: Audit trail | High | Security. IAM-025 Recovery | Corrective | Execute recovery/rollback procedure | High | Security."
+                            }
+                        ]
+}

@@ -1,0 +1,157 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-029-Document-Evidence",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-029-Document-Evidence package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-document-evidence",
+    "name":  "TCEL T9-029-Document-Evidence",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "DocumentDecision",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "decisionId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "DocumentEvent",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "eventId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "eventType",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "DocumentEvidence",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "evidenceId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "hash",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "DocumentPolicy",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "policyId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "version",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "DocumentRecord",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "recordId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "DM-016",
+                      "name":  "Cross-tenant denial",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "DM-016: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-document-evidence.Capability",
+                             "name":  "TCEL T9-029-Document-Evidence",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-document-evidence-control-catalog-2026",
+                                "docKey":  "tcel-document-evidence-control-catalog",
+                                "title":  "TCEL T9-029-Document-Evidence Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: DM-016 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "DM-001 Document registration | Governance | Require documented compliance: Document registration | Critical | Data Governance. DM-002 Version control | Governance | Require documented compliance: Version control | Critical | Data Governance. DM-003 Immutable evidence | Evidence | Require documented evidence: Immutable evidence | Critical | Data Governance. DM-004 Hash verification | Governance | Require documented compliance: Hash verification | Critical | Data Governance. DM-005 Chain of custody | Governance | Require documented compliance: Chain of custody | Critical | Data Governance. DM-006 Metadata completeness | Governance | Require documented compliance: Metadata completeness | Critical | Data Governance. DM-007 Retention policy | Evidence | Require documented evidence: Retention policy | Critical | Data Governance. DM-008 Legal hold | Evidence | Require documented evidence: Legal hold | Critical | Data Governance. DM-009 Access control | Governance | Require documented compliance: Access control | Critical | Data Governance. DM-010 Export control | Governance | Require documented compliance: Export control | Critical | Data Governance. DM-011 Signature validation | Governance | Require documented compliance: Signature validation | Critical | Data Governance. DM-012 Approval state | Preventive | Reject/block if not satisfied: Approval state | Critical | Data Governance. DM-013 Supersession | Governance | Require documented compliance: Supersession | Critical | Data Governance. DM-014 Classification | Governance | Require documented compliance: Classification | Critical | Data Governance. DM-015 Encryption | Governance | Require documented compliance: Encryption | Critical | Data Governance. DM-016 Cross-tenant denial | Preventive | Deny cross-tenant access | High | Security. DM-017 Privileged document handling | Governance | Require documented compliance: Privileged document handling | High | Data Governance. DM-018 Deletion approval | Preventive | Reject/block if not satisfied: Deletion approval | High | Data Governance. DM-019 Restore testing | Corrective | Execute recovery/rollback procedure | High | Data Governance. DM-020 Document lineage | Governance | Require documented compliance: Document lineage | High | Data Governance. DM-021 AI mutation prohibition | Preventive | Deny AI permission for: AI mutation prohibition | High | AI Governance. DM-022 Evidence link integrity | Evidence | Require documented evidence: Evidence link integrity | High | Data Governance. DM-023 Duplicate prevention | Governance | Require documented compliance: Duplicate prevention | High | Data Governance. DM-024 Audit trail | Evidence | Require documented evidence: Audit trail | High | Data Governance. DM-025 Disaster recovery | Corrective | Execute recovery/rollback procedure | High | Data Governance."
+                            }
+                        ]
+}

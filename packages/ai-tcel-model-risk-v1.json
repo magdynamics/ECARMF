@@ -1,0 +1,177 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-027-Model-Risk-Management",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-027-Model-Risk-Management package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-model-risk",
+    "name":  "TCEL T9-027-Model-Risk-Management",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "ModelChange",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "changeId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "modelId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "ModelIncident",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "incidentId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "modelId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "severity",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "ModelMonitoring",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "monitoringId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "modelId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "ModelRecord",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "modelId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "riskTier",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "ValidationRecord",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "validationId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "modelId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "MR-024",
+                      "name":  "Cross-tenant access denial",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "MR-024: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-model-risk.Capability",
+                             "name":  "TCEL T9-027-Model-Risk-Management",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-model-risk-control-catalog-2026",
+                                "docKey":  "tcel-model-risk-control-catalog",
+                                "title":  "TCEL T9-027-Model-Risk-Management Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: MR-024 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "MR-001 Model inventory required | Preventive | Reject production use of unregistered model | Critical | Model Risk Committee. MR-002 Risk tier required | Preventive | Reject registration without tier | Critical | Model Risk Committee. MR-003 Owner required | Preventive | Reject registration without owner | High | Model Risk Committee. MR-004 Independent validator required | Preventive | Reject registration without validator | Critical | Model Risk Committee. MR-005 Validation before production | Preventive | Block production deployment | Critical | Model Risk Committee. MR-006 Approved intended use | Preventive | Reject use outside approved scope | Critical | Model Risk Committee. MR-007 Prohibited use documented | Evidence | Require documented prohibited use | High | Model Risk Committee. MR-008 Data lineage | Evidence | Block certification without lineage | Critical | Data Governance. MR-009 Methodology versioning | Evidence | Require version on change | High | Model Risk Committee. MR-010 Implementation verification | Preventive | Reject unverified implementation | Critical | Model Risk Committee. MR-011 Benchmarking | Detective | Require benchmark comparison | High | Model Risk Committee. MR-012 Sensitivity testing | Detective | Require sensitivity results before production | High | Model Risk Committee. MR-013 Stress testing | Detective | Require stress results before production | High | Model Risk Committee. MR-014 Bias/fairness testing | Detective | Block protected-trait bias in production | High | AI Governance. MR-015 Explainability | Evidence | Require explainability documentation | High | Model Risk Committee. MR-016 Limitations visible | Preventive | Block display without limitations | Critical | Model Risk Committee. MR-017 Monitoring thresholds | Preventive | Restrict model exceeding threshold | Critical | Model Risk Committee. MR-018 Drift escalation | Corrective | Escalate detected drift | Critical | Model Risk Committee. MR-019 Override tracking | Evidence | Log all overrides | High | Model Risk Committee. MR-020 Change approval | Preventive | Reject unapproved model change | Critical | Model Risk Committee. MR-021 Prompt/tool change review | Preventive | Require review for AI prompt/tool changes | Critical | Model Risk Committee. MR-022 Restriction/kill switch | Preventive | Require functioning shutdown capability | Critical | Model Risk Committee. MR-023 Retirement control | Governance | Require approved retirement process | High | Model Risk Committee. MR-024 Cross-tenant access denial | Preventive | Deny | Critical | Security. MR-025 No self-validation/approval | Preventive | Reject owner as validator | Critical | Model Risk Committee."
+                            }
+                        ]
+}

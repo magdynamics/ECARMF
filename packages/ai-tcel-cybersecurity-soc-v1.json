@@ -1,0 +1,182 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-026-Cybersecurity-SOC",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-026-Cybersecurity-SOC package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-cybersecurity-soc",
+    "name":  "TCEL T9-026-Cybersecurity-SOC",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "CyberAlert",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "alertId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "severity",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "CyberIncident",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "incidentId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "severity",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "ownerId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "SecurityAsset",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "assetId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "criticality",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "ThreatIntelligence",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "intelId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "sourceId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "Vulnerability",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "vulnerabilityId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "assetId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "severity",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "CY-023",
+                      "name":  "Cross-tenant denial",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "CY-023: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-cybersecurity-soc.Capability",
+                             "name":  "TCEL T9-026-Cybersecurity-SOC",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-cybersecurity-soc-control-catalog-2026",
+                                "docKey":  "tcel-cybersecurity-soc-control-catalog",
+                                "title":  "TCEL T9-026-Cybersecurity-SOC Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: CY-023 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "CY-001 Approved cyber policy | Governance | Reject unapproved policy activation | Critical | CISO. CY-002 Asset inventory | Preventive | Flag unregistered asset | Critical | CISO. CY-003 Security logging | Preventive | Require logging on critical systems | Critical | CISO. CY-004 SIEM coverage | Detective | Flag coverage gap | Critical | CISO. CY-005 Alert severity mapping | Preventive | Reject unmapped severity | High | SOC. CY-006 SOC case owner | Preventive | Reject case without owner | High | SOC. CY-007 Threat intelligence source approval | Preventive | Reject unapproved source | High | CISO. CY-008 Vulnerability scanning | Detective | Require scheduled scan coverage | Critical | CISO. CY-009 Critical vulnerability SLA | Corrective | Escalate overdue remediation | Critical | CISO. CY-010 Patch exception approval | Preventive | Reject unapproved exception | Critical | CISO. CY-011 Endpoint coverage | Detective | Flag unmonitored endpoint | Critical | CISO. CY-012 Cloud configuration monitoring | Detective | Flag misconfiguration | Critical | CISO. CY-013 Network monitoring | Detective | Flag monitoring gap | Critical | CISO. CY-014 Identity-event integration | Preventive | Require identity-event correlation | Critical | CISO/Security. CY-015 Privileged activity monitoring | Detective | Flag anomalous privileged activity | Critical | Security. CY-016 Incident response plan | Governance | Require approved plan for critical systems | Critical | CISO. CY-017 Evidence preservation | Evidence | Block deletion of incident evidence | Critical | Legal. CY-018 Containment authority | Preventive | Reject unauthorized containment action | Critical | CISO. CY-019 External communication approval | Preventive | Reject unapproved external disclosure | High | CEO/CCO. CY-020 Regulatory referral through T9-006 | Preventive | Deny direct filing outside T9-006 | Critical | CCO. CY-021 No AI destructive response | Preventive | Deny AI destructive-action permission | Critical | AI Governance. CY-022 No AI privilege expansion | Preventive | Deny AI self-privilege-expansion | Critical | AI Governance. CY-023 Cross-tenant denial | Preventive | Deny | Critical | Security. CY-024 Recovery validation | Detective | Require validation before declaring restored | Critical | CISO. CY-025 Board escalation | Corrective | Escalate material incident to Board | Critical | CISO."
+                            }
+                        ]
+}

@@ -1,0 +1,157 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-037-Knowledge-Graph",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-037-Knowledge-Graph package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-knowledge-graph",
+    "name":  "TCEL T9-037-Knowledge-Graph",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "KnowledgegraphDecision",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "decisionId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "KnowledgegraphEvent",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "eventId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "eventType",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "KnowledgegraphEvidence",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "evidenceId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "hash",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "KnowledgegraphPolicy",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "policyId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "version",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "KnowledgegraphRecord",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "recordId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "KG-021",
+                      "name":  "Cross-tenant denial",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "KG-021: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-knowledge-graph.Capability",
+                             "name":  "TCEL T9-037-Knowledge-Graph",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-knowledge-graph-control-catalog-2026",
+                                "docKey":  "tcel-knowledge-graph-control-catalog",
+                                "title":  "TCEL T9-037-Knowledge-Graph Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: KG-021 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "KG-001 Entity registration | Governance | Require documented compliance: Entity registration | Critical | Data Governance. KG-002 Relationship provenance | Governance | Require documented compliance: Relationship provenance | Critical | Data Governance. KG-003 Source authority | Governance | Require documented compliance: Source authority | Critical | Data Governance. KG-004 Graph versioning | Governance | Require documented compliance: Graph versioning | Critical | Data Governance. KG-005 Tenant isolation | Governance | Require documented compliance: Tenant isolation | Critical | Data Governance. KG-006 Sensitive edge control | Governance | Require documented compliance: Sensitive edge control | Critical | Data Governance. KG-007 Duplicate entity resolution | Governance | Require documented compliance: Duplicate entity resolution | Critical | Data Governance. KG-008 Identity mapping | Governance | Require documented compliance: Identity mapping | Critical | Data Governance. KG-009 Confidence score | Governance | Require documented compliance: Confidence score | Critical | Data Governance. KG-010 Temporal validity | Governance | Require documented compliance: Temporal validity | Critical | Data Governance. KG-011 Legal ownership mapping | Governance | Require documented compliance: Legal ownership mapping | Critical | Data Governance. KG-012 Beneficial ownership | Governance | Require documented compliance: Beneficial ownership | Critical | Data Governance. KG-013 Dependency graph | Governance | Require documented compliance: Dependency graph | Critical | Data Governance. KG-014 Policy/control graph | Governance | Require documented compliance: Policy/control graph | Critical | Data Governance. KG-015 AI agent graph | Preventive | Deny AI permission for: AI agent graph | Critical | AI Governance. KG-016 Document linkage | Governance | Require documented compliance: Document linkage | High | Data Governance. KG-017 Lineage | Governance | Require documented compliance: Lineage | High | Data Governance. KG-018 Query authorization | Governance | Require documented compliance: Query authorization | High | Data Governance. KG-019 AI inference labeling | Preventive | Deny AI permission for: AI inference labeling | High | AI Governance. KG-020 No unsupported edge | Governance | Require documented compliance: No unsupported edge | High | Data Governance. KG-021 Cross-tenant denial | Preventive | Deny cross-tenant access | High | Security. KG-022 Graph audit | Governance | Require documented compliance: Graph audit | High | Data Governance. KG-023 Correction workflow | Governance | Require documented compliance: Correction workflow | High | Data Governance. KG-024 Retention | Evidence | Require documented evidence: Retention | High | Data Governance. KG-025 Recovery | Corrective | Execute recovery/rollback procedure | High | Data Governance."
+                            }
+                        ]
+}

@@ -1,0 +1,157 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-039-Executive-Command-Center",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-039-Executive-Command-Center package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-command-center",
+    "name":  "TCEL T9-039-Executive-Command-Center",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "CommandcenterDecision",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "decisionId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "CommandcenterEvent",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "eventId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "eventType",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "CommandcenterEvidence",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "evidenceId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "hash",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "CommandcenterPolicy",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "policyId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "version",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "CommandcenterRecord",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "recordId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "CC-016",
+                      "name":  "Cross-tenant denial",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "CC-016: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-command-center.Capability",
+                             "name":  "TCEL T9-039-Executive-Command-Center",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-command-center-control-catalog-2026",
+                                "docKey":  "tcel-command-center-control-catalog",
+                                "title":  "TCEL T9-039-Executive-Command-Center Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: CC-016 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "CC-001 Command activation | Governance | Require documented compliance: Command activation | Critical | Corporate Secretary. CC-002 Role assignment | Governance | Require documented compliance: Role assignment | Critical | Corporate Secretary. CC-003 Incident source validation | Governance | Require documented compliance: Incident source validation | Critical | Corporate Secretary. CC-004 Situation report | Governance | Require documented compliance: Situation report | Critical | Corporate Secretary. CC-005 Action ownership | Governance | Require documented compliance: Action ownership | Critical | Corporate Secretary. CC-006 Priority validation | Governance | Require documented compliance: Priority validation | Critical | Corporate Secretary. CC-007 Escalation | Corrective | Escalate by severity/age | Critical | Corporate Secretary. CC-008 Communication approval | Preventive | Reject/block if not satisfied: Communication approval | Critical | Corporate Secretary. CC-009 Decision authority | Governance | Require documented compliance: Decision authority | Critical | Corporate Secretary. CC-010 Timeline integrity | Governance | Require documented compliance: Timeline integrity | Critical | Corporate Secretary. CC-011 Evidence links | Evidence | Require documented evidence: Evidence links | Critical | Corporate Secretary. CC-012 Resource tracking | Governance | Require documented compliance: Resource tracking | Critical | Corporate Secretary. CC-013 Cross-domain status | Governance | Require documented compliance: Cross-domain status | Critical | Corporate Secretary. CC-014 AI command prohibition | Preventive | Deny AI permission for: AI command prohibition | Critical | AI Governance. CC-015 External message approval | Preventive | Reject/block if not satisfied: External message approval | Critical | Corporate Secretary. CC-016 Cross-tenant denial | Preventive | Deny cross-tenant access | High | Security. CC-017 Emergency access logging | Governance | Require documented compliance: Emergency access logging | High | Corporate Secretary. CC-018 Shift handoff | Governance | Require documented compliance: Shift handoff | High | Corporate Secretary. CC-019 Closure approval | Preventive | Reject/block if not satisfied: Closure approval | High | Corporate Secretary. CC-020 After-action review | Governance | Require documented compliance: After-action review | High | Corporate Secretary. CC-021 Board updates | Corrective | Escalate to Board | High | Board. CC-022 Notification integration | Governance | Require documented compliance: Notification integration | High | Corporate Secretary. CC-023 Workflow integration | Governance | Require documented compliance: Workflow integration | High | Corporate Secretary. CC-024 Recovery | Corrective | Execute recovery/rollback procedure | High | Corporate Secretary. CC-025 Audit trail | Evidence | Require documented evidence: Audit trail | High | Corporate Secretary."
+                            }
+                        ]
+}

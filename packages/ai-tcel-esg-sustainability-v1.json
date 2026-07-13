@@ -1,0 +1,157 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-028-ESG-Sustainability",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-028-ESG-Sustainability package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-esg-sustainability",
+    "name":  "TCEL T9-028-ESG-Sustainability",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "EsgDecision",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "decisionId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "EsgEvent",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "eventId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "eventType",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "EsgEvidence",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "evidenceId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "hash",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "EsgPolicy",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "policyId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "version",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "EsgRecord",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "recordId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "ESG-015",
+                      "name":  "Cross-tenant denial",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "ESG-015: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-esg-sustainability.Capability",
+                             "name":  "TCEL T9-028-ESG-Sustainability",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-esg-sustainability-control-catalog-2026",
+                                "docKey":  "tcel-esg-sustainability-control-catalog",
+                                "title":  "TCEL T9-028-ESG-Sustainability Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: ESG-015 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "ESG-001 Approved ESG policy | Preventive | Reject/block if not satisfied: Approved ESG policy | Critical | ESG Officer. ESG-002 Materiality assessment | Governance | Require documented compliance: Materiality assessment | Critical | ESG Officer. ESG-003 Data source certification | Governance | Require documented compliance: Data source certification | Critical | ESG Officer. ESG-004 Metric methodology approval | Preventive | Reject/block if not satisfied: Metric methodology approval | Critical | ESG Officer. ESG-005 Scope boundary | Preventive | Reject/block if not satisfied: Scope boundary | Critical | ESG Officer. ESG-006 Target approval | Preventive | Reject/block if not satisfied: Target approval | Critical | ESG Officer. ESG-007 Greenwashing prevention | Governance | Require documented compliance: Greenwashing prevention | Critical | ESG Officer. ESG-008 Disclosure review | Governance | Require documented compliance: Disclosure review | Critical | ESG Officer. ESG-009 Supplier ESG data | Governance | Require documented compliance: Supplier ESG data | Critical | ESG Officer. ESG-010 Climate scenario linkage | Governance | Require documented compliance: Climate scenario linkage | Critical | ESG Officer. ESG-011 Stewardship evidence | Evidence | Require documented evidence: Stewardship evidence | Critical | ESG Officer. ESG-012 Conflict disclosure | Governance | Require documented compliance: Conflict disclosure | Critical | ESG Officer. ESG-013 Assurance readiness | Governance | Require documented compliance: Assurance readiness | Critical | ESG Officer. ESG-014 AI publication prohibition | Preventive | Deny AI permission for: AI publication prohibition | Critical | AI Governance. ESG-015 Cross-tenant denial | Preventive | Deny cross-tenant access | Critical | Security. ESG-016 Data lineage | Governance | Require documented compliance: Data lineage | High | ESG Officer. ESG-017 Methodology versioning | Governance | Require documented compliance: Methodology versioning | High | ESG Officer. ESG-018 Target tracking | Governance | Require documented compliance: Target tracking | High | ESG Officer. ESG-019 Exception governance | Governance | Require documented compliance: Exception governance | High | ESG Officer. ESG-020 Board escalation | Corrective | Escalate by severity/age | High | ESG Officer. ESG-021 Retention | Evidence | Require documented evidence: Retention | High | ESG Officer. ESG-022 Access control | Governance | Require documented compliance: Access control | High | ESG Officer. ESG-023 Outcome review | Governance | Require documented compliance: Outcome review | High | ESG Officer. ESG-024 External assurance evidence | Evidence | Require documented evidence: External assurance evidence | High | ESG Officer. ESG-025 Regulatory alignment | Governance | Require documented compliance: Regulatory alignment | High | ESG Officer."
+                            }
+                        ]
+}

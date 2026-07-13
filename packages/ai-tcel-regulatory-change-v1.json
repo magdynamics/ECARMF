@@ -1,0 +1,157 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-034-Regulatory-Change",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-034-Regulatory-Change package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-regulatory-change",
+    "name":  "TCEL T9-034-Regulatory-Change",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "RegchangeDecision",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "decisionId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "RegchangeEvent",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "eventId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "eventType",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "RegchangeEvidence",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "evidenceId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "hash",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "RegchangePolicy",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "policyId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "version",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "RegchangeRecord",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "recordId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "RC-020",
+                      "name":  "Cross-tenant denial",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "RC-020: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-regulatory-change.Capability",
+                             "name":  "TCEL T9-034-Regulatory-Change",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-regulatory-change-control-catalog-2026",
+                                "docKey":  "tcel-regulatory-change-control-catalog",
+                                "title":  "TCEL T9-034-Regulatory-Change Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: RC-020 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "RC-001 Approved regulatory source | Preventive | Reject/block if not satisfied: Approved regulatory source | Critical | CCO. RC-002 Source monitoring | Detective | Flag/alert on detected condition | Critical | CCO. RC-003 Change extraction | Governance | Require documented compliance: Change extraction | Critical | CCO. RC-004 Applicability handoff | Governance | Require documented compliance: Applicability handoff | Critical | CCO. RC-005 Impact assessment | Governance | Require documented compliance: Impact assessment | Critical | CCO. RC-006 Owner assignment | Governance | Require documented compliance: Owner assignment | Critical | CCO. RC-007 Deadline tracking | Governance | Require documented compliance: Deadline tracking | Critical | CCO. RC-008 Policy mapping | Governance | Require documented compliance: Policy mapping | Critical | CCO. RC-009 Control mapping | Governance | Require documented compliance: Control mapping | Critical | CCO. RC-010 Process mapping | Governance | Require documented compliance: Process mapping | Critical | CCO. RC-011 System mapping | Governance | Require documented compliance: System mapping | Critical | CCO. RC-012 Training mapping | Governance | Require documented compliance: Training mapping | Critical | CCO. RC-013 Filing mapping | Governance | Require documented compliance: Filing mapping | Critical | CCO. RC-014 Implementation plan | Governance | Require documented compliance: Implementation plan | Critical | CCO. RC-015 Exception approval | Preventive | Reject/block if not satisfied: Exception approval | Critical | CCO. RC-016 Closure evidence | Evidence | Require documented evidence: Closure evidence | High | CCO. RC-017 Legal review | Governance | Require documented compliance: Legal review | High | CCO. RC-018 Compliance approval | Preventive | Reject/block if not satisfied: Compliance approval | High | CCO. RC-019 AI interpretation prohibition | Preventive | Deny AI permission for: AI interpretation prohibition | High | AI Governance. RC-020 Cross-tenant denial | Preventive | Deny cross-tenant access | High | Security. RC-021 Versioning | Governance | Require documented compliance: Versioning | High | CCO. RC-022 Supersession | Governance | Require documented compliance: Supersession | High | CCO. RC-023 Audit trail | Evidence | Require documented evidence: Audit trail | High | CCO. RC-024 Board escalation | Corrective | Escalate by severity/age | High | CCO. RC-025 Post-implementation review | Governance | Require documented compliance: Post-implementation review | High | CCO."
+                            }
+                        ]
+}

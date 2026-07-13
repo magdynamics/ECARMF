@@ -1,0 +1,253 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-016-Strategic-Planning-Board-Governance",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-016-Strategic-Planning-Board-Governance package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-strategic-planning",
+    "name":  "TCEL T9-016-Strategic-Planning-Board-Governance",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "BoardMeetingRecord",
+                         "description":  "BoardMeetingRecord (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "meetingId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "scheduledAt",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "quorumMet",
+                                                "dataType":  "boolean",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "BoardResolutionRecord",
+                         "description":  "BoardResolutionRecord (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "resolutionId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "title",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "ExecutiveDecisionRecord",
+                         "description":  "ExecutiveDecisionRecord (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "decisionId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "question",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "sponsorId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "authorityType",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "alternatives",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "dissent",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "StrategicObjectiveRecord",
+                         "description":  "StrategicObjectiveRecord (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "objectiveId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "title",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "ownerId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+                   {
+                       "eventName":  "StrategyApproved",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "ObjectiveActivated",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "OKRScored",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "InitiativeStageChanged",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "CapitalPlanApproved",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "RiskAppetiteApproved",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "MaterialDecisionOpened",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "MaterialDecisionApproved",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "BoardMeetingOpened",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "BoardVoteRecorded",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "BoardResolutionApproved",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "GovernanceActionOverdue",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "GovernanceAIRecommendationCreated",
+                       "description":  "Domain event."
+                   }
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "GV-016",
+                      "name":  "AI voting boundary",
+                      "description":  "Preventive/Critical (AI Governance). AI execution boundary.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "AgentAction"
+                                         },
+                                         {
+                                             "field":  "materialAction",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "GV-016: denied - an AI agent may not take material actions; agents are advisory-only (AI Governance)."
+                  },
+                  {
+                      "ruleId":  "GV-019",
+                      "name":  "Cross-tenant access denial",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "GV-019: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-strategic-planning.Capability",
+                             "name":  "TCEL T9-016-Strategic-Planning-Board-Governance",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-strategic-planning-control-catalog-2026",
+                                "docKey":  "tcel-strategic-planning-control-catalog",
+                                "title":  "TCEL T9-016-Strategic-Planning-Board-Governance Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: GV-016/GV-019 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "GV-001 Board quorum required | Preventive | Block decision if quorum not met | Critical | Corporate Secretary. GV-002 Conflict disclosure and recusal | Preventive | Require recusal before vote | Critical | General Counsel. GV-003 Authority validation | Preventive | Reject action outside delegated authority | Critical | Corporate Secretary. GV-004 Material evidence pack required | Evidence | Block decision if evidence incomplete | Critical | Corporate Secretary. GV-005 Dissent preserved | Governance | Block decision pack if dissent suppressed | Critical | CRO/AI Governance. GV-006 Risk review required | Preventive | Require CRO sign-off before Board vote | Critical | CRO. GV-007 Compliance/legal review required | Preventive | Require CCO/General Counsel sign-off | Critical | CCO/General Counsel. GV-008 Capital source/use documented | Evidence | Block approval if undocumented | Critical | CFO. GV-009 Policy approval authority | Preventive | Reject unauthorized policy activation | Critical | Board/CEO. GV-010 Policy exception expiry | Preventive | Auto-expire and require re-approval | High | Policy Owner. GV-011 KPI source and formula | Evidence | Reject KPI without documented source/formula | High | Data Governance. GV-012 OKR owner and period | Preventive | Reject OKR without owner/period | High | Strategy Office. GV-013 Initiative stage gate | Preventive | Block progression without gate approval | High | Initiative Owner. GV-014 Benefit realization review | Detective | Compare realized vs. projected benefit | High | Strategy Office. GV-015 Risk appetite Board approval | Preventive | Reject unapproved risk appetite change | Critical | Board/CRO. GV-016 AI voting boundary | Preventive | Deny AI voting or approval action | Critical | AI Governance. GV-017 Resolution version integrity | Evidence | Reject mutable resolution record | Critical | Corporate Secretary. GV-018 Board material access | Preventive | Deny unauthorized access to Board materials | Critical | Security. GV-019 Cross-tenant access denial | Preventive | Deny | Critical | Security. GV-020 Decision outcome tracking | Detective | Create follow-up task for material decisions | High | Decision Owner. GV-021 Executive self-approval restriction | Preventive | Reject self-approval | Critical | Board. GV-022 Delegation expiration | Preventive | Auto-expire delegated authority | High | Corporate Secretary. GV-023 Late material disclosure | Detective | Flag and require justification | High | Corporate Secretary. GV-024 Board pack freeze | Preventive | Version/freeze data at cut-off | Critical | Corporate Secretary. GV-025 AI recommendation expiry | Preventive | Block use of expired recommendation | High | Model Risk. GV-026 Minute approval before archive | Preventive | Block archival until approved | High | Corporate Secretary. GV-027 Resolution authority validation | Preventive | Reject resolution outside Board authority | Critical | Corporate Secretary. GV-028 Strategy version approval | Preventive | Reject unapproved strategy version | Critical | Board/CEO. GV-029 Policy supersession control | Preventive | Require explicit supersession record | High | Policy Owner. GV-030 Governance action escalation | Corrective | Escalate overdue governance action | High | Corporate Secretary."
+                            }
+                        ]
+}

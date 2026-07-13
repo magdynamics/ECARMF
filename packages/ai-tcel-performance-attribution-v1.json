@@ -1,0 +1,307 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-012-Performance-Attribution",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-012-Performance-Attribution package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-performance-attribution",
+    "name":  "TCEL T9-012-Performance-Attribution",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "OfficialPerformanceRecord",
+                         "description":  "OfficialPerformanceRecord (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "performanceId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "portfolioId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "managerId",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "strategyId",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "periodStart",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "periodEnd",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "returnType",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "grossReturn",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "netReturn",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "benchmarkId",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "benchmarkReturn",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "currency",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "methodologyVersion",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "dataQuality",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "sourceEvidenceIds",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "certifiedBy",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "certifiedAt",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "PerformanceAttributionRecord",
+                         "description":  "PerformanceAttributionRecord (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "attributionId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "performanceId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "method",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "components",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "residual",
+                                                "dataType":  "number",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "residualTolerance",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "methodologyVersion",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "evidenceIds",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+                   {
+                       "eventName":  "PerformanceCalculationStarted",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "PerformanceCalculated",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "PerformanceCertificationRequested",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "PerformanceCertified",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "PerformanceRestatementRequired",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "PerformanceRestated",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "BenchmarkAssigned",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "BenchmarkChanged",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "AttributionBreakOpened",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "CompositeMembershipChanged",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "PerformanceAIRecommendationCreated",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "PerformanceDataRestricted",
+                       "description":  "Domain event."
+                   }
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "PF-012",
+                      "name":  "AI certification boundary",
+                      "description":  "Preventive/Critical (Model Risk). AI execution boundary.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "AgentAction"
+                                         },
+                                         {
+                                             "field":  "materialAction",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "PF-012: denied - an AI agent may not take material actions; agents are advisory-only (Model Risk)."
+                  },
+                  {
+                      "ruleId":  "PF-017",
+                      "name":  "Cross-tenant performance access",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "PF-017: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-performance-attribution.Capability",
+                             "name":  "TCEL T9-012-Performance-Attribution",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "agents":  [
+                   {
+                       "agentId":  "tcel.performance.ai",
+                       "name":  "Performance AI",
+                       "description":  "Governed advisory agent (generated from T9 spec). Advisory-only - no autonomous execution.",
+                       "persona":  "You are Performance AI for TCEL. Assist with performance anomaly detection, attribution explanation, benchmark comparison, restatement impact analysis, and manager performance interpretation. You ground every finding in the approved data and sources you can see, cite what you relied on, and state confidence, assumptions, and required approvers. You recommend, explain, and escalate; you never execute, approve, or alter any record - authorized humans decide.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What needs attention in this domain right now?",
+                                               "Which items breached a control or threshold this period?"
+                                           ],
+                       "owner":  "Head of Performance",
+                       "independentValidator":  "Model Risk Committee",
+                       "riskTier":  "Critical",
+                       "prohibited":  [
+                                          "execute, approve, or decide any material action",
+                                          "alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - Performance AI recommends and explains; authorized humans make every decision, not this agent."
+                   }
+               ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-performance-attribution-control-catalog-2026",
+                                "docKey":  "tcel-performance-attribution-control-catalog",
+                                "title":  "TCEL T9-012-Performance-Attribution Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: PF-012/PF-017 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "PF-001 Official performance source | Governance | Reject competing official record | Critical | Head of Performance. PF-002 Source reconciliation | Preventive | Block certification | Critical | Performance Operations. PF-003 Benchmark approval | Preventive | Block uncertified benchmark use | Critical | CIO/CCO. PF-004 Gross/net labeling | Preventive | Reject ambiguous presentation | High | Performance. PF-005 External/internal cash-flow classification | Preventive | Reclassify/hold calculation | Critical | Accounting. PF-006 Contribution reconciliation | Detective | Open attribution break | High | Performance. PF-007 Stale price | Preventive | DataRestricted | Critical | Valuation. PF-008 Late fee or financing adjustment | Detective | Restatement review | High | Accounting. PF-009 Retroactive benchmark change | Preventive | Enhanced approval/disclosure | Critical | CIO/CCO. PF-010 Selective period presentation | Preventive | Require approved period policy | Critical | CCO. PF-011 Restatement versioning | Evidence | Preserve prior version | Critical | Performance. PF-012 AI certification boundary | Preventive | Deny certification | Critical | Model Risk. PF-013 Unapproved attribution model | Governance | Reject production use | Critical | Model Risk. PF-014 FX source consistency | Preventive | Hold calculation | High | Performance. PF-015 Corporate action reconciliation | Detective | Open break | High | Operations. PF-016 Annualization minimum history | Preventive | Reject annualized display | High | Performance. PF-017 Cross-tenant performance access | Preventive | Deny | Critical | Security. PF-018 Manager self-certification | Preventive | Reject | Critical | CIO. PF-019 Missing methodology version | Evidence | Block certification | High | Performance. PF-020 Material error notification | Corrective | Notify downstream users | Critical | Head of Performance."
+                            }
+                        ]
+}

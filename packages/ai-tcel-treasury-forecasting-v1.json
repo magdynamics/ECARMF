@@ -1,0 +1,162 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-020-Treasury-Liquidity-Forecasting",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-020-Treasury-Liquidity-Forecasting package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-treasury-forecasting",
+    "name":  "TCEL T9-020-Treasury-Liquidity-Forecasting",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "CashPosition",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "positionId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "asOf",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "DebtSchedule",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "facilityId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "maturityDate",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "FundingPlan",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "fundingPlanId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "LiquidityBuffer",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "bufferId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "threshold",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "LiquidityForecast",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "forecastId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "horizon",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "TY-019",
+                      "name":  "Cross-tenant access denial",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "TY-019: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-treasury-forecasting.Capability",
+                             "name":  "TCEL T9-020-Treasury-Liquidity-Forecasting",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-treasury-forecasting-control-catalog-2026",
+                                "docKey":  "tcel-treasury-forecasting-control-catalog",
+                                "title":  "TCEL T9-020-Treasury-Liquidity-Forecasting Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: TY-019 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "TY-001 Approved bank data source | Preventive | Reject unregistered source | Critical | Treasurer. TY-002 Cash position reconciliation | Detective | Open break vs T9-002 | Critical | Treasury. TY-003 Forecast methodology approval | Governance | Reject unapproved model in production | Critical | Model Risk. TY-004 Liquidity buffer threshold | Preventive | Alert/restrict below minimum | Critical | CFO. TY-005 Funding plan approval | Preventive | Reject unapproved plan | Critical | CFO. TY-006 Debt schedule completeness | Evidence | Block certification if incomplete | High | Treasurer. TY-007 Covenant impact review | Preventive | Require CFO sign-off before funding action | Critical | CFO. TY-008 Cash concentration limit | Preventive | Flag or hold above threshold | High | Treasurer. TY-009 Intercompany funding approval | Preventive | Reject unapproved transfer plan | Critical | CFO. TY-010 FX exposure visibility | Evidence | Require exposure disclosure | High | Treasury. TY-011 Interest optimization review | Detective | Flag suboptimal placement | High | Treasury. TY-012 Bank fee validation | Detective | Flag fee anomaly | High | Treasury. TY-013 Forecast uncertainty visible | Preventive | Require range/confidence display | High | Treasury. TY-014 Stress liquidity scenario | Governance | Require scenario coverage for certification | Critical | CRO. TY-015 Survival horizon calculation | Evidence | Require documented methodology | Critical | Treasury. TY-016 Execution through T9-002 only | Preventive | Deny execution outside T9-002 | Critical | Platform. TY-017 AI transfer prohibition | Preventive | Deny AI transfer permission | Critical | AI Governance. TY-018 AI borrowing prohibition | Preventive | Deny AI borrowing permission | Critical | AI Governance. TY-019 Cross-tenant access denial | Preventive | Deny | Critical | Security. TY-020 Source timestamp visible | Evidence | Require as-of on all figures | High | Data Governance. TY-021 Stale bank data restriction | Preventive | Mark Data Restricted | Critical | Data Governance. TY-022 Contingency funding plan | Governance | Require approved plan for critical entities | High | CFO. TY-023 Outcome review | Detective | Compare forecast vs actual | High | Treasury. TY-024 Forecast versioning | Evidence | Require version on republish | High | Treasury. TY-025 Audit trail | Evidence | Require full evidence chain | Critical | Treasury."
+                            }
+                        ]
+}

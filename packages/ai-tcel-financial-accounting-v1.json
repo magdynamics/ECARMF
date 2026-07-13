@@ -1,0 +1,172 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-019-Financial-Accounting",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-019-Financial-Accounting package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-financial-accounting",
+    "name":  "TCEL T9-019-Financial-Accounting",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "Account",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "accountId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "accountType",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "FinancialClose",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "closeId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "period",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "FinancialStatement",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "statementId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "period",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "JournalEntry",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "journalId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "lines",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "Reconciliation",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "reconciliationId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "sourceType",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "AC-023",
+                      "name":  "Cross-tenant access denial",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "AC-023: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-financial-accounting.Capability",
+                             "name":  "TCEL T9-019-Financial-Accounting",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-financial-accounting-control-catalog-2026",
+                                "docKey":  "tcel-financial-accounting-control-catalog",
+                                "title":  "TCEL T9-019-Financial-Accounting Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: AC-023 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "AC-001 Approved chart of accounts | Preventive | Reject posting to unapproved account | Critical | Controller. AC-002 Balanced journal required | Preventive | Reject unbalanced journal | Critical | Controller. AC-003 Journal approval | Preventive | Reject unapproved journal | Critical | Controller. AC-004 Period lock | Preventive | Reject posting to locked period | Critical | Controller. AC-005 Duplicate posting prevention | Preventive | Idempotent reject | Critical | Platform. AC-006 Subledger-to-GL reconciliation | Detective | Open reconciliation break | Critical | Accounting. AC-007 Bank-to-GL reconciliation | Detective | Open reconciliation break | Critical | Accounting. AC-008 Broker-to-GL reconciliation | Detective | Open reconciliation break | Critical | Accounting. AC-009 Intercompany balance matching | Detective | Flag mismatch | High | Accounting. AC-010 Elimination approval | Preventive | Reject unapproved elimination entry | Critical | Controller. AC-011 FX rate source | Preventive | Reject unapproved rate source | High | Controller. AC-012 Functional currency control | Preventive | Reject inconsistent currency use | Critical | Controller. AC-013 Fixed asset capitalization policy | Preventive | Reject non-conforming capitalization | High | Controller. AC-014 Depreciation approval | Preventive | Reject unapproved depreciation change | High | Controller. AC-015 AP vendor approval | Preventive | Reject unapproved vendor | Critical | Accounting. AC-016 AR customer approval | Preventive | Reject unapproved customer | High | Accounting. AC-017 Payment segregation | Preventive | Reject SoD conflict | Critical | Controller. AC-018 Close checklist completion | Preventive | Block close certification if incomplete | High | Controller. AC-019 Statement certification | Governance | Require CFO/Controller sign-off | Critical | CFO/Controller. AC-020 Restatement versioning | Evidence | Preserve prior version | Critical | Controller. AC-021 Material adjustment review | Preventive | Require independent review | Critical | CFO. AC-022 AI posting prohibition | Preventive | Deny AI posting permission | Critical | AI Governance. AC-023 Cross-tenant access denial | Preventive | Deny | Critical | Security. AC-024 Immutable audit trail | Evidence | Block mutation of posted record | Critical | Controller. AC-025 Backup and restore reconciliation | Detective | Verify post-restore integrity | Critical | Platform."
+                            }
+                        ]
+}

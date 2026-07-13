@@ -1,0 +1,157 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-035-Configuration-Rule-Engine",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-035-Configuration-Rule-Engine package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-configuration-rule-engine",
+    "name":  "TCEL T9-035-Configuration-Rule-Engine",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "RuleDecision",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "decisionId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "RuleEvent",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "eventId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "eventType",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "RuleEvidence",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "evidenceId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "hash",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "RulePolicy",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "policyId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "version",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "RuleRecord",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "recordId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "RE-015",
+                      "name":  "Cross-tenant denial",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "RE-015: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-configuration-rule-engine.Capability",
+                             "name":  "TCEL T9-035-Configuration-Rule-Engine",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-configuration-rule-engine-control-catalog-2026",
+                                "docKey":  "tcel-configuration-rule-engine-control-catalog",
+                                "title":  "TCEL T9-035-Configuration-Rule-Engine Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: RE-015 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "RE-001 Rule registration | Governance | Require documented compliance: Rule registration | Critical | Architecture. RE-002 Rule owner | Governance | Require documented compliance: Rule owner | Critical | Architecture. RE-003 Version approval | Preventive | Reject/block if not satisfied: Version approval | Critical | Architecture. RE-004 Effective dating | Governance | Require documented compliance: Effective dating | Critical | Architecture. RE-005 Threshold approval | Evidence | Require documented evidence: Threshold approval | Critical | Architecture. RE-006 Formula approval | Preventive | Reject/block if not satisfied: Formula approval | Critical | Architecture. RE-007 Test coverage | Governance | Require documented compliance: Test coverage | Critical | Architecture. RE-008 Deployment approval | Preventive | Reject/block if not satisfied: Deployment approval | Critical | Architecture. RE-009 Rollback | Corrective | Execute recovery/rollback procedure | Critical | Architecture. RE-010 Conflict detection | Detective | Flag/alert on detected condition | Critical | Architecture. RE-011 Precedence | Governance | Require documented compliance: Precedence | Critical | Architecture. RE-012 Simulation | Governance | Require documented compliance: Simulation | Critical | Architecture. RE-013 Audit trail | Evidence | Require documented evidence: Audit trail | Critical | Architecture. RE-014 AI modification prohibition | Preventive | Deny AI permission for: AI modification prohibition | Critical | AI Governance. RE-015 Cross-tenant denial | Preventive | Deny cross-tenant access | Critical | Security. RE-016 Domain approval | Preventive | Reject/block if not satisfied: Domain approval | High | Architecture. RE-017 Change impact | Governance | Require documented compliance: Change impact | High | Architecture. RE-018 Emergency change | Governance | Require documented compliance: Emergency change | High | Architecture. RE-019 Calendar governance | Governance | Require documented compliance: Calendar governance | High | Architecture. RE-020 Severity mapping | Governance | Require documented compliance: Severity mapping | High | Architecture. RE-021 Configuration encryption | Governance | Require documented compliance: Configuration encryption | High | Architecture. RE-022 Secrets exclusion | Governance | Require documented compliance: Secrets exclusion | High | Architecture. RE-023 Monitoring | Detective | Flag/alert on detected condition | High | Architecture. RE-024 Retirement | Governance | Require documented compliance: Retirement | High | Architecture. RE-025 Recovery | Corrective | Execute recovery/rollback procedure | High | Architecture."
+                            }
+                        ]
+}

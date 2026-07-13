@@ -1,0 +1,177 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-024-Fraud-Financial-Crime",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-024-Fraud-Financial-Crime package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-fraud-financial-crime",
+    "name":  "TCEL T9-024-Fraud-Financial-Crime",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "FraudAlert",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "alertId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "typologyId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "severity",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "FraudCase",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "caseId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "ownerId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "FraudEvidence",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "evidenceId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "caseId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "hash",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "FraudLossEvent",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "lossEventId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "amount",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "FraudTypology",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "typologyId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "version",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "FR-020",
+                      "name":  "Cross-tenant denial",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "FR-020: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-fraud-financial-crime.Capability",
+                             "name":  "TCEL T9-024-Fraud-Financial-Crime",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-fraud-financial-crime-control-catalog-2026",
+                                "docKey":  "tcel-fraud-financial-crime-control-catalog",
+                                "title":  "TCEL T9-024-Fraud-Financial-Crime Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: FR-020 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "FR-001 Approved fraud typology | Governance | Reject unapproved typology in production | Critical | CRO. FR-002 Monitoring rule approval | Governance | Reject unapproved rule | Critical | Fraud Risk. FR-003 Source completeness | Preventive | Block monitoring if source incomplete | Critical | Data Governance. FR-004 Alert explainability | Evidence | Require triggering factors documented | High | Fraud Risk. FR-005 Case owner required | Preventive | Reject case without owner | High | Fraud Risk. FR-006 Evidence preservation | Evidence | Block deletion of case evidence | Critical | Legal. FR-007 Segregation of investigator and subject | Preventive | Reject conflicted assignment | Critical | Fraud Risk. FR-008 Insider conflict control | Preventive | Escalate insider-related case | Critical | CCO. FR-009 Suspicious transaction escalation | Corrective | Escalate to T9-006 for regulatory assessment | Critical | CCO. FR-010 Loss event recording | Evidence | Require loss amount and classification | High | Fraud Risk. FR-011 Regulatory referral through T9-006 | Preventive | Deny direct filing outside T9-006 | Critical | CCO. FR-012 Customer/employee privacy | Preventive | Enforce need-to-know access | Critical | Legal/CCO. FR-013 False-positive monitoring | Detective | Track and report false-positive rate | High | Model Risk. FR-014 Model validation | Governance | Reject unvalidated model in production | Critical | Model Risk. FR-015 Rule/model versioning | Evidence | Require version on change | Critical | Fraud Risk. FR-016 Case closure approval | Preventive | Reject unapproved closure | Critical | Fraud Risk. FR-017 No AI case closure | Preventive | Deny AI closure permission | Critical | AI Governance. FR-018 No AI regulatory filing | Preventive | Deny AI filing permission | Critical | AI Governance. FR-019 No AI account freeze without authority | Preventive | Deny AI freeze permission | Critical | AI Governance. FR-020 Cross-tenant denial | Preventive | Deny | Critical | Security. FR-021 Restricted case access | Preventive | Need-to-know enforcement | Critical | Security. FR-022 Legal hold | Preventive | Block deletion under hold | Critical | Legal. FR-023 Repeat pattern escalation | Detective | Elevate severity on repeat pattern | High | Fraud Risk. FR-024 Outcome feedback | Detective | Feed closed-case outcomes back to model tuning | High | Fraud Risk. FR-025 Audit trail | Evidence | Require full evidence chain | Critical | Fraud Risk."
+                            }
+                        ]
+}

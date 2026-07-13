@@ -1,0 +1,157 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-033-API-Gateway-Integration",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-033-API-Gateway-Integration package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-api-gateway",
+    "name":  "TCEL T9-033-API-Gateway-Integration",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "IntegrationDecision",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "decisionId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "IntegrationEvent",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "eventId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "eventType",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "IntegrationEvidence",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "evidenceId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "hash",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "IntegrationPolicy",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "policyId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "version",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "IntegrationRecord",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "recordId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "IH-016",
+                      "name":  "Cross-tenant denial",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "IH-016: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-api-gateway.Capability",
+                             "name":  "TCEL T9-033-API-Gateway-Integration",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-api-gateway-control-catalog-2026",
+                                "docKey":  "tcel-api-gateway-control-catalog",
+                                "title":  "TCEL T9-033-API-Gateway-Integration Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: IH-016 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "IH-001 API registration | Governance | Require documented compliance: API registration | Critical | Architecture. IH-002 Versioning | Governance | Require documented compliance: Versioning | Critical | Architecture. IH-003 Authentication | Governance | Require documented compliance: Authentication | Critical | Architecture. IH-004 Authorization | Governance | Require documented compliance: Authorization | Critical | Architecture. IH-005 Rate limiting | Governance | Require documented compliance: Rate limiting | Critical | Architecture. IH-006 Schema validation | Governance | Require documented compliance: Schema validation | Critical | Architecture. IH-007 Transformation approval | Preventive | Reject/block if not satisfied: Transformation approval | Critical | Architecture. IH-008 Event routing | Governance | Require documented compliance: Event routing | Critical | Architecture. IH-009 Connector approval | Preventive | Reject/block if not satisfied: Connector approval | Critical | Architecture. IH-010 Secrets management | Governance | Require documented compliance: Secrets management | Critical | Architecture. IH-011 Idempotency | Governance | Require documented compliance: Idempotency | Critical | Architecture. IH-012 Retry policy | Governance | Require documented compliance: Retry policy | Critical | Architecture. IH-013 Dead-letter handling | Governance | Require documented compliance: Dead-letter handling | Critical | Architecture. IH-014 Observability | Governance | Require documented compliance: Observability | Critical | Architecture. IH-015 Data masking | Governance | Require documented compliance: Data masking | Critical | Architecture. IH-016 Cross-tenant denial | Preventive | Deny cross-tenant access | High | Security. IH-017 Deprecation | Governance | Require documented compliance: Deprecation | High | Architecture. IH-018 Backward compatibility | Governance | Require documented compliance: Backward compatibility | High | Architecture. IH-019 SLA monitoring | Detective | Flag/alert on detected condition | High | Architecture. IH-020 Circuit breaker | Governance | Require documented compliance: Circuit breaker | High | Architecture. IH-021 Audit trail | Evidence | Require documented evidence: Audit trail | High | Architecture. IH-022 Provider failover | Governance | Require documented compliance: Provider failover | High | Architecture. IH-023 Change approval | Preventive | Reject/block if not satisfied: Change approval | High | Architecture. IH-024 Recovery | Corrective | Execute recovery/rollback procedure | High | Architecture. IH-025 Security testing | Governance | Require documented compliance: Security testing | High | Architecture."
+                            }
+                        ]
+}

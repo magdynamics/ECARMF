@@ -1,0 +1,198 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-021-Asset-Allocation-Optimization",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-021-Asset-Allocation-Optimization package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-asset-allocation-optimization",
+    "name":  "TCEL T9-021-Asset-Allocation-Optimization",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "AllocationScenario",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "scenarioId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "basePortfolioId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "ConstraintSet",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "constraintSetId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "version",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "OptimizationRequest",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "requestId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "objective",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "constraintSetId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "RebalanceProposal",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "proposalId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "portfolioId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "RiskBudget",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "riskBudgetId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "portfolioId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "PO-020",
+                      "name":  "AI allocation execution prohibition",
+                      "description":  "Preventive/Critical (AI Governance). AI execution boundary.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "AgentAction"
+                                         },
+                                         {
+                                             "field":  "materialAction",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "PO-020: denied - an AI agent may not take material actions; agents are advisory-only (AI Governance)."
+                  },
+                  {
+                      "ruleId":  "PO-021",
+                      "name":  "Cross-tenant access denial",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "PO-021: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-asset-allocation-optimization.Capability",
+                             "name":  "TCEL T9-021-Asset-Allocation-Optimization",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-asset-allocation-optimization-control-catalog-2026",
+                                "docKey":  "tcel-asset-allocation-optimization-control-catalog",
+                                "title":  "TCEL T9-021-Asset-Allocation-Optimization Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: PO-020/PO-021 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "PO-001 Approved investment universe required | Preventive | Reject unapproved asset/security | Critical | CIO. PO-002 Certified input data required | Preventive | Reject uncertified input | Critical | Data Governance. PO-003 Approved objective function | Governance | Reject unapproved objective | Critical | CIO. PO-004 Constraint set approval | Governance | Reject unapproved constraint change | Critical | CIO/CRO. PO-005 Risk budget approval | Preventive | Reject unapproved risk budget | Critical | CRO. PO-006 Liquidity constraint | Preventive | Reject solution breaching liquidity floor | Critical | CFO. PO-007 Concentration constraint | Preventive | Reject solution breaching concentration limit | Critical | CRO. PO-008 Compliance restriction integration | Preventive | Exclude restricted securities from universe | Critical | CCO. PO-009 Manager eligibility integration | Preventive | Exclude ineligible managers | Critical | CIO/CRO. PO-010 Counterparty constraint integration | Preventive | Exclude breaching counterparty exposure | Critical | CRO. PO-011 Transaction cost inclusion | Preventive | Reject solution ignoring cost estimate | High | CIO. PO-012 Tax impact where applicable | Evidence | Require tax-impact disclosure | High | Accounting. PO-013 Rebalancing threshold approval | Governance | Reject unapproved threshold | High | CIO. PO-014 Turnover limit | Preventive | Reject solution above turnover limit | High | CIO. PO-015 Optimization reproducibility | Evidence | Require reproducible inputs/methodology | Critical | Model Risk. PO-016 Model version visibility | Evidence | Require version on all outputs | Critical | Model Risk. PO-017 Scenario uncertainty visible | Preventive | Require range/confidence display | High | CIO. PO-018 Human approval before allocation | Preventive | Block execution without approval | Critical | Investment Committee. PO-019 Execution through T9-005/T9-003 only | Preventive | Deny execution outside approved channels | Critical | Platform. PO-020 AI allocation execution prohibition | Preventive | Deny AI execution permission | Critical | AI Governance. PO-021 Cross-tenant access denial | Preventive | Deny | Critical | Security. PO-022 Stale input restriction | Preventive | Mark Data Restricted | Critical | Data Governance. PO-023 Infeasible solution detection | Preventive | Reject and report infeasibility | Critical | Model Risk. PO-024 Override evidence | Evidence | Require documented override rationale | High | CIO. PO-025 Outcome review | Detective | Compare realized vs. expected outcome | High | CIO."
+                            }
+                        ]
+}

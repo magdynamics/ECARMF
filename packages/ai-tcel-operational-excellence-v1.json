@@ -1,0 +1,353 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-014-Operational-Excellence",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-014-Operational-Excellence package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-operational-excellence",
+    "name":  "TCEL T9-014-Operational-Excellence",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "OperationalProcessRecord",
+                         "description":  "OperationalProcessRecord (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "processId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "name",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "domain",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "ownerId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "purpose",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "scope",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "startEvent",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "endEvent",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "participantRoles",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "systemIds",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "controlIds",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "slaIds",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "dependencyProcessIds",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "version",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "effectiveAt",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "reviewAt",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "ProcessIntelligenceFinding",
+                         "description":  "ProcessIntelligenceFinding (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "findingId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "processId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "findingType",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "severity",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "baseline",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "impact",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "confidence",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "evidenceIds",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "recommendation",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "createdAt",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "ServiceLevelRecord",
+                         "description":  "ServiceLevelRecord (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "slaId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "processId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "metric",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "target",
+                                                "dataType":  "number",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "warningThreshold",
+                                                "dataType":  "number",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "breachThreshold",
+                                                "dataType":  "number",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "unit",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "calendarId",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "timezone",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "ownerId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "escalationPolicyId",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+                   {
+                       "eventName":  "ProcessRegistered",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "ProcessVersionActivated",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "SLAWarningRaised",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "SLABreached",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "CapacityThresholdBreached",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "ProcessDeviationDetected",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "ReworkThresholdBreached",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "RootCauseConfirmed",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "ImprovementInitiativeStarted",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "ImprovementBenefitMeasured",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "OperationsAIRecommendationCreated",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "ProcessIntelligenceFindingCreated",
+                       "description":  "Domain event."
+                   }
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "OP-015",
+                      "name":  "AI execution boundary",
+                      "description":  "Preventive/Critical (AI Governance). AI execution boundary.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "AgentAction"
+                                         },
+                                         {
+                                             "field":  "materialAction",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "OP-015: denied - an AI agent may not take material actions; agents are advisory-only (AI Governance)."
+                  },
+                  {
+                      "ruleId":  "OP-017",
+                      "name":  "Cross-tenant process access",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "OP-017: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-operational-excellence.Capability",
+                             "name":  "TCEL T9-014-Operational-Excellence",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-operational-excellence-control-catalog-2026",
+                                "docKey":  "tcel-operational-excellence-control-catalog",
+                                "title":  "TCEL T9-014-Operational-Excellence Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: OP-015/OP-017 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "OP-001 Registered process required | Governance | Block unregistered critical workflow | Critical | COO. OP-002 Process owner required | Governance | Escalate missing ownership | High | COO. OP-003 Mandatory control step | Preventive | Block completion if skipped | Critical | Risk/Compliance. OP-004 Approval before execution | Preventive | Reject late approval | Critical | Process Owner. OP-005 SLA breach escalation | Corrective | Escalate by severity | High | Operations. OP-006 Critical capacity threshold | Preventive/Detective | Activate contingency | Critical | COO. OP-007 Rework loop threshold | Detective | Open improvement review | High | Process Owner. OP-008 Unauthorized actor | Preventive | Reject task/action | Critical | Security. OP-009 Process version traceability | Evidence | Block certification if missing | High | Process Governance. OP-010 Automation fallback | Preventive | Require manual/alternate procedure | Critical | Technology. OP-011 Automation exception queue | Detective | Assign and age exceptions | High | Operations. OP-012 Control-removal change review | Governance | Require CRO/CCO approval | Critical | Change Committee. OP-013 Operational incident evidence | Evidence | Require timeline and records | High | Operations Risk. OP-014 Repeated incident escalation | Corrective | Elevate severity and oversight | High | COO/CRO. OP-015 AI execution boundary | Preventive | Deny unauthorized production action | Critical | AI Governance. OP-016 Productivity metric fairness | Governance | Block misleading/incentive-risk metric | High | HR/COO. OP-017 Cross-tenant process access | Preventive | Deny | Critical | Security. OP-018 Improvement benefit validation | Detective | Compare expected vs realized | Medium | Process Excellence. OP-019 Critical workflow stale data | Preventive | Mark Data Restricted | Critical | Data Governance. OP-020 Process change rollback | Corrective | Restore prior approved version | High | Change Manager."
+                            }
+                        ]
+}

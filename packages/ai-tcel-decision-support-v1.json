@@ -1,0 +1,178 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-038-Decision-Support-Optimization",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-038-Decision-Support-Optimization package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-decision-support",
+    "name":  "TCEL T9-038-Decision-Support-Optimization",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "DecisionsupportDecision",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "decisionId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "DecisionsupportEvent",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "eventId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "eventType",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "DecisionsupportEvidence",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "evidenceId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "hash",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "DecisionsupportPolicy",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "policyId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "version",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "DecisionsupportRecord",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "recordId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "DS-016",
+                      "name":  "No AI execution",
+                      "description":  "Preventive/Critical (AI Governance). AI execution boundary.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "AgentAction"
+                                         },
+                                         {
+                                             "field":  "materialAction",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "DS-016: denied - an AI agent may not take material actions; agents are advisory-only (AI Governance)."
+                  },
+                  {
+                      "ruleId":  "DS-018",
+                      "name":  "Cross-tenant denial",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "DS-018: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-decision-support.Capability",
+                             "name":  "TCEL T9-038-Decision-Support-Optimization",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-decision-support-control-catalog-2026",
+                                "docKey":  "tcel-decision-support-control-catalog",
+                                "title":  "TCEL T9-038-Decision-Support-Optimization Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: DS-016/DS-018 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "DS-001 Decision registration | Governance | Require documented compliance: Decision registration | Critical | Strategy Office. DS-002 Authority validation | Governance | Require documented compliance: Authority validation | Critical | Strategy Office. DS-003 Alternative completeness | Governance | Require documented compliance: Alternative completeness | Critical | Strategy Office. DS-004 Constraint validation | Governance | Require documented compliance: Constraint validation | Critical | Strategy Office. DS-005 Source certification | Governance | Require documented compliance: Source certification | Critical | Strategy Office. DS-006 Impact aggregation | Governance | Require documented compliance: Impact aggregation | Critical | Strategy Office. DS-007 Risk review | Governance | Require documented compliance: Risk review | Critical | Strategy Office. DS-008 Compliance review | Governance | Require documented compliance: Compliance review | Critical | Strategy Office. DS-009 Financial impact | Governance | Require documented compliance: Financial impact | Critical | Strategy Office. DS-010 Operational impact | Governance | Require documented compliance: Operational impact | Critical | Strategy Office. DS-011 Dissent preservation | Governance | Require documented compliance: Dissent preservation | Critical | Strategy Office. DS-012 Optimization model approval | Preventive | Reject/block if not satisfied: Optimization model approval | Critical | Strategy Office. DS-013 Uncertainty visible | Governance | Require documented compliance: Uncertainty visible | Critical | Strategy Office. DS-014 Human approval | Preventive | Reject/block if not satisfied: Human approval | Critical | Strategy Office. DS-015 No AI final decision | Preventive | Deny AI permission for: No AI final decision | Critical | AI Governance. DS-016 No AI execution | Preventive | Deny AI permission for: No AI execution | High | AI Governance. DS-017 Outcome tracking | Governance | Require documented compliance: Outcome tracking | High | Strategy Office. DS-018 Cross-tenant denial | Preventive | Deny cross-tenant access | High | Security. DS-019 Evidence pack | Evidence | Require documented evidence: Evidence pack | High | Strategy Office. DS-020 Versioning | Governance | Require documented compliance: Versioning | High | Strategy Office. DS-021 Conflict disclosure | Governance | Require documented compliance: Conflict disclosure | High | Strategy Office. DS-022 Scenario comparison | Governance | Require documented compliance: Scenario comparison | High | Strategy Office. DS-023 Recommendation expiry | Governance | Require documented compliance: Recommendation expiry | High | Strategy Office. DS-024 Audit trail | Evidence | Require documented evidence: Audit trail | High | Strategy Office. DS-025 Recovery | Corrective | Execute recovery/rollback procedure | High | Strategy Office."
+                            }
+                        ]
+}

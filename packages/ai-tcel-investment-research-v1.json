@@ -1,0 +1,308 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-011-Investment-Research",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-011-Investment-Research package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-investment-research",
+    "name":  "TCEL T9-011-Investment-Research",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "InvestmentResearchRecord",
+                         "description":  "InvestmentResearchRecord (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "researchId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "researchType",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "subjectId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "authorId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "reviewerIds",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "thesis",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "catalysts",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "risks",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "invalidationConditions",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "valuationSummary",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "scenarioIds",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "sourceIds",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "confidence",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "uncertainty",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "conflictStatus",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "mnpiStatus",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "effectiveAt",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "expiresAt",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "version",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "createdAt",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "ResearchSourceRecord",
+                         "description":  "ResearchSourceRecord (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "sourceId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "provider",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "sourceType",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "sourceTier",
+                                                "dataType":  "number",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "publicationAt",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "retrievedAt",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "licenseId",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "permittedUse",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "reliabilityScore",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "sourceHash",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "correctionHistory",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+                   {
+                       "eventName":  "ResearchIdeaCreated",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "ResearchSubmittedForReview",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "ResearchApproved",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "ResearchExpired",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "ResearchSuperseded",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "ThesisInvalidationTriggered",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "MarketEventDetected",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "SourceCorrectionReceived",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "PotentialMNPIIdentified",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "ResearchAIRecommendationCreated",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "MarketIntelligenceAlertCreated",
+                       "description":  "Domain event."
+                   }
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "RS-016",
+                      "name":  "AI cannot trade",
+                      "description":  "Preventive/Critical (AI Governance). AI execution boundary.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "AgentAction"
+                                         },
+                                         {
+                                             "field":  "materialAction",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "RS-016: denied - an AI agent may not take material actions; agents are advisory-only (AI Governance)."
+                  },
+                  {
+                      "ruleId":  "RS-018",
+                      "name":  "Cross-tenant research access",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "RS-018: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-investment-research.Capability",
+                             "name":  "TCEL T9-011-Investment-Research",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-investment-research-control-catalog-2026",
+                                "docKey":  "tcel-investment-research-control-catalog",
+                                "title":  "TCEL T9-011-Investment-Research Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: RS-016/RS-018 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "RS-001 Approved research required for decision use | Preventive | Block unapproved research input | Critical | Head of Research. RS-002 Source provenance required | Evidence | Reject unsupported factual claim | High | Data Governance. RS-003 Stale research | Preventive | Mark expired and exclude | High | Research Owner. RS-004 MNPI quarantine | Preventive | Restrict access and use | Critical | CCO. RS-005 Conflict disclosure | Preventive | Hold publication | High | CCO. RS-006 AI output human review | Preventive | Keep Draft until approved | Critical | Research Owner. RS-007 Valuation model approval | Governance | Reject unapproved material model | Critical | Model Risk. RS-008 Rumor labeling | Preventive | Exclude as confirmed fact | High | Research. RS-009 Thesis invalidation trigger | Detective | Open review task | High | Research Owner. RS-010 Research-to-trade traceability | Evidence | Require link for rationale-based trade | High | CIO. RS-011 Personal holding conflict | Preventive | Escalate/recuse | Critical | CCO. RS-012 Source-license restriction | Preventive | Block prohibited use/export | Critical | Legal/Data. RS-013 Fact/estimate/opinion distinction | Preventive | Reject ambiguous publication | High | Research. RS-014 Enterprise concentration review | Preventive | Route to risk review | High | CRO. RS-015 Research expiry | Detective | Remove from active set | High | Research. RS-016 AI cannot trade | Preventive | Deny execution permission | Critical | AI Governance. RS-017 Material correction | Corrective | Notify users and re-review decisions | High | Research. RS-018 Cross-tenant research access | Preventive | Deny | Critical | Security. RS-019 Source hash and archive | Evidence | Block approval if missing | High | Data Governance. RS-020 Restricted-list conflict | Preventive | Hold publication/use | Critical | CCO."
+                            }
+                        ]
+}

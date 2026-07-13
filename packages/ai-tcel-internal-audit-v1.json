@@ -1,0 +1,162 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-023-Internal-Audit",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-023-Internal-Audit package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-internal-audit",
+    "name":  "TCEL T9-023-Internal-Audit",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "AuditEngagement",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "engagementId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "AuditFinding",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "findingId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "severity",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "AuditPlan",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "planId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "period",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "AuditWorkpaper",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "workpaperId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "engagementId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "ControlTest",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "testId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "controlId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "AU-019",
+                      "name":  "Cross-tenant access denial",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "AU-019: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-internal-audit.Capability",
+                             "name":  "TCEL T9-023-Internal-Audit",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-internal-audit-control-catalog-2026",
+                                "docKey":  "tcel-internal-audit-control-catalog",
+                                "title":  "TCEL T9-023-Internal-Audit Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: AU-019 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "AU-001 Audit independence | Governance | Reject conflicted assignment | Critical | Audit Committee. AU-002 Audit Committee approval | Governance | Require approval for plan/opinion | Critical | Audit Committee. AU-003 Audit universe completeness | Evidence | Flag gap in coverage | High | Internal Audit. AU-004 Risk-based plan | Governance | Reject unapproved plan | High | Internal Audit. AU-005 Engagement scope approval | Preventive | Reject undocumented scope change | High | Internal Audit. AU-006 Workpaper evidence | Evidence | Block closure without evidence | Critical | Internal Audit. AU-007 Evidence hash | Evidence | Reject unhashed evidence | High | Internal Audit. AU-008 Sampling method approval | Governance | Reject unapproved methodology | High | Internal Audit. AU-009 Control test reproducibility | Evidence | Require documented test steps | Critical | Internal Audit. AU-010 Finding severity approval | Preventive | Reject unapproved severity change | High | Internal Audit. AU-011 Root cause required | Evidence | Block closure without root cause | High | Internal Audit. AU-012 Management response required | Preventive | Block closure without response | High | Internal Audit. AU-013 Remediation owner and due date | Preventive | Reject finding without owner/date | High | Internal Audit. AU-014 Independent remediation verification | Preventive | Reject self-verified closure | Critical | Internal Audit. AU-015 Finding closure approval | Preventive | Require Internal Audit sign-off | Critical | Internal Audit. AU-016 Final opinion authority | Governance | Reject unauthorized opinion issuance | Critical | Audit Committee. AU-017 AI opinion prohibition | Preventive | Deny AI opinion-issuance permission | Critical | AI Governance. AU-018 AI closure prohibition | Preventive | Deny AI finding-closure permission | Critical | AI Governance. AU-019 Cross-tenant access denial | Preventive | Deny | Critical | Security. AU-020 Management edit restriction | Preventive | Deny auditee edit of audit record | Critical | Internal Audit. AU-021 Issue aging escalation | Corrective | Escalate by age/severity | High | Internal Audit. AU-022 Repeat finding escalation | Corrective | Elevate severity and oversight | High | Internal Audit. AU-023 Continuous assurance validation | Detective | Validate automated test coverage | High | Internal Audit. AU-024 Audit trail | Evidence | Require full evidence chain | Critical | Internal Audit. AU-025 Evidence retention | Preventive | Enforce retention schedule | Critical | Internal Audit."
+                            }
+                        ]
+}

@@ -1,0 +1,151 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-025-Business-Continuity",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-025-Business-Continuity package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-business-continuity",
+    "name":  "TCEL T9-025-Business-Continuity",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "BusinessImpactAnalysis",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "biaId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "processId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "ContinuityExercise",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "exerciseId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "scenarioId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "ContinuityPlan",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "planId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "ownerId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "CrisisEvent",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "crisisId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "severity",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "BC-020",
+                      "name":  "Cross-tenant denial",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "BC-020: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-business-continuity.Capability",
+                             "name":  "TCEL T9-025-Business-Continuity",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-business-continuity-control-catalog-2026",
+                                "docKey":  "tcel-business-continuity-control-catalog",
+                                "title":  "TCEL T9-025-Business-Continuity Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: BC-020 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "BC-001 Critical process inventory | Preventive | Require complete inventory before certification | Critical | COO. BC-002 Business impact analysis | Governance | Require BIA before plan approval | Critical | COO. BC-003 Approved RTO/RPO | Governance | Reject unapproved recovery objective | Critical | COO. BC-004 Continuity plan owner | Preventive | Reject plan without owner | High | COO. BC-005 Plan approval and review | Governance | Reject unapproved/expired plan | Critical | COO. BC-006 Crisis roles assigned | Preventive | Block activation without assigned roles | Critical | COO. BC-007 Crisis declaration authority | Preventive | Reject unauthorized declaration | Critical | CEO/COO. BC-008 Employee accountability | Evidence | Require accountability confirmation during crisis | High | HR. BC-009 Alternate-site readiness | Detective | Flag unready alternate site | High | COO. BC-010 Manual fallback procedures | Evidence | Require documented fallback for critical processes | Critical | Process Owner. BC-011 Third-party dependency mapping | Evidence | Require mapped critical vendor dependencies | Critical | COO. BC-012 Technology recovery integration | Preventive | Require alignment with published cyber/DR plans | Critical | CTO. BC-013 Communication approval | Preventive | Reject unapproved crisis communication | High | CEO/CCO. BC-014 Exercise schedule | Governance | Escalate overdue exercise | High | COO. BC-015 Exercise evidence | Evidence | Require documented exercise results | High | COO. BC-016 Recovery action tracking | Detective | Track to closure | Critical | COO. BC-017 Data reconciliation after recovery | Detective | Require reconciliation before declaring restored | Critical | Data Governance. BC-018 No AI crisis declaration | Preventive | Deny AI declaration permission | Critical | AI Governance. BC-019 No AI external communication | Preventive | Deny AI external publication permission | Critical | AI Governance. BC-020 Cross-tenant denial | Preventive | Deny | Critical | Security. BC-021 Plan versioning | Evidence | Require version on change | High | COO. BC-022 Emergency access control | Preventive | Log and time-box emergency access | Critical | Security. BC-023 Post-crisis review | Detective | Require post-crisis review record | High | COO. BC-024 Issue remediation | Corrective | Track remediation to closure | High | COO. BC-025 Board escalation | Corrective | Escalate material crisis to Board | Critical | CEO."
+                            }
+                        ]
+}

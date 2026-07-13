@@ -1,0 +1,178 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-036-Simulation-Laboratory",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-036-Simulation-Laboratory package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-simulation-lab",
+    "name":  "TCEL T9-036-Simulation-Laboratory",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "SimulationDecision",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "decisionId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "SimulationEvent",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "eventId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "eventType",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "SimulationEvidence",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "evidenceId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "hash",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "SimulationPolicy",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "policyId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "version",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "SimulationRecord",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "recordId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "SL-013",
+                      "name":  "Cross-tenant denial",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "SL-013: access denied - cross-tenant access is prohibited (Security)."
+                  },
+                  {
+                      "ruleId":  "SL-017",
+                      "name":  "AI execution prohibition",
+                      "description":  "Preventive/Critical (AI Governance). AI execution boundary.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "AgentAction"
+                                         },
+                                         {
+                                             "field":  "materialAction",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "SL-017: denied - an AI agent may not take material actions; agents are advisory-only (AI Governance)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-simulation-lab.Capability",
+                             "name":  "TCEL T9-036-Simulation-Laboratory",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-simulation-lab-control-catalog-2026",
+                                "docKey":  "tcel-simulation-lab-control-catalog",
+                                "title":  "TCEL T9-036-Simulation-Laboratory Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: SL-013/SL-017 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "SL-001 Simulation isolation | Governance | Require documented compliance: Simulation isolation | Critical | Architecture. SL-002 Synthetic data | Governance | Require documented compliance: Synthetic data | Critical | Architecture. SL-003 Historical replay | Governance | Require documented compliance: Historical replay | Critical | Architecture. SL-004 Scenario approval | Preventive | Reject/block if not satisfied: Scenario approval | Critical | Architecture. SL-005 Model versioning | Governance | Require documented compliance: Model versioning | Critical | Architecture. SL-006 Experiment owner | Governance | Require documented compliance: Experiment owner | Critical | Architecture. SL-007 Hypothesis | Governance | Require documented compliance: Hypothesis | Critical | Architecture. SL-008 Control group | Governance | Require documented compliance: Control group | Critical | Architecture. SL-009 Production separation | Governance | Require documented compliance: Production separation | Critical | Architecture. SL-010 Result labeling | Governance | Require documented compliance: Result labeling | Critical | Architecture. SL-011 Reproducibility | Governance | Require documented compliance: Reproducibility | Critical | Architecture. SL-012 Data privacy | Governance | Require documented compliance: Data privacy | Critical | Architecture. SL-013 Cross-tenant denial | Preventive | Deny cross-tenant access | Critical | Security. SL-014 Resource limits | Governance | Require documented compliance: Resource limits | Critical | Architecture. SL-015 Model comparison | Governance | Require documented compliance: Model comparison | Critical | Architecture. SL-016 Outcome tracking | Governance | Require documented compliance: Outcome tracking | High | Architecture. SL-017 AI execution prohibition | Preventive | Deny AI permission for: AI execution prohibition | High | AI Governance. SL-018 Rollback | Corrective | Execute recovery/rollback procedure | High | Architecture. SL-019 Snapshot integrity | Governance | Require documented compliance: Snapshot integrity | High | Architecture. SL-020 Experiment approval | Preventive | Reject/block if not satisfied: Experiment approval | High | Architecture. SL-021 Ethical review | Governance | Require documented compliance: Ethical review | High | Architecture. SL-022 Security review | Governance | Require documented compliance: Security review | High | Architecture. SL-023 Evidence retention | Evidence | Require documented evidence: Evidence retention | High | Architecture. SL-024 Failure handling | Governance | Require documented compliance: Failure handling | High | Architecture. SL-025 Recovery | Corrective | Execute recovery/rollback procedure | High | Architecture."
+                            }
+                        ]
+}

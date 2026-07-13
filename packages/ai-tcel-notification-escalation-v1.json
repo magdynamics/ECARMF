@@ -1,0 +1,157 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-031-Notification-Escalation",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-031-Notification-Escalation package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-notification-escalation",
+    "name":  "TCEL T9-031-Notification-Escalation",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "NotificationDecision",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "decisionId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "NotificationEvent",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "eventId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "eventType",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "NotificationEvidence",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "evidenceId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "hash",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "NotificationPolicy",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "policyId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "version",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "NotificationRecord",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "recordId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "NT-016",
+                      "name":  "Cross-tenant denial",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "NT-016: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-notification-escalation.Capability",
+                             "name":  "TCEL T9-031-Notification-Escalation",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-notification-escalation-control-catalog-2026",
+                                "docKey":  "tcel-notification-escalation-control-catalog",
+                                "title":  "TCEL T9-031-Notification-Escalation Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: NT-016 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "NT-001 Notification source approval | Preventive | Reject/block if not satisfied: Notification source approval | Critical | Platform. NT-002 Recipient validation | Governance | Require documented compliance: Recipient validation | Critical | Platform. NT-003 Channel approval | Preventive | Reject/block if not satisfied: Channel approval | Critical | Platform. NT-004 Severity mapping | Governance | Require documented compliance: Severity mapping | Critical | Platform. NT-005 Escalation chain | Corrective | Escalate by severity/age | Critical | Platform. NT-006 Acknowledgment | Governance | Require documented compliance: Acknowledgment | Critical | Platform. NT-007 Delivery tracking | Governance | Require documented compliance: Delivery tracking | Critical | Platform. NT-008 Retry policy | Governance | Require documented compliance: Retry policy | Critical | Platform. NT-009 Emergency broadcast authority | Governance | Require documented compliance: Emergency broadcast authority | Critical | Platform. NT-010 Sensitive content masking | Governance | Require documented compliance: Sensitive content masking | Critical | Platform. NT-011 Opt-out policy | Governance | Require documented compliance: Opt-out policy | Critical | Platform. NT-012 Time-zone handling | Governance | Require documented compliance: Time-zone handling | Critical | Platform. NT-013 Duplicate suppression | Governance | Require documented compliance: Duplicate suppression | Critical | Platform. NT-014 Rate limiting | Governance | Require documented compliance: Rate limiting | Critical | Platform. NT-015 AI message approval | Preventive | Deny AI permission for: AI message approval | Critical | AI Governance. NT-016 Cross-tenant denial | Preventive | Deny cross-tenant access | High | Security. NT-017 Fallback channel | Governance | Require documented compliance: Fallback channel | High | Platform. NT-018 On-call schedule | Governance | Require documented compliance: On-call schedule | High | Platform. NT-019 Audit trail | Evidence | Require documented evidence: Audit trail | High | Platform. NT-020 Template versioning | Governance | Require documented compliance: Template versioning | High | Platform. NT-021 Delivery evidence | Evidence | Require documented evidence: Delivery evidence | High | Platform. NT-022 Failed-delivery escalation | Corrective | Escalate by severity/age | High | Platform. NT-023 Quiet hours | Governance | Require documented compliance: Quiet hours | High | Platform. NT-024 Legal retention | Evidence | Require documented evidence: Legal retention | High | Platform. NT-025 Disaster recovery | Corrective | Execute recovery/rollback procedure | High | Platform."
+                            }
+                        ]
+}

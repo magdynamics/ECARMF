@@ -1,0 +1,178 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-030-Workflow-BPM",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-030-Workflow-BPM package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-workflow-bpm",
+    "name":  "TCEL T9-030-Workflow-BPM",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "WorkflowDecision",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "decisionId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "WorkflowEvent",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "eventId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "eventType",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "WorkflowEvidence",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "evidenceId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "hash",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "WorkflowPolicy",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "policyId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "version",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "WorkflowRecord",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "recordId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "WF-013",
+                      "name":  "AI execution limits",
+                      "description":  "Preventive/Critical (AI Governance). AI execution boundary.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "AgentAction"
+                                         },
+                                         {
+                                             "field":  "materialAction",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "WF-013: denied - an AI agent may not take material actions; agents are advisory-only (AI Governance)."
+                  },
+                  {
+                      "ruleId":  "WF-014",
+                      "name":  "Cross-tenant denial",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "WF-014: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-workflow-bpm.Capability",
+                             "name":  "TCEL T9-030-Workflow-BPM",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-workflow-bpm-control-catalog-2026",
+                                "docKey":  "tcel-workflow-bpm-control-catalog",
+                                "title":  "TCEL T9-030-Workflow-BPM Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: WF-013/WF-014 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "WF-001 Workflow registration | Governance | Require documented compliance: Workflow registration | Critical | Platform. WF-002 Version approval | Preventive | Reject/block if not satisfied: Version approval | Critical | Platform. WF-003 State validation | Governance | Require documented compliance: State validation | Critical | Platform. WF-004 Transition authority | Governance | Require documented compliance: Transition authority | Critical | Platform. WF-005 Segregation of duties | Preventive | Reject/block if not satisfied: Segregation of duties | Critical | Platform. WF-006 SLA timers | Governance | Require documented compliance: SLA timers | Critical | Platform. WF-007 Escalation | Corrective | Escalate by severity/age | Critical | Platform. WF-008 Idempotency | Governance | Require documented compliance: Idempotency | Critical | Platform. WF-009 Rollback | Corrective | Execute recovery/rollback procedure | Critical | Platform. WF-010 Exception queue | Governance | Require documented compliance: Exception queue | Critical | Platform. WF-011 Evidence attachment | Evidence | Require documented evidence: Evidence attachment | Critical | Platform. WF-012 Human approval | Preventive | Reject/block if not satisfied: Human approval | Critical | Platform. WF-013 AI execution limits | Preventive | Deny AI permission for: AI execution limits | Critical | AI Governance. WF-014 Cross-tenant denial | Preventive | Deny cross-tenant access | Critical | Security. WF-015 Task ownership | Governance | Require documented compliance: Task ownership | Critical | Platform. WF-016 Delegation | Governance | Require documented compliance: Delegation | High | Platform. WF-017 Cancellation | Governance | Require documented compliance: Cancellation | High | Platform. WF-018 Recovery | Corrective | Execute recovery/rollback procedure | High | Platform. WF-019 Audit trail | Evidence | Require documented evidence: Audit trail | High | Platform. WF-020 Reusable component approval | Preventive | Reject/block if not satisfied: Reusable component approval | High | Platform. WF-021 Domain rule ownership | Governance | Require documented compliance: Domain rule ownership | High | Platform. WF-022 Deployment approval | Preventive | Reject/block if not satisfied: Deployment approval | High | Platform. WF-023 Monitoring | Detective | Flag/alert on detected condition | High | Platform. WF-024 Capacity | Governance | Require documented compliance: Capacity | High | Platform. WF-025 Outcome tracking | Governance | Require documented compliance: Outcome tracking | High | Platform."
+                            }
+                        ]
+}

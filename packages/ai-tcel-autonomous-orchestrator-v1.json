@@ -1,0 +1,157 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-040-Autonomous-Orchestrator",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-040-Autonomous-Orchestrator package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-autonomous-orchestrator",
+    "name":  "TCEL T9-040-Autonomous-Orchestrator",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "OrchestratorDecision",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "decisionId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "OrchestratorEvent",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "eventId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "eventType",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "OrchestratorEvidence",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "evidenceId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "hash",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "OrchestratorPolicy",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "policyId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "version",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "OrchestratorRecord",
+                         "description":  " (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "recordId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "AO-014",
+                      "name":  "Cross-tenant denial",
+                      "description":  "Preventive/Critical (or workflow reference that resolves outside the current tenant,Critical,Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "AO-014: access denied - cross-tenant access is prohibited (or workflow reference that resolves outside the current tenant,Critical,Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-autonomous-orchestrator.Capability",
+                             "name":  "TCEL T9-040-Autonomous-Orchestrator",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-autonomous-orchestrator-control-catalog-2026",
+                                "docKey":  "tcel-autonomous-orchestrator-control-catalog",
+                                "title":  "TCEL T9-040-Autonomous-Orchestrator Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: AO-014 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "AO-001 Approved orchestration policy | Preventive | Reject execution of any plan not covered by an approved orchestration policy | Critical | AI Governance. AO-002 Approved agent registry | Preventive | Reject invocation of any agent not present and active in T9-007\u0027s registry | Critical | AI Governance. AO-003 Approved workflow registry | Preventive | Reject execution of any workflow not present and active in T9-030\u0027s registry | Critical | AI Governance. AO-004 Deterministic controls | Preventive | Route every action through the target domain\u0027s own deterministic control catalog before execution; deny if any control rejects | Critical | AI Governance. AO-005 Human approval threshold | Preventive | Block any action above the configured materiality threshold until a named human approver signs off | Critical | Board/CEO. AO-006 Permission boundary | Preventive | Deny any action outside the orchestrator\u0027s signed permission scope for the current plan | Critical | AI Governance. AO-007 No self-modification | Preventive | Deny any attempt by the orchestrator to alter its own governance rules | permissions | or control configuration,Critical,Model Risk Committee. AO-008 No self-expansion | Preventive | Deny any attempt to acquire tools | agents | or scope beyond what the current signed plan authorizes,Critical,Model Risk Committee. AO-009 Kill switch | Preventive | Immediately halt all in-flight and queued orchestrator actions on activation; no override permitted except by Board-authorized restart | Critical | SafetyGovernor.AI/Board. AO-010 Action simulation | Preventive | Require a dry-run simulation showing predicted state change before any material action executes | Critical | AI Governance. AO-011 Evidence capture | Evidence | Record trigger | plan | inputs, simulation result, approvals, and outcome for every action to T9-029,Critical,AI Governance. AO-012 Rollback | Corrective | Automatically execute the pre-registered rollback procedure for any action that fails post-execution validation | Critical | AI Governance. AO-013 Idempotency | Preventive | Reject re-execution of an action whose idempotency key has already been processed | Critical | Platform. AO-014 Cross-tenant denial | Preventive | Deny any action | agent | or workflow reference that resolves outside the current tenant,Critical,Security. AO-015 Sensitive action restriction | Preventive | Block execution of any action tagged sensitive (financial transfer | policy change | personnel action) without a second named human approver,Critical,AI Governance. AO-016 Model status check | Preventive | Deny invocation of any agent whose underlying model is not in Validated status per T9-027 | High | Model Risk Committee. AO-017 Rule status check | Preventive | Deny execution against any rule not in Active/Approved status per T9-035 | High | AI Governance. AO-018 Workflow status check | Preventive | Deny execution of any workflow version not currently marked Approved in T9-030 | High | AI Governance. AO-019 Identity validation | Preventive | Verify the invoking identity (human or service) against T9-032 before granting any orchestrator session | High | Security. AO-020 Rate limit | Preventive | Throttle and queue actions exceeding the configured per-agent or per-workflow rate ceiling | High | Platform. AO-021 Outcome monitoring | Detective | Compare actual post-action state against the simulated prediction and flag material deviation | High | AI Governance. AO-022 Incident escalation | Corrective | Escalate to SafetyGovernor.AI and the on-call incident owner within the defined SLA for any failed or deviating action | High | AI Governance. AO-023 Recovery | Corrective | Reconcile state and confirm rollback completion before resuming any paused orchestration stream | High | AI Governance. AO-024 Audit trail | Evidence | Retain an immutable | independently queryable log of every orchestrator decision and action for the retention period defined in T9-029 | High,Internal Audit. AO-025 Board oversight | Corrective | Escalate any Critical-severity control failure or kill-switch activation to the Board within the defined notification window | High | Board."
+                            }
+                        ]
+}

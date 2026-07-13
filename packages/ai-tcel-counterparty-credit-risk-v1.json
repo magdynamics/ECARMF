@@ -1,0 +1,320 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-013-Counterparty-Credit-Risk",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-013-Counterparty-Credit-Risk package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-counterparty-credit-risk",
+    "name":  "TCEL T9-013-Counterparty-Credit-Risk",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "CounterpartyExposureRecord",
+                         "description":  "CounterpartyExposureRecord (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "exposureId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "counterpartyId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "nettingSetId",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "grossExposure",
+                                                "dataType":  "number",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "currentExposure",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "potentialFutureExposure",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "settlementExposure",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "eligibleCollateralValue",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "enforceableNettingBenefit",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "netExposure",
+                                                "dataType":  "number",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "currency",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "limitAmount",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "limitUtilization",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "wrongWayRiskFlag",
+                                                "dataType":  "boolean",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "dataConfidence",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "methodologyVersion",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "asOf",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "CounterpartyRecord",
+                         "description":  "CounterpartyRecord (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "counterpartyId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "legalName",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "counterpartyType",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "parentGroupId",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "jurisdiction",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "regulatoryStatus",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "kycStatus",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "sanctionsStatus",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "internalRating",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "externalRatings",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "limitIds",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "nettingAgreementIds",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "collateralAgreementIds",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "lastReviewAt",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "nextReviewAt",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+                   {
+                       "eventName":  "CounterpartyDueDiligenceStarted",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "CounterpartyApproved",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "CounterpartyRestricted",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "CreditRatingChanged",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "CreditLimitChanged",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "ExposureUpdated",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "NettingStatusChanged",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "CollateralValuationUpdated",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "MarginCallIssued",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "MarginCallDisputed",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "SettlementExposureBreached",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "WrongWayRiskDetected",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "CreditRiskRecommendationCreated",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "CollateralRecommendationCreated",
+                       "description":  "Domain event."
+                   }
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "CR-015",
+                      "name":  "AI approval boundary",
+                      "description":  "Preventive/Critical (Model Risk). AI execution boundary.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "AgentAction"
+                                         },
+                                         {
+                                             "field":  "materialAction",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "CR-015: denied - an AI agent may not take material actions; agents are advisory-only (Model Risk)."
+                  },
+                  {
+                      "ruleId":  "CR-018",
+                      "name":  "Cross-tenant counterparty access",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "CR-018: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-counterparty-credit-risk.Capability",
+                             "name":  "TCEL T9-013-Counterparty-Credit-Risk",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-counterparty-credit-risk-control-catalog-2026",
+                                "docKey":  "tcel-counterparty-credit-risk-control-catalog",
+                                "title":  "TCEL T9-013-Counterparty-Credit-Risk Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: CR-015/CR-018 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "CR-001 Approved counterparty required | Preventive | Block activity | Critical | Credit Risk. CR-002 Active credit limit required | Preventive | Block new exposure | Critical | Credit Committee. CR-003 Gross and net exposure visible | Evidence | Reject hidden net-only view | High | CRO. CR-004 Netting legal opinion required | Preventive | No netting benefit | Critical | Legal. CR-005 Eligible collateral only | Preventive | Exclude ineligible collateral | Critical | Collateral Ops. CR-006 Collateral valuation current | Preventive | Reduce eligible value | High | Collateral Ops. CR-007 Haircut applied | Preventive | Recalculate exposure | Critical | Credit Risk. CR-008 Wrong-way collateral | Preventive | Apply restriction/add-on | High | CRO. CR-009 Counterparty downgrade | Detective | Review limits/status | High | Credit Risk. CR-010 Group concentration limit | Preventive | Block or reduce exposure | Critical | CRO. CR-011 Settlement exposure limit | Preventive | Hold transaction | Critical | Operations. CR-012 Margin call aging | Corrective | Escalate overdue call | High | Collateral Ops. CR-013 Collateral substitution approval | Preventive | Hold substitution | High | Collateral Ops. CR-014 Double-pledge prevention | Preventive | Reject collateral assignment | Critical | Operations. CR-015 AI approval boundary | Preventive | Deny limit/credit approval | Critical | Model Risk. CR-016 Stale financials | Preventive | Reduce confidence/limit | High | Credit Risk. CR-017 Sanctions/KYC deficiency | Preventive | Restrict activity | Critical | CCO. CR-018 Cross-tenant counterparty access | Preventive | Deny | Critical | Security. CR-019 Legal document expiry/gap | Preventive | Restrict affected product | Critical | Legal. CR-020 Counterparty exit propagation | Corrective | Notify all dependent systems | Critical | Platform."
+                            }
+                        ]
+}

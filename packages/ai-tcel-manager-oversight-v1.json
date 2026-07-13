@@ -1,0 +1,71 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "TCEL Manager Oversight & Behavioral Intelligence",
+  "version": "1",
+  "status": "Published",
+  "owner": "TCEL",
+  "description": "TCEL Tenant-9 Manager Oversight package (T9-010, advanced-capabilities tier). Spec deps: T9-001..007 (declared here as foundation-only for activation robustness across the 67-package graph; cross-package data flows via shared record/score types at runtime). Entities ManagerOversightProfile + ManagerTrustScore; MO-001..020 control catalog as executable rules where expressible plus a traceability knowledge asset; ManagerOversight.AI advisory agent; per-manager trust score rides the KPI mechanism. Omits ManagerAuthorityChanged (Foundation owns it); does NOT re-declare RecordReceived.",
+  "packageId": "ecarmf.ai-tcel-manager-oversight",
+  "name": "TCEL Manager Oversight & Behavioral Intelligence",
+  "packageVersion": "1.0.0",
+  "publisher": "MAG Dynamics",
+  "dependencies": [ { "packageId": "ecarmf.ai-tcel-foundation", "minimumVersion": "1.0.0" } ],
+  "entities": [
+    { "entityTypeName": "ManagerOversightProfile", "description": "A manager's oversight profile (T9-010 schema): certification, supervision level, restrictions.", "attributes": [
+      { "name": "managerId", "dataType": "string", "required": true }, { "name": "supervisionLevel", "dataType": "string", "required": false },
+      { "name": "certificationStatus", "dataType": "string", "required": false }, { "name": "status", "dataType": "string", "required": true } ] },
+    { "entityTypeName": "ManagerTrustScore", "description": "A manager's trust score (T9-010 schema).", "attributes": [
+      { "name": "managerId", "dataType": "string", "required": true }, { "name": "trustScore", "dataType": "number", "required": true },
+      { "name": "dataComplete", "dataType": "boolean", "required": false }, { "name": "asOf", "dataType": "string", "required": false } ] }
+  ],
+  "events": [
+    { "eventName": "ManagerOnboardingStarted", "description": "Onboarding started." }, { "eventName": "ManagerActivated", "description": "Activated." },
+    { "eventName": "ManagerTrustScoreUpdated", "description": "Trust score updated." }, { "eventName": "ManagerBehaviorAlertOpened", "description": "Behavior alert." },
+    { "eventName": "ManagerSupervisionLevelChanged", "description": "Supervision changed." }, { "eventName": "ManagerCapitalEligibilityChanged", "description": "Eligibility changed." },
+    { "eventName": "ManagerRestrictionApplied", "description": "Restriction applied." }, { "eventName": "ManagerRemediationOpened", "description": "Remediation opened." },
+    { "eventName": "ManagerReinstatementRequested", "description": "Reinstatement requested." }, { "eventName": "ManagerAppealOpened", "description": "Appeal opened." },
+    { "eventName": "ManagerOversightRecommendationCreated", "description": "AI recommendation created." }
+  ],
+  "rules": [
+    { "ruleId": "MO-001", "name": "Active manager certification required", "description": "Preventive/Critical (Manager Oversight). Restrict authority when certification is expired.", "triggerEvent": "RecordReceived", "priority": 10,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "ManagerAuthorityCheck" }, { "field": "certificationExpired", "operator": "Equals", "value": "true" } ],
+      "outcomeOnMatch": "Flagged", "reasonTemplate": "MO-001: manager {managerId} authority restricted - certification expired (Manager Oversight)." },
+    { "ruleId": "MO-005", "name": "Authority state enforced across packages", "description": "Preventive/Critical (Platform). Block a prohibited action for the manager's authority state.", "triggerEvent": "RecordReceived", "priority": 5,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "ManagerAction" }, { "field": "authorityViolation", "operator": "Equals", "value": "true" } ],
+      "outcomeOnMatch": "Rejected", "reasonTemplate": "MO-005: action blocked - it violates manager {managerId}'s current authority state (Platform)." },
+    { "ruleId": "MO-006", "name": "Capital eligibility required", "description": "Preventive/Critical (CIO/CRO). Block new allocation to an ineligible manager.", "triggerEvent": "RecordReceived", "priority": 10,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "ManagerCapitalRequest" }, { "field": "capitalEligible", "operator": "Equals", "value": "false" } ],
+      "outcomeOnMatch": "Rejected", "reasonTemplate": "MO-006: new allocation blocked - manager {managerId} is not capital-eligible (CIO/CRO)." },
+    { "ruleId": "MO-013", "name": "Manager data isolation", "description": "Preventive/Critical (Security). Deny peer-sensitive manager data access.", "triggerEvent": "RecordReceived", "priority": 5,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "ManagerDataAccess" }, { "field": "peerSensitive", "operator": "Equals", "value": "true" } ],
+      "outcomeOnMatch": "Rejected", "reasonTemplate": "MO-013: access denied - peer-sensitive manager data is isolated (Security)." },
+    { "ruleId": "MO-019", "name": "No performance override of misconduct", "description": "Preventive/Critical (CCO/CRO). Performance may not override a misconduct restriction.", "triggerEvent": "RecordReceived", "priority": 5,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "ManagerScoreOverride" }, { "field": "misconductPresent", "operator": "Equals", "value": "true" } ],
+      "outcomeOnMatch": "Rejected", "reasonTemplate": "MO-019: override rejected - good performance cannot override a misconduct restriction (CCO/CRO)." },
+    { "ruleId": "MO-020", "name": "Manager exit access revocation", "description": "Preventive/Critical (Security/HR). Access must be revoked immediately on exit.", "triggerEvent": "RecordReceived", "priority": 5,
+      "conditions": [ { "field": "recordType", "operator": "Equals", "value": "ManagerExit" }, { "field": "accessRevoked", "operator": "Equals", "value": "false" } ],
+      "outcomeOnMatch": "Flagged", "reasonTemplate": "MO-020: manager {managerId} exit - access not yet revoked; immediate revocation required (Security/HR)." }
+  ],
+  "capabilities": [ { "capabilityId": "ecarmf.tcel-manager-oversight.ManagerOversight", "name": "TCEL Manager Oversight", "description": "Manager certification, authority enforcement, trust scoring, conduct, remediation, and reinstatement for the TCEL tenant." } ],
+  "performanceFrameworks": [
+    { "frameworkId": "tcel-manager-trust-v1", "name": "TCEL Manager Trust v1", "industry": "Financial-Services", "description": "Per-manager trust score (subjectType Manager) riding the KPI mechanism.",
+      "kpis": [ { "kpiId": "manager-trust-score", "name": "Manager trust score", "formula": "trustScore", "triggerRecordType": "ManagerTrustScore", "subjectField": "managerId", "subjectType": "Manager", "unit": "score", "targetValue": 70, "direction": "higher" } ], "okrs": [] }
+  ],
+  "agents": [
+    { "agentId": "tcel.manageroversight.ai", "name": "ManagerOversight.AI",
+      "description": "Governed manager-oversight and behavioral-intelligence agent: certification, authority, trust scoring, conduct, remediation. Advisory-only. Boundary: enforces authority state that other packages consume; never itself restricts or reinstates without authorized human action.",
+      "persona": "You are ManagerOversight.AI for TCEL. You monitor manager certification, authority, trust, conduct, and remediation across the enterprise, grounding every finding in the approved oversight data you can see and citing the source and as-of time. You surface behavioral patterns fairly - never inferring protected traits - and recommend supervision changes and restrictions. You recommend and escalate; you never restrict, reinstate, change authority, or approve a score without an authorized human decision.",
+      "contextSources": ["scores", "deviations", "records:ManagerOversightProfile", "records:ManagerTrustScore"],
+      "sampleQuestions": ["Which managers are trending down on trust?", "Whose certification is lapsing?", "Which managers have unresolved conduct issues affecting capital eligibility?"],
+      "owner": "Manager Oversight Committee", "independentValidator": "Model Risk Committee", "riskTier": "Critical",
+      "prohibited": ["restrict, reinstate, or change a manager's authority without authorized human action", "infer protected traits; override a misconduct restriction; change its own permissions"],
+      "outputDisclaimer": "Advisory only - ManagerOversight.AI monitors and recommends; the Oversight Committee and authorized humans make every restriction, reinstatement, and authority decision." }
+  ],
+  "knowledgeAssets": [
+    { "assetId": "tcel-manager-oversight-control-catalog-2026", "docKey": "tcel-manager-oversight-control-catalog",
+      "title": "TCEL Manager Oversight Control Catalog (MO-001..020)", "assetType": "ReferenceManual", "docType": "ControlCatalog",
+      "issuer": "TCEL Manager Oversight Committee", "jurisdiction": "US", "effectiveFrom": "2026-01-01T00:00:00Z",
+      "summary": "The 20 deterministic MO- controls. MO-001/005/006/013/019/020 are enforced as executable rules; the remainder (self-approval SoD, conduct-override workflow, trust-source completeness, training-expiry, override-behavior and outcome monitoring, appeal separation, behavioral fairness governance, reinstatement evidence, model-version approval, source-timestamp evidence, authority-change notification) require workflow, aggregation, evidence, or fairness governance beyond the declarative condition model and are carried for traceability.",
+      "contentText": "MO-001 Active manager certification required | Preventive | Restrict authority if expired | Critical | Manager Oversight. MO-002 Manager cannot approve own score | Preventive | Reject | Critical | CRO. MO-003 Critical conduct event override | Preventive | Immediate restriction workflow | Critical | CCO/CRO. MO-004 Trust score requires complete source set | Evidence | Lower confidence/hold decision | High | Data Governance. MO-005 Authority state enforced across packages | Preventive | Block prohibited actions | Critical | Platform. MO-006 Capital eligibility required | Preventive | Block new allocation | Critical | CIO/CRO. MO-007 Training/certification expiry | Preventive/Detective | Restrict relevant authority | High | Compliance/HR. MO-008 Repeated override behavior | Detective | Escalate supervision | High | Model Risk. MO-009 Unresolved critical reconciliation | Preventive | No capital increase | Critical | CFO. MO-010 Compliance case state integration | Preventive | Apply restriction | Critical | CCO. MO-011 Appeal separation | Governance | Independent reviewer required | High | Legal/HR. MO-012 Behavioral analytics fairness | Governance | Block protected-trait inference | Critical | AI Governance. MO-013 Manager data isolation | Preventive | Deny peer-sensitive access | Critical | Security. MO-014 Reinstatement requires evidence | Preventive | Reject incomplete reinstatement | Critical | Oversight Committee. MO-015 Outcome monitoring | Detective | Review post-decision result | High | Manager Oversight. MO-016 Model version approval | Governance | Reject unapproved score | Critical | Model Risk. MO-017 Source timestamp visible | Evidence | Mark Data Restricted | High | Data Governance. MO-018 Critical authority change notification | Corrective | Notify all dependent services | Critical | Platform. MO-019 No performance override of misconduct | Preventive | Apply hard override | Critical | CCO/CRO. MO-020 Manager exit access revocation | Preventive | Immediate revoke | Critical | Security/HR." }
+  ]
+}

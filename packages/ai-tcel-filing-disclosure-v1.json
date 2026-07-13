@@ -1,0 +1,351 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "TCEL T9-018-Filing-Disclosure-Knowledge",
+    "version":  "1",
+    "status":  "Published",
+    "owner":  "TCEL",
+    "description":  "TCEL Tenant-9 T9-018-Filing-Disclosure-Knowledge package, generated from the spec folder as ECARMF knowledge-package metadata (structure faithful; universal AI-boundary/cross-tenant controls enforced, full control catalog carried as a knowledge asset for traceability). Depends on Foundation; does NOT re-declare RecordReceived; cross-package name collisions auto-omitted by the generator\u0027s claimed-names ledger.",
+    "packageId":  "ecarmf.ai-tcel-filing-disclosure",
+    "name":  "TCEL T9-018-Filing-Disclosure-Knowledge",
+    "packageVersion":  "1.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+                         {
+                             "packageId":  "ecarmf.ai-tcel-foundation",
+                             "minimumVersion":  "1.0.0"
+                         }
+                     ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "AttestationRecord",
+                         "description":  "AttestationRecord (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "attestationId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "attestationType",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "signerId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "statement",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "DisclosureRecord",
+                         "description":  "DisclosureRecord (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "disclosureId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "disclosureType",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "ownerId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "version",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "KnowledgeArticle",
+                         "description":  "KnowledgeArticle (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "knowledgeId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "title",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "ownerId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "version",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "reviewDate",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "RegulatoryCalendarItem",
+                         "description":  "RegulatoryCalendarItem (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "calendarItemId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "obligationId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "dueDate",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "ownerId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "RegulatoryFiling",
+                         "description":  "RegulatoryFiling (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "filingId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "obligationId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "reportingPeriod",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "legalEntityId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "submissionConfirmationId",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "TrainingAssignment",
+                         "description":  "TrainingAssignment (generated from schema)",
+                         "attributes":  [
+                                            {
+                                                "name":  "assignmentId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "courseId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "assigneeId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "dueDate",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "score",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            }
+                                        ]
+                     }
+                 ],
+    "events":  [
+                   {
+                       "eventName":  "RegulatoryCalendarItemActivated",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "FilingPreparationStarted",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "FilingValidationFailed",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "FilingApproved",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "FilingSubmitted",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "FilingAccepted",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "FilingAmended",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "DisclosureApproved",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "DisclosurePublished",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "InvestorReportDistributed",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "AttestationSigned",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "KnowledgeArticlePublished",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "KnowledgeArticleSuperseded",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "TrainingAssigned",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "TrainingCompleted",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "CompetencyCertified",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "LegalHoldApplied",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "FilingAIRecommendationCreated",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "DisclosureAIRecommendationCreated",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "KnowledgeAIResultCreated",
+                       "description":  "Domain event."
+                   },
+                   {
+                       "eventName":  "TrainingAIRecommendationCreated",
+                       "description":  "Domain event."
+                   }
+               ],
+    "rules":  [
+                  {
+                      "ruleId":  "FK-030",
+                      "name":  "Cross-tenant access denial",
+                      "description":  "Preventive/Critical (Security). Cross-tenant denial.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "DataAccess"
+                                         },
+                                         {
+                                             "field":  "crossTenant",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "FK-030: access denied - cross-tenant access is prohibited (Security)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tcel-filing-disclosure.Capability",
+                             "name":  "TCEL T9-018-Filing-Disclosure-Knowledge",
+                             "description":  "Domain capability generated from the T9 spec."
+                         }
+                     ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "tcel-filing-disclosure-control-catalog-2026",
+                                "docKey":  "tcel-filing-disclosure-control-catalog",
+                                "title":  "TCEL T9-018-Filing-Disclosure-Knowledge Control Catalog",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "TCEL",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The deterministic controls for this package. Enforced as executable rules: FK-030 (the universal AI-execution-boundary / cross-tenant controls). The remaining controls are carried here for traceability; detailed field-vs-literal rule tuning is a follow-up (see the hand-authored T9-001..010 packages for the target).",
+                                "contentText":  "FK-001 Approved applicability required | Preventive | Block filing without T9-006 applicability approval | Critical | CCO/General Counsel. FK-002 Regulatory calendar owner required | Preventive | Reject calendar item without owner | High | Filing Owner. FK-003 Due-date and escalation control | Corrective | Escalate by severity as due date approaches | Critical | Filing Owner. FK-004 Source data completeness | Preventive | Block filing if source data incomplete | Critical | Filing Owner. FK-005 Source reconciliation | Preventive | Block filing if unreconciled | Critical | Accounting. FK-006 Filing validation | Preventive | Reject invalid form/schema | Critical | Filing Owner. FK-007 Authorized filing approver | Preventive | Reject unauthorized approval | Critical | CCO. FK-008 Authorized signatory | Preventive | Reject unauthorized signature | Critical | General Counsel. FK-009 Submission confirmation required | Evidence | Block closure without confirmation | Critical | Filing Owner. FK-010 Immutable filed version | Evidence | Block mutation of filed record | Critical | Filing Owner. FK-011 Amendment workflow | Preventive | Require documented amendment process | High | Filing Owner. FK-012 Late filing escalation | Corrective | Escalate to CCO/Board | Critical | CCO. FK-013 Disclosure source validation | Preventive | Block if source unverified | Critical | Disclosure Owner. FK-014 Disclosure legal/compliance review | Preventive | Require CCO/General Counsel sign-off | Critical | CCO/General Counsel. FK-015 Approved disclosure publication | Governance | Block publication until approved | Critical | Disclosure Owner. FK-016 Certified performance only | Preventive | Reject uncertified performance in disclosure | Critical | Head of Performance. FK-017 Distribution recipient control | Preventive | Restrict to approved recipient list | High | Disclosure Owner. FK-018 Secure distribution | Preventive | Require encrypted/controlled channel | Critical | Security. FK-019 Attestation signer identity | Preventive | Verify signer identity before recording | Critical | Compliance. FK-020 No AI signature or certification | Preventive | Deny AI signing/certification action | Critical | AI Governance. FK-021 Knowledge source and approval | Preventive | Reject unapproved knowledge into active set | Critical | Data Governance. FK-022 Stale knowledge restriction | Preventive | Mark stale and exclude from active retrieval | High | Data Governance. FK-023 Privileged knowledge access | Preventive | Need-to-know enforcement | Critical | Legal/CCO. FK-024 Mandatory training assignment | Preventive | Assign per role requirement | High | HR/Compliance. FK-025 Training completion evidence | Evidence | Require completion record | High | HR/Compliance. FK-026 Competency threshold | Preventive | Restrict role activity below threshold | High | HR/Compliance. FK-027 No AI training waiver | Preventive | Deny AI waiver of mandatory training | Critical | AI Governance. FK-028 Legal hold overrides deletion | Preventive | Block deletion under hold | Critical | Legal. FK-029 Retention enforcement | Preventive | Auto-purge per retention schedule | High | Data Governance. FK-030 Cross-tenant access denial | Preventive | Deny | Critical | Security. FK-031 No AI filing submission | Preventive | Deny AI submission permission | Critical | AI Governance. FK-032 No AI disclosure publication | Preventive | Deny AI publication permission | Critical | AI Governance. FK-033 Superseded version retention | Evidence | Preserve prior version | High | Data Governance. FK-034 External report approval | Preventive | Require approval before external release | Critical | CCO. FK-035 Downstream correction notification | Corrective | Notify affected recipients/systems | High | Filing Owner."
+                            }
+                        ]
+}
