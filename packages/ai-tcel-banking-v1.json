@@ -1,0 +1,288 @@
+{
+  "entityType": "KnowledgePackageManifest",
+  "entityName": "TCEL Banking, Treasury & BankRisk.AI",
+  "version": "1",
+  "status": "Published",
+  "owner": "TCEL",
+  "description": "TCEL Tenant-9 Banking/Treasury package (T9-002), onboarded as ECARMF knowledge-package metadata. Depends on the TCEL Foundation (T9-001) for LegalEntity/Manager master data. Entities from the merged T9-002 schemas (FinancialAccount, FinancialTransaction, CashDirectionRecommendation); the BR-001..022 control catalog becomes executable rules where the declarative condition model allows (status/boolean/threshold controls) plus a traceability knowledge asset for the full catalog; BankRisk.AI is a governed advisory agent (no autonomous execution). The bank-risk register uses the dynamic riskType {category} token so ONE assessment record type tags every risk category. Boundary vs T9-003 (Trading) and T9-004 (Enterprise Risk): this package owns ONLY banking accounts, treasury/cash-direction, borrowing/covenants, and bank/reconciliation controls.",
+
+  "packageId": "ecarmf.ai-tcel-banking",
+  "name": "TCEL Banking, Treasury & BankRisk.AI",
+  "packageVersion": "1.0.0",
+  "publisher": "MAG Dynamics",
+  "dependencies": [
+    { "packageId": "ecarmf.ai-tcel-foundation", "minimumVersion": "1.0.0" }
+  ],
+
+  "entities": [
+    {
+      "entityTypeName": "FinancialAccount",
+      "description": "A TCEL bank/brokerage/custody account (T9-002 financial-account.schema.json).",
+      "attributes": [
+        { "name": "accountId", "dataType": "string", "required": true },
+        { "name": "legalEntityId", "dataType": "string", "required": true },
+        { "name": "institutionId", "dataType": "string", "required": true },
+        { "name": "managerId", "dataType": "string", "required": false },
+        { "name": "accountType", "dataType": "string", "required": true },
+        { "name": "currency", "dataType": "string", "required": true },
+        { "name": "purpose", "dataType": "string", "required": true },
+        { "name": "status", "dataType": "string", "required": true },
+        { "name": "riskTier", "dataType": "string", "required": false },
+        { "name": "automationEligible", "dataType": "boolean", "required": false }
+      ]
+    },
+    {
+      "entityTypeName": "FinancialTransaction",
+      "description": "A normalized financial transaction from any bank/broker/custodian source (T9-002 financial-transaction.schema.json).",
+      "attributes": [
+        { "name": "transactionId", "dataType": "string", "required": true },
+        { "name": "accountId", "dataType": "string", "required": true },
+        { "name": "managerId", "dataType": "string", "required": false },
+        { "name": "sourceSystem", "dataType": "string", "required": true },
+        { "name": "sourceRecordId", "dataType": "string", "required": true },
+        { "name": "postingDate", "dataType": "string", "required": true },
+        { "name": "amount", "dataType": "number", "required": true },
+        { "name": "currency", "dataType": "string", "required": true },
+        { "name": "direction", "dataType": "string", "required": true },
+        { "name": "status", "dataType": "string", "required": true },
+        { "name": "idempotencyKey", "dataType": "string", "required": true },
+        { "name": "sourceHash", "dataType": "string", "required": false }
+      ]
+    },
+    {
+      "entityTypeName": "CashDirectionRecommendation",
+      "description": "A BankRisk.AI cash-direction recommendation - advisory, human-approved (T9-002 cash-direction-recommendation.schema.json).",
+      "attributes": [
+        { "name": "recommendationId", "dataType": "string", "required": true },
+        { "name": "sourceAccountId", "dataType": "string", "required": true },
+        { "name": "amount", "dataType": "number", "required": true },
+        { "name": "currency", "dataType": "string", "required": true },
+        { "name": "recommendationType", "dataType": "string", "required": true },
+        { "name": "status", "dataType": "string", "required": true },
+        { "name": "confidence", "dataType": "number", "required": true },
+        { "name": "sourceDataFresh", "dataType": "boolean", "required": true }
+      ]
+    },
+    {
+      "entityTypeName": "BankRiskAssessment",
+      "description": "One banking/treasury risk-register entry. category drives the riskType tag via the dynamic {category} token, so one record type serves every bank-risk category.",
+      "attributes": [
+        { "name": "area", "dataType": "string", "required": true },
+        { "name": "category", "dataType": "string", "required": true },
+        { "name": "likelihood", "dataType": "number", "required": true },
+        { "name": "businessImpact", "dataType": "number", "required": true },
+        { "name": "controlGap", "dataType": "number", "required": true }
+      ]
+    }
+  ],
+
+  "events": [
+    { "eventName": "BankAccountRegistered", "description": "Account Governance." },
+    { "eventName": "BankFeedReceived", "description": "Connectivity." },
+    { "eventName": "BankFeedRejected", "description": "Connectivity." },
+    { "eventName": "BalanceUpdated", "description": "Cash." },
+    { "eventName": "BankTransactionPosted", "description": "Transactions." },
+    { "eventName": "ReconciliationBreakOpened", "description": "Reconciliation." },
+    { "eventName": "ReconciliationBreakResolved", "description": "Reconciliation." },
+    { "eventName": "ExcessCashDetected", "description": "Cash Direction." },
+    { "eventName": "LiquidityShortfallDetected", "description": "Liquidity." },
+    { "eventName": "CashDirectionRecommended", "description": "AI/Decision." },
+    { "eventName": "CashDirectionApproved", "description": "Workflow." },
+    { "eventName": "CashTransferExecuted", "description": "Execution." },
+    { "eventName": "BeneficiaryChanged", "description": "Payments." },
+    { "eventName": "UnauthorizedTransferAttempted", "description": "Controls." },
+    { "eventName": "BankRiskRatingChanged", "description": "Bank Risk." },
+    { "eventName": "CovenantThresholdApproaching", "description": "Borrowing." },
+    { "eventName": "ModelDriftDetected", "description": "Model Risk." }
+  ],
+
+  "rules": [
+    {
+      "ruleId": "BR-002",
+      "name": "Inactive or restricted account activity",
+      "description": "Preventive/Critical (Owner: Banking Risk). Reject activity on a restricted account.",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "FinancialTransaction" },
+        { "field": "accountStatus", "operator": "Equals", "value": "Restricted" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "BR-002: activity on restricted account {accountId} rejected (Banking Risk)."
+    },
+    {
+      "ruleId": "BR-003",
+      "name": "Stale critical feed",
+      "description": "Preventive/Critical (Owner: Technology/Treasury). Set DataRestricted; block automated approval.",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "BankFeedStatus" },
+        { "field": "stale", "operator": "Equals", "value": "true" }
+      ],
+      "outcomeOnMatch": "Flagged",
+      "reasonTemplate": "BR-003: critical feed {sourceSystem} is stale - DataRestricted, automated approval blocked (Technology/Treasury)."
+    },
+    {
+      "ruleId": "BR-004",
+      "name": "Unverified beneficiary",
+      "description": "Preventive/Critical (Owner: Treasury). Reject transfer to an unverified beneficiary.",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "CashTransfer" },
+        { "field": "beneficiaryVerified", "operator": "Equals", "value": "false" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "BR-004: transfer to unverified beneficiary on {sourceAccountId} rejected (Treasury)."
+    },
+    {
+      "ruleId": "BR-005",
+      "name": "External transfer dual approval",
+      "description": "Preventive/Critical (Owner: Treasury). Hold external transfers until a second approver signs off.",
+      "triggerEvent": "RecordReceived",
+      "priority": 20,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "CashTransfer" },
+        { "field": "external", "operator": "Equals", "value": "true" },
+        { "field": "secondApprovalPresent", "operator": "Equals", "value": "false" }
+      ],
+      "outcomeOnMatch": "Flagged",
+      "reasonTemplate": "BR-005: external transfer of {amount} {currency} held pending a second approver (Treasury)."
+    },
+    {
+      "ruleId": "BR-009",
+      "name": "Critical unresolved reconciliation break",
+      "description": "Preventive/Critical (Owner: CFO). Restrict the account while a critical break is open.",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "ReconciliationBreak" },
+        { "field": "severity", "operator": "Equals", "value": "Critical" },
+        { "field": "resolved", "operator": "Equals", "value": "false" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "BR-009: critical unresolved reconciliation break on {accountId} - account restricted (CFO)."
+    },
+    {
+      "ruleId": "BR-012",
+      "name": "Unapproved borrowing",
+      "description": "Preventive/Critical (Owner: CFO). Reject and escalate borrowing without approval.",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "BorrowingRequest" },
+        { "field": "approved", "operator": "Equals", "value": "false" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "BR-012: unapproved borrowing of {amount} {currency} rejected and escalated (CFO)."
+    },
+    {
+      "ruleId": "BR-013",
+      "name": "Projected covenant breach",
+      "description": "Detective/High (Owner: CFO). Raise an early-warning workflow on a projected breach.",
+      "triggerEvent": "RecordReceived",
+      "priority": 30,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "CovenantForecast" },
+        { "field": "projectedBreach", "operator": "Equals", "value": "true" }
+      ],
+      "outcomeOnMatch": "Flagged",
+      "reasonTemplate": "BR-013: projected covenant breach on {facilityId} - early-warning workflow raised (CFO)."
+    },
+    {
+      "ruleId": "BR-016",
+      "name": "AI execution boundary",
+      "description": "Preventive/Critical (Owner: Model Risk). Deny an agent action that attempts material execution.",
+      "triggerEvent": "RecordReceived",
+      "priority": 5,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "AgentAction" },
+        { "field": "actionClass", "operator": "Equals", "value": "Execute" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "BR-016: agent {agentId} attempted a material execution action - denied; agents are advisory-only (Model Risk)."
+    },
+    {
+      "ruleId": "BR-019",
+      "name": "Source evidence hash missing",
+      "description": "Evidence/High (Owner: Technology). Reject finalization when the source evidence hash is missing.",
+      "triggerEvent": "RecordReceived",
+      "priority": 20,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "TransactionFinalization" },
+        { "field": "sourceHashPresent", "operator": "Equals", "value": "false" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "BR-019: transaction {transactionId} finalization rejected - source evidence hash missing (Technology)."
+    }
+  ],
+
+  "capabilities": [
+    { "capabilityId": "ecarmf.tcel-banking.BankingTreasuryIntelligence", "name": "TCEL Banking & Treasury Intelligence", "description": "Accounts, transactions, cash direction, borrowing/covenants, bank & reconciliation controls, and the bank-risk register for the TCEL tenant." }
+  ],
+
+  "performanceFrameworks": [
+    {
+      "frameworkId": "tcel-banking-risk-register-v1",
+      "name": "TCEL Banking Risk Register v1",
+      "industry": "Financial-Services",
+      "description": "The banking/treasury risk register as ONE record type + ONE KPI, using the dynamic riskType {category} token so each assessment tags its own category (BankConcentration, Liquidity, Covenant, Reconciliation, Payment, ModelRisk, ...). Multiplicative index Likelihood x BusinessImpact x ControlGap; higher = worse (direction lower).",
+      "kpis": [
+        {
+          "kpiId": "bank-risk-index",
+          "name": "Bank risk index",
+          "formula": "likelihood * businessImpact * controlGap",
+          "triggerRecordType": "BankRiskAssessment",
+          "subjectField": "area",
+          "subjectType": "Risk",
+          "riskType": "{category}",
+          "unit": "index",
+          "targetValue": 40,
+          "direction": "lower"
+        }
+      ],
+      "okrs": []
+    }
+  ],
+
+  "agents": [
+    {
+      "agentId": "tcel.bankrisk.ai",
+      "name": "BankRisk.AI",
+      "description": "Governed digital banking-risk officer across accounts, institutions, transactions, liquidity, borrowing, and manager banking conduct. Advisory-only - no autonomous execution. Boundary vs TradingRisk.AI (T9-003) and EnterpriseRisk.AI (T9-004): BankRisk.AI owns banking/treasury risk only.",
+      "persona": "You are BankRisk.AI, a continuously learning but governed banking-risk officer for TCEL. You monitor accounts, institutions, transactions, liquidity, borrowing, and manager banking conduct; detect anomalies; forecast covenant and liquidity positions; rank cash-direction alternatives; and produce evidence-backed explanations grounded ONLY in the approved data and references you can see, citing the specific facts, sources, and policy/control references you relied on. Every recommendation states its confidence, assumptions, alternatives, downside if wrong, required approvers, and execution boundary. You recommend and escalate; you never execute, approve, or claim an action was taken.",
+      "contextSources": ["scores", "deviations", "records:FinancialTransaction", "records:CashDirectionRecommendation", "references"],
+      "sampleQuestions": [
+        "Which accounts show payment anomalies this week?",
+        "Where is bank concentration risk highest right now?",
+        "Are any covenants projected to breach in the next quarter?",
+        "What are the ranked cash-direction alternatives for the excess in the operating account?"
+      ],
+      "owner": "CRO",
+      "independentValidator": "Model Risk Committee",
+      "riskTier": "Critical",
+      "prohibited": [
+        "open or close accounts; add a beneficiary; execute a material external transfer; draw debt",
+        "change policy; override a hard limit; clear a suspicious concern or investigation",
+        "change its own authority; delete or alter evidence; train from unapproved sources; approve its own model changes"
+      ],
+      "outputDisclaimer": "Advisory only - BankRisk.AI recommends and explains; every material banking, treasury, and borrowing action is decided and executed by an authorized human, not by this agent."
+    }
+  ],
+
+  "knowledgeAssets": [
+    {
+      "assetId": "tcel-banking-control-catalog-2026",
+      "docKey": "tcel-banking-control-catalog",
+      "title": "TCEL Banking & Treasury Control Catalog (BR-001..022)",
+      "assetType": "ReferenceManual",
+      "docType": "ControlCatalog",
+      "issuer": "TCEL Banking Risk",
+      "jurisdiction": "US",
+      "effectiveFrom": "2026-01-01T00:00:00Z",
+      "summary": "The 22 deterministic BR- controls. BR-002/003/004/005/009/012/013/016/019 are enforced as executable rules in this package; the remainder (unknown-account and duplicate-file detection, self-approval and own-limit SoD, split-transaction aggregation, dual-approval and concentration workflows, escalation timers) require registry lookup, uniqueness, cross-field comparison, aggregation, or timers beyond the declarative condition model and are carried here for traceability.",
+      "contentText": "BR-001 Unknown account activity | Preventive | Reject and alert | Critical | Banking Risk. BR-002 Inactive or restricted account activity | Preventive | Reject | Critical | Banking Risk. BR-003 Stale critical feed | Preventive | Set DataRestricted, block automated approval | Critical | Technology/Treasury. BR-004 Unverified beneficiary | Preventive | Reject transfer | Critical | Treasury. BR-005 External transfer dual approval | Preventive | Hold until second approver | Critical | Treasury. BR-006 Self-approval | Preventive | Reject SoD conflict | Critical | CRO. BR-007 Manager changes own limit | Preventive | Reject | Critical | CRO. BR-008 Daily bank-to-GL reconciliation | Detective | Open break | High | Accounting. BR-009 Critical unresolved break | Preventive | Restrict account | Critical | CFO. BR-010 Excess cash detection | Detective | Create recommendation workflow | High | Treasury. BR-011 Bank concentration threshold | Preventive/Detective | Flag or hold allocation | High | CRO. BR-012 Unapproved borrowing | Preventive | Reject and escalate | Critical | CFO. BR-013 Projected covenant breach | Detective | Early warning workflow | High | CFO. BR-014 CSV four-eyes approval | Preventive | Hold import | High | Accounting. BR-015 Duplicate/replayed file | Preventive | Idempotent reject | High | Technology. BR-016 AI execution boundary | Preventive | Deny execution permission | Critical | Model Risk. BR-017 Policy/model change governance | Governance | Require validation and approval | Critical | CCO/Model Risk. BR-018 Manager split transactions | Detective | Aggregate and alert | High | Compliance. BR-019 Source evidence hash | Evidence | Reject finalization when missing | High | Technology. BR-020 Critical alert escalation | Corrective | Assign, notify, timer escalation | Critical | Banking Risk. BR-021 Daily broker/custodian reconciliation | Detective | Open break | High | Operations. BR-022 Unmatched internal transfer escalation | Detective | Escalate | High | Accounting."
+    }
+  ]
+}
