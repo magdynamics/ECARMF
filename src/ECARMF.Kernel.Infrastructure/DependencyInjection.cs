@@ -13,8 +13,17 @@ public static class DependencyInjection
     public static IServiceCollection AddECARMFInfrastructure(
         this IServiceCollection services, string connectionString)
     {
+        // Connection resiliency: a cold or briefly-unreachable SQL instance
+        // (e.g. SQL Browser still starting after a reboot) must not crash the
+        // app. Retry transient faults instead of failing the first query —
+        // this is what turns a boot-time DB blip into a short delay rather
+        // than a service that won't start.
         services.AddDbContext<ECARMFDbContext>(options =>
-            options.UseSqlServer(connectionString));
+            options.UseSqlServer(connectionString, sql =>
+                sql.EnableRetryOnFailure(
+                    maxRetryCount: 6,
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorNumbersToAdd: null)));
 
         services.AddScoped<IPackageStore, EfPackageStore>();
         services.AddScoped<ITransactionStore, EfTransactionStore>();

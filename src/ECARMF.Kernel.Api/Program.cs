@@ -66,6 +66,10 @@ app.UseStaticFiles(new StaticFileOptions
     },
 });
 
+// Infrastructure liveness/readiness probes, mapped BEFORE auth so a load
+// balancer or monitor can reach them without a key. They expose no tenant data.
+app.MapHealthEndpoints();
+
 // Credential-first authentication: an access key derives tenant + identity
 // (headers are overwritten); suspended tenants are locked out platform-wide.
 app.UseMiddleware<ECARMF.Kernel.Api.Hosting.ApiKeyAuthenticationMiddleware>();
