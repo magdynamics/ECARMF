@@ -46,6 +46,12 @@
   color: #4fc3f7;
 }
 
+/* Tenant-Aware Shell (§2.1): the injected tenant accent, defaulting to the
+   product blue when a tenant declares none. */
+.app {
+  --tenant-accent: #4fc3f7;
+}
+
 .tenant-bar {
   display: flex;
   align-items: center;
@@ -109,10 +115,45 @@
   border-radius: 6px;
 }
 
-.sidebar .tenant-badge strong {
-  color: #4fc3f7;
-  font-size: 0.85rem;
-  word-break: break-all;
+.sidebar .tenant-badge {
+  border-left: 3px solid var(--tenant-accent);
+}
+
+.sidebar .tenant-badge strong,
+.sidebar .tenant-brand {
+  color: var(--tenant-accent);
+  font-size: 0.9rem;
+  word-break: break-word;
+}
+
+.sidebar .tenant-chips {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-top: 0.2rem;
+}
+
+.posture-chip {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.posture-chip.posture-regulated {
+  background: #3a2330;
+  color: #f0a9c4;
+  border: 1px solid #6b3350;
+}
+
+.posture-chip.posture-elevated {
+  background: #33301c;
+  color: #e6cf7a;
+  border: 1px solid #5c5227;
 }
 
 .sidebar .nav-group {

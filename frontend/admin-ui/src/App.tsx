@@ -1,6 +1,7 @@
 ﻿import { Component, useEffect, useState, type ReactNode } from 'react'
 import './App.css'
 import { api, getApiKey, getTenant, getUser, setApiKey, setTenant, setUser } from './api'
+import { tenantConfig } from './tenantConfig'
 import { Advisor } from './components/Advisor'
 import { AiSettings } from './components/AiSettings'
 import { Allocations } from './components/Allocations'
@@ -267,6 +268,9 @@ function App() {
   const effectiveUser = signedInWithKey ? (me?.identifier ?? '') : user
   const isPlatformTab = tab === 'clients' || tab === 'billing' || tab === 'email' || tab === 'health'
   const onPlatformTenant = effectiveTenant.toLowerCase() === 'platform'
+  // Tenant-Aware Shell (§2.1): per-tenant branding/terminology/posture injected
+  // from the TenantConfig layer — one shell, no per-tenant forks.
+  const cfg = tenantConfig(effectiveTenant)
 
   // Operator gate: the Platform group needs the reserved operator tenant.
   const OperatorGate = () => (
@@ -328,7 +332,7 @@ function App() {
   }
 
   return (
-    <div className="app">
+    <div className="app" style={{ ['--tenant-accent' as string]: cfg.accent }}>
       <header className="topbar">
         <div className="brand">
           <button className="menu-toggle" onClick={() => setNavOpen((o) => !o)} aria-label="Menu">☰</button>
@@ -430,7 +434,16 @@ function App() {
           {effectiveTenant && (
             <div className="tenant-badge" title="Every screen shows only this tenant's data.">
               <span className="muted small">Viewing tenant</span>
-              <strong className="mono">{effectiveTenant}</strong>
+              <strong className="tenant-brand">{cfg.brand}</strong>
+              {cfg.segment && <span className="muted small">{cfg.segment}</span>}
+              <span className="tenant-chips">
+                <span className="mono small">{effectiveTenant}</span>
+                {cfg.posture !== 'standard' && (
+                  <span className={`posture-chip posture-${cfg.posture}`}>
+                    {cfg.phi ? 'HIPAA · PHI' : cfg.posture === 'regulated' ? 'Regulated' : 'Elevated'}
+                  </span>
+                )}
+              </span>
             </div>
           )}
           {NAV.map((item, index) => (
