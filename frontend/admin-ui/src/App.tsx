@@ -25,6 +25,7 @@ import { CapabilityExplorer } from './components/CapabilityExplorer'
 import { Agents } from './components/Agents'
 import { EnrollTenant } from './components/EnrollTenant'
 import { SystemMap } from './components/SystemMap'
+import { Glossary } from './components/Glossary'
 import { PackageCatalog } from './components/PackageCatalog'
 import { Skills } from './components/Skills'
 import { SkillsLibrary } from './components/SkillsLibrary'
@@ -82,6 +83,7 @@ class ScreenBoundary extends Component<
 const NAV: { tab: string; label: string; icon: string; group: string }[] = [
   { tab: 'home', label: 'Start Here', icon: '🏠', group: '' },
   { tab: 'systemmap', label: 'System Map', icon: '🗺️', group: '' },
+  { tab: 'glossary', label: 'Dictionary', icon: '📖', group: '' },
   { tab: 'explore', label: 'Capability Explorer', icon: '🔎', group: '' },
   { tab: 'organization', label: 'Organization', icon: '🏛️', group: 'Setup' },
   { tab: 'packages', label: 'Packages', icon: '📦', group: 'Setup' },
@@ -521,6 +523,8 @@ function App() {
             // A guide, not tenant data — always available, even on the
             // operator tenant, so anyone can see how to move through the system.
             <SystemMap tenant={effectiveTenant} user={effectiveUser} go={setTab} />
+          ) : tab === 'glossary' ? (
+            <Glossary go={setTab} />
           ) : operator && onPlatformTenant && !isPlatformTab ? (
             <section className="panel">
               <h2>Nothing here on the operator tenant</h2>

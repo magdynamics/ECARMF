@@ -998,3 +998,12 @@ select {
 .skl-table td { padding: 0.3rem 0.5rem; border-bottom: 1px solid #131c26; vertical-align: top; }
 .skl-edit { display: flex; align-items: flex-end; gap: 0.5rem; margin-top: 0.6rem; flex-wrap: wrap; }
 .skl-price-in { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.8rem; }
+
+/* Glossary */
+.glossary { margin: 0.5rem 0 0; }
+.gloss-item { padding: 0.5rem 0; border-bottom: 1px solid #131c26; }
+.gloss-item:last-child { border-bottom: none; }
+.gloss-item dt { display: flex; align-items: center; gap: 0.5rem; font-weight: 500; color: #d8e6f5; }
+.gloss-item dd { margin: 0.2rem 0 0; font-size: 0.9rem; line-height: 1.5; }
+.gloss-short { color: #cbd5e1; }
+.gloss-go { padding: 0.05rem 0.5rem; }
