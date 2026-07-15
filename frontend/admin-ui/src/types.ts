@@ -100,6 +100,8 @@ export interface ScoreRecord {
   ruleId: string | null
   packageId: string | null
   packageVersion: string | null
+  riskType?: string | null
+  metadata?: Record<string, string>
   correlationId: string
   computedAt: string
 }

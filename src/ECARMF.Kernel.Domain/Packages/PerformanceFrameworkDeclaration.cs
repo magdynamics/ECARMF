@@ -41,6 +41,12 @@ public class KPIDefinition
 
     /// <summary>higher | lower — which direction beats the target.</summary>
     public string Direction { get; set; } = "higher";
+
+    /// <summary>Optional payload fields copied verbatim onto the emitted
+    /// KPIActual score's Metadata (e.g. a risk KPI stamping severityValue and
+    /// likelihood so a heatmap can plot them without re-deriving from the
+    /// product). Additive context; the score value is unaffected.</summary>
+    public List<string> MetadataFields { get; set; } = [];
 }
 
 public class KeyResult

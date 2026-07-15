@@ -87,7 +87,21 @@ public class PerformanceEvaluationService : IPerformanceEvaluator, IFrameworkRec
                 var subject = ResolveSubject(kernelEvent, kpi.SubjectField);
                 var riskType = ResolveRiskType(kernelEvent, kpi.RiskType);
 
-                var actualScore = await EmitAsync(kernelEvent, framework, "KPIActual", $"{kpi.KpiId}@{subject}", value, ct, kpi.SubjectType, riskType);
+                // Optional context fields the KPI asked to carry onto its score
+                // (e.g. a risk KPI stamping severityValue + likelihood).
+                Dictionary<string, string>? extraMetadata = null;
+                if (kpi.MetadataFields.Count > 0)
+                {
+                    extraMetadata = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                    foreach (var mf in kpi.MetadataFields)
+                    {
+                        var mv = kernelEvent.Payload.FirstOrDefault(kv =>
+                            string.Equals(kv.Key, mf, StringComparison.OrdinalIgnoreCase)).Value;
+                        if (!string.IsNullOrWhiteSpace(mv)) extraMetadata[mf] = mv;
+                    }
+                }
+
+                var actualScore = await EmitAsync(kernelEvent, framework, "KPIActual", $"{kpi.KpiId}@{subject}", value, ct, kpi.SubjectType, riskType, extraMetadata);
 
                 // Deviation monitoring runs in the same pass: actual vs the
                 // KPI target (or the latest forecast when no target exists).
@@ -195,7 +209,8 @@ public class PerformanceEvaluationService : IPerformanceEvaluator, IFrameworkRec
         decimal value,
         CancellationToken ct,
         string? kpiSubjectType = null,
-        string? riskType = null)
+        string? riskType = null,
+        IReadOnlyDictionary<string, string>? extraMetadata = null)
     {
         var score = new ScoreRecord
         {
@@ -219,6 +234,11 @@ public class PerformanceEvaluationService : IPerformanceEvaluator, IFrameworkRec
         if (!string.IsNullOrWhiteSpace(kpiSubjectType))
         {
             score.Metadata["kpiSubjectType"] = kpiSubjectType;
+        }
+
+        if (extraMetadata is not null)
+        {
+            foreach (var (k, v) in extraMetadata) score.Metadata[k] = v;
         }
 
         await _scores.AppendAsync(score, ct);

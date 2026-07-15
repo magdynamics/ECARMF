@@ -1307,7 +1307,11 @@
                                                        "riskType":  "{domain}",
                                                        "unit":  "index",
                                                        "targetValue":  6,
-                                                       "direction":  "lower"
+                                                       "direction":  "lower",
+                                                       "metadataFields":  [
+                                                                              "severityValue",
+                                                                              "likelihood"
+                                                                          ]
                                                    }
                                                ],
                                       "okrs":  [

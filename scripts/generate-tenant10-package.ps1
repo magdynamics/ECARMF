@@ -81,7 +81,7 @@ $rules = @(
 $frameworks = @(
   [ordered]@{ frameworkId='t10-risk-register-v1'; name='Tenant-10 RCM Risk Register v1'; industry='Healthcare-RCM';
     description='The 74-risk register as ONE record type + ONE KPI: risk index = severityValue x likelihood, riskType from the record''s own {domain} (RCM-CMP, RCM-CLM, RCM-PAY, ...). Higher = worse.';
-    kpis=@([ordered]@{ kpiId='t10-risk-index'; name='RCM risk index'; formula='severityValue * likelihood'; triggerRecordType='T10RiskAssessment'; subjectField='riskId'; subjectType='Risk'; riskType='{domain}'; unit='index'; targetValue=6; direction='lower' }); okrs=@() }
+    kpis=@([ordered]@{ kpiId='t10-risk-index'; name='RCM risk index'; formula='severityValue * likelihood'; triggerRecordType='T10RiskAssessment'; subjectField='riskId'; subjectType='Risk'; riskType='{domain}'; unit='index'; targetValue=6; direction='lower'; metadataFields=@('severityValue','likelihood') }); okrs=@() }
 )
 
 # ---- agents ----

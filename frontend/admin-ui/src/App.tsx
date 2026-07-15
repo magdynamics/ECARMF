@@ -19,6 +19,7 @@ import { Library } from './components/Library'
 import { Organization } from './components/Organization'
 import { PackageInspector } from './components/PackageInspector'
 import { RecordActivity } from './components/RecordActivity'
+import { RiskRegister } from './components/RiskRegister'
 import { Renewals } from './components/Renewals'
 import { Reports } from './components/Reports'
 import { StatementReview } from './components/StatementReview'
@@ -83,6 +84,7 @@ const NAV: { tab: string; label: string; icon: string; group: string }[] = [
   { tab: 'statements', label: 'Statement Review', icon: '🧐', group: 'Input' },
   { tab: 'activity', label: 'Record Activity', icon: '📋', group: 'Output' },
   { tab: 'dashboard', label: 'Dashboard', icon: '📊', group: 'Output' },
+  { tab: 'risk', label: 'Risk Register', icon: '⚠️', group: 'Output' },
   { tab: 'reports', label: 'Reports', icon: '📑', group: 'Output' },
   { tab: 'library', label: 'Library', icon: '🗄️', group: 'Output' },
   { tab: 'allocations', label: 'Capital Flows', icon: '💼', group: 'Output' },
@@ -513,6 +515,8 @@ function App() {
             <RecordActivity tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'dashboard' ? (
             <Dashboard tenant={effectiveTenant} user={effectiveUser} />
+          ) : tab === 'risk' ? (
+            <RiskRegister tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'reports' ? (
             <Reports tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'library' ? (
