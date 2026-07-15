@@ -16,4 +16,7 @@ public class TransactionRecord
     public string PayloadJson { get; set; } = string.Empty;
 
     public DateTimeOffset ReceivedAt { get; set; }
+
+    /// <summary>Optional case/project the record is filed under.</summary>
+    public string? CaseId { get; set; }
 }

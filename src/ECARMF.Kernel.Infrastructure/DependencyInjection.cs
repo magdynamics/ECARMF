@@ -27,6 +27,7 @@ public static class DependencyInjection
 
         services.AddScoped<IPackageStore, EfPackageStore>();
         services.AddScoped<Application.Packages.ISkillSettingStore, EfSkillSettingStore>();
+        services.AddScoped<Application.Cases.ICaseStore, EfCaseStore>();
         services.AddScoped<ITransactionStore, EfTransactionStore>();
         services.AddScoped<IOutcomeStore, EfOutcomeStore>();
         services.AddScoped<IAuditLog, EfAuditLog>();

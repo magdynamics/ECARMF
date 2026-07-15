@@ -16,7 +16,8 @@ public static class RecordEndpoints
     public record SubmitRecordRequest(
         string RecordType,
         string SubmittedBy,
-        Dictionary<string, JsonElement>? Payload);
+        Dictionary<string, JsonElement>? Payload,
+        string? CaseId = null);
 
     public record ApprovalRequestBody(
         string Approver,
@@ -51,7 +52,8 @@ public static class RecordEndpoints
             // The submitter is the authenticated identity, not a free-text
             // claim — segregation of duties depends on this being real.
             var receipt = await intake.ReceiveAsync(
-                new TransactionSubmission(tenantId, request.RecordType, user!.Identifier, payload), ct);
+                new TransactionSubmission(tenantId, request.RecordType, user!.Identifier, payload,
+                    CaseId: string.IsNullOrWhiteSpace(request.CaseId) ? null : request.CaseId.Trim()), ct);
 
             return Results.Accepted($"/api/records/{receipt.TransactionId}", receipt);
         });

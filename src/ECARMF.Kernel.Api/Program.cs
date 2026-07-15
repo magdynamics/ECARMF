@@ -101,6 +101,7 @@ app.MapCatalogEndpoints();
 app.MapSkillEndpoints();
 app.MapDemoEndpoints();
 app.MapPeriodEndpoints();
+app.MapCaseEndpoints();
 app.MapHealthBoardEndpoints();
 app.MapHardeningEndpoints();
 app.MapOrgUnitEndpoints();

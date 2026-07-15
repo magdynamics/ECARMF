@@ -41,6 +41,7 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<TenantProfileRecord> Tenants => Set<TenantProfileRecord>();
     public DbSet<SkillSettingRecord> SkillSettings => Set<SkillSettingRecord>();
+    public DbSet<CaseRecord> Cases => Set<CaseRecord>();
 
     public DbSet<SourceDocumentRecord> SourceDocuments => Set<SourceDocumentRecord>();
 
@@ -411,6 +412,20 @@ public class ECARMFDbContext : DbContext
             entity.HasIndex(s => s.SkillId).IsUnique();
         });
 
+        modelBuilder.Entity<CaseRecord>(entity =>
+        {
+            entity.ToTable("Cases");
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(c => c.CaseId).HasMaxLength(120).IsRequired();
+            entity.Property(c => c.Name).HasMaxLength(400).IsRequired();
+            entity.Property(c => c.Description).HasMaxLength(2000);
+            entity.Property(c => c.Status).HasMaxLength(50).IsRequired();
+            entity.Property(c => c.SkillsJson).HasMaxLength(4000);
+            entity.Property(c => c.CreatedBy).HasMaxLength(400).IsRequired();
+            entity.HasIndex(c => new { c.TenantId, c.CaseId }).IsUnique();
+        });
+
         modelBuilder.Entity<TenantAiSettingsRecord>(entity =>
         {
             entity.ToTable("TenantAiSettings");
@@ -610,7 +625,9 @@ public class ECARMFDbContext : DbContext
             entity.Property(t => t.TransactionType).HasMaxLength(200).IsRequired();
             entity.Property(t => t.SubmittedBy).HasMaxLength(400).IsRequired();
             entity.Property(t => t.PayloadJson).IsRequired();
+            entity.Property(t => t.CaseId).HasMaxLength(120);
             entity.HasIndex(t => new { t.TenantId, t.ReceivedAt });
+            entity.HasIndex(t => new { t.TenantId, t.CaseId });
         });
 
         modelBuilder.Entity<KnowledgePackageRecord>(entity =>

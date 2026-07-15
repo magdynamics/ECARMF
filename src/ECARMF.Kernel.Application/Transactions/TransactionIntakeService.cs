@@ -13,7 +13,9 @@ public sealed record TransactionSubmission(
     IReadOnlyDictionary<string, string> Payload,
     /// <summary>Overrides the received timestamp. For backfills and demo data
     /// that must span past periods; live intake leaves it null (= now).</summary>
-    DateTimeOffset? OccurredAt = null);
+    DateTimeOffset? OccurredAt = null,
+    /// <summary>Optional case/project to file this record under.</summary>
+    string? CaseId = null);
 
 public sealed record TransactionReceipt(
     Guid TransactionId,
@@ -64,7 +66,8 @@ public class TransactionIntakeService : ITransactionIntakeService
             TransactionType = submission.TransactionType,
             SubmittedBy = submission.SubmittedBy,
             Payload = new Dictionary<string, string>(submission.Payload),
-            ReceivedAt = submission.OccurredAt ?? DateTimeOffset.UtcNow
+            ReceivedAt = submission.OccurredAt ?? DateTimeOffset.UtcNow,
+            CaseId = submission.CaseId
         };
 
         await _store.AppendAsync(transaction, ct);

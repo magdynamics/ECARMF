@@ -35,4 +35,5 @@ public sealed record TransactionQuery(
     DateTimeOffset? From = null,
     DateTimeOffset? To = null,
     int Skip = 0,
-    int Take = 50);
+    int Take = 50,
+    string? CaseId = null);

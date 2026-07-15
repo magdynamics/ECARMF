@@ -23,7 +23,8 @@ public class EfTransactionStore : ITransactionStore
             TransactionType = transaction.TransactionType,
             SubmittedBy = transaction.SubmittedBy,
             PayloadJson = JsonSerializer.Serialize(transaction.Payload),
-            ReceivedAt = transaction.ReceivedAt
+            ReceivedAt = transaction.ReceivedAt,
+            CaseId = transaction.CaseId
         });
 
         await _db.SaveChangesAsync(ct);
@@ -43,7 +44,8 @@ public class EfTransactionStore : ITransactionStore
             TransactionType = record.TransactionType,
             SubmittedBy = record.SubmittedBy,
             Payload = JsonSerializer.Deserialize<Dictionary<string, string>>(record.PayloadJson) ?? [],
-            ReceivedAt = record.ReceivedAt
+            ReceivedAt = record.ReceivedAt,
+            CaseId = record.CaseId
         };
     }
 
@@ -71,6 +73,10 @@ public class EfTransactionStore : ITransactionStore
         if (!string.IsNullOrWhiteSpace(query.SubmittedBy))
         {
             transactions = transactions.Where(t => t.SubmittedBy == query.SubmittedBy);
+        }
+        if (!string.IsNullOrWhiteSpace(query.CaseId))
+        {
+            transactions = transactions.Where(t => t.CaseId == query.CaseId);
         }
         if (query.From is not null)
         {
@@ -122,6 +128,7 @@ public class EfTransactionStore : ITransactionStore
         TransactionType = r.TransactionType,
         SubmittedBy = r.SubmittedBy,
         Payload = JsonSerializer.Deserialize<Dictionary<string, string>>(r.PayloadJson) ?? [],
-        ReceivedAt = r.ReceivedAt
+        ReceivedAt = r.ReceivedAt,
+        CaseId = r.CaseId
     };
 }

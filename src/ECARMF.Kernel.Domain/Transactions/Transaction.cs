@@ -23,4 +23,8 @@ public class Transaction : UniversalBaseEntity
     public Dictionary<string, string> Payload { get; set; } = [];
 
     public DateTimeOffset ReceivedAt { get; set; } = DateTimeOffset.UtcNow;
+
+    /// <summary>Optional case/project this record belongs to (a cross-cutting
+    /// grouping within the tenant). Null = not filed under any case.</summary>
+    public string? CaseId { get; set; }
 }

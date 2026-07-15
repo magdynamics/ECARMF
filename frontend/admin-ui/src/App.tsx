@@ -29,6 +29,7 @@ import { Glossary } from './components/Glossary'
 import { Demos } from './components/Demos'
 import { CommandPalette } from './components/CommandPalette'
 import { Periods } from './components/Periods'
+import { Cases } from './components/Cases'
 import { PackageCatalog } from './components/PackageCatalog'
 import { Skills } from './components/Skills'
 import { SkillsLibrary } from './components/SkillsLibrary'
@@ -102,6 +103,7 @@ const NAV: { tab: string; label: string; icon: string; group: string }[] = [
   { tab: 'dashboard', label: 'Dashboard', icon: '📊', group: 'Output' },
   { tab: 'risk', label: 'Risk Register', icon: '⚠️', group: 'Output' },
   { tab: 'periods', label: 'Period Analysis', icon: '📈', group: 'Output' },
+  { tab: 'cases', label: 'Cases', icon: '🗂️', group: 'Output' },
   { tab: 'reports', label: 'Reports', icon: '📑', group: 'Output' },
   { tab: 'library', label: 'Library', icon: '🗄️', group: 'Output' },
   { tab: 'allocations', label: 'Capital Flows', icon: '💼', group: 'Output' },
@@ -589,6 +591,8 @@ function App() {
             <RiskRegister tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'periods' ? (
             <Periods tenant={effectiveTenant} user={effectiveUser} />
+          ) : tab === 'cases' ? (
+            <Cases tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'reports' ? (
             <Reports tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'library' ? (

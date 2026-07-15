@@ -47,6 +47,8 @@ public static class AuditCategories
     public const string TenantStatusChanged = "TenantStatusChanged";
     public const string TenantConfigUpdated = "TenantConfigUpdated";
     public const string DemoTenantSeeded = "DemoTenantSeeded";
+    public const string CaseCreated = "CaseCreated";
+    public const string CaseStatusChanged = "CaseStatusChanged";
     public const string UserProvisioned = "UserProvisioned";
     public const string CredentialIssued = "CredentialIssued";
     public const string UserStatusChanged = "UserStatusChanged";
