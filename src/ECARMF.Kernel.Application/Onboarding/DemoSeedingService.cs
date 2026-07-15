@@ -40,9 +40,12 @@ public interface IDemoSeedingService
 public class DemoSeedingService : IDemoSeedingService
 {
     public const string DemoSuffix = "-demo";
-    private const int MaxRecords = 250;
-    // Even a control-light tenant should show record activity in a demo.
-    private const int RecordFloor = 12;
+    // Heavy demo data: enough to make dashboards, the risk heatmap, and the
+    // health board look real.
+    private const int MaxRecords = 2500;
+    private const int RuleRepeat = 3;      // records per control (volume)
+    private const int KpiRecords = 16;     // records per KPI (a spread of values)
+    private const int RecordFloor = 12;    // minimum activity for control-light tenants
 
     private readonly ITenantDirectory _tenants;
     private readonly IUserStore _users;
@@ -160,28 +163,48 @@ public class DemoSeedingService : IDemoSeedingService
     {
         var active = await _packages.GetByStateAsync(demoId, PackageLoadState.Active, ct);
         var manifests = active.Select(p => p.Manifest).ToList();
-        var rules = manifests.SelectMany(m => m.Rules)
-            .Where(r => r.Conditions.Count > 0)
-            .Take(MaxRecords)
-            .ToList();
 
         var recordTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var count = 0;
 
-        // One record per active rule, crafted to fire the control.
-        foreach (var rule in rules)
+        // 1. Several records per active rule, crafted to fire the control.
+        foreach (var rule in manifests.SelectMany(m => m.Rules).Where(r => r.Conditions.Count > 0))
         {
+            if (count >= MaxRecords) break;
             var (recordType, payload) = BuildRecord(rule);
-            try
+            for (var i = 0; i < RuleRepeat && count < MaxRecords; i++)
             {
-                await _intake.ReceiveAsync(new TransactionSubmission(demoId, recordType, "owner@platform", payload), ct);
-                recordTypes.Add(recordType);
-                count++;
+                try
+                {
+                    await _intake.ReceiveAsync(new TransactionSubmission(demoId, recordType, "owner@platform", payload), ct);
+                    recordTypes.Add(recordType);
+                    count++;
+                }
+                catch (Exception ex) { errors.Add($"record {rule.RuleId}: {ex.Message}"); break; }
             }
-            catch (Exception ex) { errors.Add($"record {rule.RuleId}: {ex.Message}"); }
         }
 
-        // Floor: for control-light tenants, add plausible records per entity
+        // 2. KPI-targeted records with numeric payloads and a spread of values,
+        // so KPIs emit scores — this is what fills the dashboard, risk heatmap,
+        // and health board.
+        var kpis = manifests.SelectMany(m => m.PerformanceFrameworks).SelectMany(f => f.Kpis)
+            .Where(k => !string.IsNullOrWhiteSpace(k.TriggerRecordType) && !string.IsNullOrWhiteSpace(k.Formula));
+        foreach (var kpi in kpis)
+        {
+            for (var i = 0; i < KpiRecords && count < MaxRecords; i++)
+            {
+                var payload = BuildKpiRecord(kpi, i);
+                try
+                {
+                    await _intake.ReceiveAsync(new TransactionSubmission(demoId, kpi.TriggerRecordType, "owner@platform", payload), ct);
+                    recordTypes.Add(kpi.TriggerRecordType);
+                    count++;
+                }
+                catch (Exception ex) { errors.Add($"kpi {kpi.KpiId}: {ex.Message}"); break; }
+            }
+        }
+
+        // 3. Floor: for control-light tenants, add plausible records per entity
         // type so every demo has visible activity (these may not fire a rule).
         if (count < RecordFloor)
         {
@@ -212,6 +235,9 @@ public class DemoSeedingService : IDemoSeedingService
             ("Business license renewal", "License", 45),
             ("Annual compliance filing", "Regulatory", 90),
             ("Professional liability insurance", "Insurance", 20),
+            ("Data protection audit", "Compliance", 120),
+            ("Vendor contract renewal", "Contract", 60),
+            ("Cyber insurance renewal", "Insurance", 200),
         };
         var made = 0;
         foreach (var s in specs)
@@ -233,7 +259,7 @@ public class DemoSeedingService : IDemoSeedingService
     {
         if (recordTypes.Count == 0) return 0;
         var made = 0;
-        foreach (var rt in recordTypes.Take(2))
+        foreach (var rt in recordTypes.Take(4))
         {
             await _benchmarks.AddAsync(new Benchmark
             {
@@ -248,6 +274,45 @@ public class DemoSeedingService : IDemoSeedingService
             made++;
         }
         return made;
+    }
+
+    private static readonly System.Text.RegularExpressions.Regex Identifier =
+        new("[A-Za-z_][A-Za-z0-9_]*", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    /// <summary>A record that makes a KPI compute: recordType matches the KPI's
+    /// trigger, every field its formula references is a number, and severity/
+    /// likelihood-style fields spread 1..5 so the risk heatmap fills across
+    /// cells. Index i varies the values so scores form a real distribution.</summary>
+    private static Dictionary<string, string> BuildKpiRecord(KPIDefinition kpi, int i)
+    {
+        var payload = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["recordType"] = kpi.TriggerRecordType
+        };
+
+        // Every identifier the formula reads must resolve to a number.
+        foreach (System.Text.RegularExpressions.Match m in Identifier.Matches(kpi.Formula))
+            payload[m.Value] = NumberFor(m.Value, i);
+
+        // Context fields the KPI carries onto its score (e.g. severity/likelihood).
+        foreach (var mf in kpi.MetadataFields)
+            payload[mf] = NumberFor(mf, i);
+
+        // Spread scores across a handful of subjects so the boards look populated.
+        if (!string.IsNullOrWhiteSpace(kpi.SubjectField))
+            payload[kpi.SubjectField] = $"Unit-{(i % 4) + 1}";
+
+        return payload;
+    }
+
+    private static string NumberFor(string field, int i)
+    {
+        var f = field.ToLowerInvariant();
+        // Severity/likelihood-style fields ride the 1..5 scale for the heatmap.
+        if (f.Contains("sever") || f.Contains("likel") || f.Contains("impact") || f.Contains("probab"))
+            return ((i % 5) + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        // Otherwise a varied but bounded value so the KPI trend looks real.
+        return (50 + (i * 37 % 450)).ToString(System.Globalization.CultureInfo.InvariantCulture);
     }
 
     /// <summary>A plausible demo record for an entity, one value per attribute
