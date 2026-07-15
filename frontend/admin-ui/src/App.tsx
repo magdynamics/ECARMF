@@ -26,6 +26,7 @@ import { Agents } from './components/Agents'
 import { EnrollTenant } from './components/EnrollTenant'
 import { SystemMap } from './components/SystemMap'
 import { PackageCatalog } from './components/PackageCatalog'
+import { Skills } from './components/Skills'
 import { Renewals } from './components/Renewals'
 import { Reports } from './components/Reports'
 import { StatementReview } from './components/StatementReview'
@@ -102,6 +103,7 @@ const NAV: { tab: string; label: string; icon: string; group: string }[] = [
   { tab: 'health', label: 'Health Board', icon: '🩺', group: 'Platform' },
   { tab: 'enroll', label: 'Enroll Tenant', icon: '✨', group: 'Platform' },
   { tab: 'catalog', label: 'Package Library', icon: '📚', group: 'Platform' },
+  { tab: 'skills', label: 'Skills', icon: '🧩', group: 'Platform' },
   { tab: 'clients', label: 'Clients', icon: '🏢', group: 'Platform' },
   { tab: 'billing', label: 'Billing', icon: '🧾', group: 'Platform' },
   { tab: 'email', label: 'Email', icon: '✉️', group: 'Platform' },
@@ -282,7 +284,7 @@ function App() {
   const operator = signedInWithKey && me?.isPlatformOperator === true
   const effectiveTenant = signedInWithKey ? (operator ? tenant : (me?.tenantId ?? '')) : tenant
   const effectiveUser = signedInWithKey ? (me?.identifier ?? '') : user
-  const isPlatformTab = tab === 'clients' || tab === 'billing' || tab === 'email' || tab === 'health' || tab === 'enroll' || tab === 'catalog'
+  const isPlatformTab = tab === 'clients' || tab === 'billing' || tab === 'email' || tab === 'health' || tab === 'enroll' || tab === 'catalog' || tab === 'skills'
   const onPlatformTenant = effectiveTenant.toLowerCase() === 'platform'
 
   // Load the viewed tenant's persisted branding (api.ts sends the act-as
@@ -569,6 +571,8 @@ function App() {
             <HealthBoard tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'catalog' ? (
             <PackageCatalog tenant={effectiveTenant} user={effectiveUser} />
+          ) : tab === 'skills' ? (
+            <Skills tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'enroll' ? (
             <EnrollTenant onProvisioned={(id) => {
               // Freshly created and valid — switch directly (the prefix-guard

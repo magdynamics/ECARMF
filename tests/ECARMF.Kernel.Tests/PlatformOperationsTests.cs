@@ -389,12 +389,24 @@ public class PlatformOperationsTests
             Task.FromResult<IReadOnlyList<BillingStatement>>(Items.Where(s => s.TenantId == tenantId).ToList());
     }
 
+    private sealed class NoSkills : ECARMF.Kernel.Application.Packages.ISkillCatalog
+    {
+        public Task<IReadOnlyList<ECARMF.Kernel.Application.Packages.SkillView>> ListForTenantAsync(string tenantId, CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<ECARMF.Kernel.Application.Packages.SkillView>>([]);
+        public Task<ECARMF.Kernel.Application.Packages.SkillActionResult> ActivateAsync(string packageId, string tenantId, string actor, CancellationToken ct = default) =>
+            Task.FromResult(new ECARMF.Kernel.Application.Packages.SkillActionResult(true, ""));
+        public Task<ECARMF.Kernel.Application.Packages.SkillActionResult> DeactivateAsync(string packageId, string tenantId, string actor, CancellationToken ct = default) =>
+            Task.FromResult(new ECARMF.Kernel.Application.Packages.SkillActionResult(true, ""));
+        public Task<IReadOnlyList<(string Name, decimal Price)>> ActivePricedSkillsAsync(string tenantId, CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<(string, decimal)>>([]);
+    }
+
     [Fact]
     public async Task Statement_charges_utilization_times_plan_rates_line_by_line()
     {
         var statements = new ListStatementStore();
         var audit = new InMemoryAuditLog();
-        var billing = new BillingService(new FixedMeter(), new SinglePlanStore(), statements, audit);
+        var billing = new BillingService(new FixedMeter(), new SinglePlanStore(), statements, audit, new NoSkills());
 
         var statement = await billing.GenerateStatementAsync(
             Tenant, "standard",

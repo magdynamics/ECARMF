@@ -15,6 +15,7 @@ public static class DependencyInjection
         services.AddSingleton<IKernelEventBus, InProcessKernelEventBus>();
         services.AddScoped<IPackageLoader, PackageLoader>();
         services.AddScoped<Packages.IPackageCatalog, Packages.PackageCatalogService>();
+        services.AddScoped<Packages.ISkillCatalog, Packages.SkillCatalogService>();
         services.AddScoped<Packages.IPackageIdLedgerService, Packages.PackageIdLedgerService>();
         services.AddScoped<ITransactionIntakeService, TransactionIntakeService>();
         services.AddScoped<IEventProcessor, EventProcessor>();

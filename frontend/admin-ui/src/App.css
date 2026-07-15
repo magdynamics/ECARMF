@@ -960,3 +960,22 @@ select {
 .catalog-install label { display: flex; flex-direction: column; gap: 0.25rem; }
 .catalog-deps { flex-direction: row !important; align-items: center; gap: 0.4rem; }
 .catalog-deps input { width: auto; }
+
+/* Skills */
+.skill-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 0.7rem;
+  margin-top: 0.6rem;
+}
+.skill-card {
+  display: flex; flex-direction: column; gap: 0.35rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid #1f2a36; border-radius: 10px; background: #0e141b;
+}
+.skill-card.on { border-color: var(--tenant-accent, #3d8bfd); background: #101d29; }
+.skill-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
+.skill-price { font-size: 0.8rem; font-weight: 500; color: #ffcf70; white-space: nowrap; }
+.skill-card.on .skill-price { color: #6ee7b7; }
+.skill-desc { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.skill-card button { margin-top: 0.3rem; align-self: flex-start; }

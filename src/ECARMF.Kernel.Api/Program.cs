@@ -98,6 +98,7 @@ app.MapReportEndpoints();
 app.MapBulkImportEndpoints();
 app.MapTemplateEndpoints();
 app.MapCatalogEndpoints();
+app.MapSkillEndpoints();
 app.MapHealthBoardEndpoints();
 app.MapHardeningEndpoints();
 app.MapOrgUnitEndpoints();

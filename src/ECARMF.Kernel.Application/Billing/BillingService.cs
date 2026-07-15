@@ -1,4 +1,5 @@
 using ECARMF.Kernel.Application.Audit;
+using ECARMF.Kernel.Application.Packages;
 using ECARMF.Kernel.Domain.Audit;
 using ECARMF.Kernel.Domain.Billing;
 
@@ -47,14 +48,17 @@ public class BillingService : IBillingService
     private readonly IBillingPlanStore _plans;
     private readonly IBillingStatementStore _statements;
     private readonly IAuditLog _audit;
+    private readonly ISkillCatalog _skills;
 
     public BillingService(
-        IUsageMeter meter, IBillingPlanStore plans, IBillingStatementStore statements, IAuditLog audit)
+        IUsageMeter meter, IBillingPlanStore plans, IBillingStatementStore statements,
+        IAuditLog audit, ISkillCatalog skills)
     {
         _meter = meter;
         _plans = plans;
         _statements = statements;
         _audit = audit;
+        _skills = skills;
     }
 
     public async Task<BillingStatement> GenerateStatementAsync(
@@ -98,6 +102,13 @@ public class BillingService : IBillingService
         AddLine("AiCalls", usage.AiCalls, plan.PricePerAiCall);
         AddLine("FeedRuns", usage.FeedRuns, plan.PricePerFeedRun);
         AddLine("ActiveUsers", usage.ActiveUsers, plan.PricePerActiveUser);
+
+        // Per-skill recurring charges: one line for each active priced skill
+        // (add-ons and industry skills). Core skills are 0 and add no line.
+        foreach (var (name, price) in await _skills.ActivePricedSkillsAsync(tenantId, ct))
+        {
+            AddLine($"Skill: {name}", 1, price);
+        }
 
         statement.Total = Math.Round(statement.Lines.Sum(l => l.Amount), 2);
         await _statements.AddAsync(statement, ct);
