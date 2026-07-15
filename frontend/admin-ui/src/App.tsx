@@ -21,6 +21,8 @@ import { PackageInspector } from './components/PackageInspector'
 import { RecordActivity } from './components/RecordActivity'
 import { RiskRegister } from './components/RiskRegister'
 import { ControlsExplorer } from './components/ControlsExplorer'
+import { CapabilityExplorer } from './components/CapabilityExplorer'
+import { Agents } from './components/Agents'
 import { Renewals } from './components/Renewals'
 import { Reports } from './components/Reports'
 import { StatementReview } from './components/StatementReview'
@@ -74,6 +76,7 @@ class ScreenBoundary extends Component<
 // 'platform' tenant, and the gate below offers the switch.
 const NAV: { tab: string; label: string; icon: string; group: string }[] = [
   { tab: 'home', label: 'Start Here', icon: '🏠', group: '' },
+  { tab: 'explore', label: 'Capability Explorer', icon: '🔎', group: '' },
   { tab: 'organization', label: 'Organization', icon: '🏛️', group: 'Setup' },
   { tab: 'packages', label: 'Packages', icon: '📦', group: 'Setup' },
   { tab: 'controls', label: 'Controls', icon: '🛡️', group: 'Setup' },
@@ -91,6 +94,7 @@ const NAV: { tab: string; label: string; icon: string; group: string }[] = [
   { tab: 'library', label: 'Library', icon: '🗄️', group: 'Output' },
   { tab: 'allocations', label: 'Capital Flows', icon: '💼', group: 'Output' },
   { tab: 'advisor', label: 'AI Advisor', icon: '🤖', group: 'Output' },
+  { tab: 'agents', label: 'AI Agents', icon: '🧬', group: 'Output' },
   { tab: 'health', label: 'Health Board', icon: '🩺', group: 'Platform' },
   { tab: 'clients', label: 'Clients', icon: '🏢', group: 'Platform' },
   { tab: 'billing', label: 'Billing', icon: '🧾', group: 'Platform' },
@@ -501,6 +505,10 @@ function App() {
             <PackageInspector tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'controls' ? (
             <ControlsExplorer tenant={effectiveTenant} user={effectiveUser} />
+          ) : tab === 'explore' ? (
+            <CapabilityExplorer tenant={effectiveTenant} user={effectiveUser} />
+          ) : tab === 'agents' ? (
+            <Agents tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'integrations' ? (
             <Integrations tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'benchmarks' ? (
