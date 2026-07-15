@@ -166,6 +166,7 @@ public class DemoSeedingService : IDemoSeedingService
 
         var recordTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var count = 0;
+        var seq = 0; // drives the backdate spread so records span past periods
 
         // 1. Several records per active rule, crafted to fire the control.
         foreach (var rule in manifests.SelectMany(m => m.Rules).Where(r => r.Conditions.Count > 0))
@@ -176,7 +177,7 @@ public class DemoSeedingService : IDemoSeedingService
             {
                 try
                 {
-                    await _intake.ReceiveAsync(new TransactionSubmission(demoId, recordType, "owner@platform", payload), ct);
+                    await _intake.ReceiveAsync(new TransactionSubmission(demoId, recordType, "owner@platform", payload, Spread(seq++)), ct);
                     recordTypes.Add(recordType);
                     count++;
                 }
@@ -196,7 +197,7 @@ public class DemoSeedingService : IDemoSeedingService
                 var payload = BuildKpiRecord(kpi, i);
                 try
                 {
-                    await _intake.ReceiveAsync(new TransactionSubmission(demoId, kpi.TriggerRecordType, "owner@platform", payload), ct);
+                    await _intake.ReceiveAsync(new TransactionSubmission(demoId, kpi.TriggerRecordType, "owner@platform", payload, Spread(seq++)), ct);
                     recordTypes.Add(kpi.TriggerRecordType);
                     count++;
                 }
@@ -216,7 +217,7 @@ public class DemoSeedingService : IDemoSeedingService
                 var payload = BuildEntityRecord(entity);
                 try
                 {
-                    await _intake.ReceiveAsync(new TransactionSubmission(demoId, entity.EntityTypeName, "owner@platform", payload), ct);
+                    await _intake.ReceiveAsync(new TransactionSubmission(demoId, entity.EntityTypeName, "owner@platform", payload, Spread(seq++)), ct);
                     recordTypes.Add(entity.EntityTypeName);
                     count++;
                 }
@@ -275,6 +276,11 @@ public class DemoSeedingService : IDemoSeedingService
         }
         return made;
     }
+
+    /// <summary>A received-timestamp spread across ~4 months so demo records
+    /// populate several periods for period-over-period comparison.</summary>
+    private static DateTimeOffset Spread(int seq) =>
+        DateTimeOffset.UtcNow.AddDays(-((seq * 17) % 118)).AddHours(-(seq % 24));
 
     private static readonly System.Text.RegularExpressions.Regex Identifier =
         new("[A-Za-z_][A-Za-z0-9_]*", System.Text.RegularExpressions.RegexOptions.Compiled);

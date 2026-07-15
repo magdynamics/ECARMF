@@ -1047,3 +1047,20 @@ select {
 .cap-skill { background: #1a1030; color: #c4b5fd; }
 .cap-record { background: #05202a; color: #7dd3fc; }
 .cap-renewal { background: #201217; color: #fda4af; }
+
+/* Period analysis */
+.pd-deltas { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 0.6rem; margin: 0.5rem 0; }
+.pd-delta { padding: 0.6rem 0.7rem; border-radius: 10px; border: 1px solid #1f2a36; background: #0e141b; display: flex; flex-direction: column; gap: 0.15rem; border-left-width: 3px; }
+.pd-delta.good { border-left-color: #2fbf7f; }
+.pd-delta.bad { border-left-color: #e0603a; }
+.pd-delta strong { font-size: 1.3rem; }
+.pd-change { font-size: 0.82rem; }
+.pd-delta.good .pd-change { color: #6ee7b7; }
+.pd-delta.bad .pd-change { color: #fca5a5; }
+.pd-recs { display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.6rem; }
+.pd-rec { padding: 0.5rem 0.7rem; background: #101a2e; border-radius: 8px; font-size: 0.9rem; }
+.pd-table { width: 100%; border-collapse: collapse; }
+.pd-table th { text-align: left; color: #8aa0b6; font-weight: 500; padding: 0.3rem 0.6rem; border-bottom: 1px solid #1f2a36; }
+.pd-table td { padding: 0.35rem 0.6rem; border-bottom: 1px solid #131c26; }
+.pd-bar-wrap { display: flex; align-items: center; gap: 0.5rem; }
+.pd-bar { height: 0.7rem; min-width: 2px; border-radius: 4px; background: var(--tenant-accent, #3d8bfd); }

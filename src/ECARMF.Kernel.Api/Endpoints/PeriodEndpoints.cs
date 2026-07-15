@@ -1,0 +1,30 @@
+using ECARMF.Kernel.Application.Analytics;
+using ECARMF.Kernel.Application.Identity;
+using ECARMF.Kernel.Domain.Identity;
+
+namespace ECARMF.Kernel.Api.Endpoints;
+
+/// <summary>
+/// Period analysis: how a tenant is doing this period versus last, with
+/// plain-language recommendations. Scoped to the calling tenant.
+/// </summary>
+public static class PeriodEndpoints
+{
+    public static IEndpointRouteBuilder MapPeriodEndpoints(this IEndpointRouteBuilder app)
+    {
+        app.MapGet("/api/analysis/periods", async (
+            string? granularity, int? count, HttpContext context,
+            IUserStore users, IPeriodAnalysisService analysis, CancellationToken ct) =>
+        {
+            if (!TenantResolution.TryGetTenant(context, out var tenantId))
+                return TenantResolution.MissingTenantResult();
+
+            var (error, _) = await AccessGuard.RequireAsync(context, users, tenantId, Permissions.RecordRead, ct);
+            if (error is not null) return error;
+
+            return Results.Ok(await analysis.AnalyzeAsync(tenantId, granularity ?? "month", count ?? 6, ct));
+        });
+
+        return app;
+    }
+}

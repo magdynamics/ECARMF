@@ -100,6 +100,7 @@ app.MapTemplateEndpoints();
 app.MapCatalogEndpoints();
 app.MapSkillEndpoints();
 app.MapDemoEndpoints();
+app.MapPeriodEndpoints();
 app.MapHealthBoardEndpoints();
 app.MapHardeningEndpoints();
 app.MapOrgUnitEndpoints();
