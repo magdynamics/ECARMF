@@ -399,6 +399,10 @@ public class PlatformOperationsTests
             Task.FromResult(new ECARMF.Kernel.Application.Packages.SkillActionResult(true, ""));
         public Task<IReadOnlyList<(string Name, decimal Price)>> ActivePricedSkillsAsync(string tenantId, CancellationToken ct = default) =>
             Task.FromResult<IReadOnlyList<(string, decimal)>>([]);
+        public Task<IReadOnlyList<ECARMF.Kernel.Application.Packages.SkillValue>> LibraryAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<ECARMF.Kernel.Application.Packages.SkillValue>>([]);
+        public Task<ECARMF.Kernel.Application.Packages.SkillActionResult> SetPackagingAsync(string packageId, string packaging, decimal monthlyPrice, string actor, CancellationToken ct = default) =>
+            Task.FromResult(new ECARMF.Kernel.Application.Packages.SkillActionResult(true, ""));
     }
 
     [Fact]

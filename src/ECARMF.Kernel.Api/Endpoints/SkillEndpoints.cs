@@ -11,10 +11,36 @@ namespace ECARMF.Kernel.Api.Endpoints;
 /// dependencies); priced skills flow through to billing. Operator-only, target
 /// tenant in the path — the same shape as the rest of the platform surface.
 /// </summary>
+public record SetSkillPackagingRequest(string Packaging, decimal MonthlyPrice);
+
 public static class SkillEndpoints
 {
     public static IEndpointRouteBuilder MapSkillEndpoints(this IEndpointRouteBuilder app)
     {
+        // Platform Skills Library (admin): every skill with its packaging,
+        // price, and value — the controls it provides and the assertions those
+        // controls protect. Not tenant-scoped.
+        var library = app.MapGroup("/api/platform/skills");
+
+        library.MapGet("/library", async (
+            HttpContext context, IUserStore users, ISkillCatalog skills, CancellationToken ct) =>
+        {
+            var (error, _) = await PlatformOperator.RequireAsync(context, users, ct);
+            if (error is not null) return error;
+            return Results.Ok(await skills.LibraryAsync(ct));
+        });
+
+        library.MapPut("/{packageId}/packaging", async (
+            string packageId, SetSkillPackagingRequest request, HttpContext context,
+            IUserStore users, ISkillCatalog skills, CancellationToken ct) =>
+        {
+            var (error, op) = await PlatformOperator.RequireAsync(context, users, ct);
+            if (error is not null) return error;
+
+            var result = await skills.SetPackagingAsync(packageId, request.Packaging, request.MonthlyPrice, op!.Identifier, ct);
+            return result.Success ? Results.Ok(result) : Results.BadRequest(result);
+        });
+
         var group = app.MapGroup("/api/platform/tenants/{tenantId}/skills");
 
         group.MapGet("/", async (

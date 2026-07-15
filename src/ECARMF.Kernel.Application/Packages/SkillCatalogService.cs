@@ -10,6 +10,7 @@ public sealed record SkillView(
     string Version,
     string DisplayName,
     string Tier,
+    string Packaging,
     decimal MonthlyPrice,
     string Currency,
     string? WhatItDoes,
@@ -21,6 +22,26 @@ public sealed record SkillView(
     bool Active);
 
 public sealed record SkillActionResult(bool Success, string Message);
+
+/// <summary>One control (executable rule) a skill provides, with the assertion
+/// it protects.</summary>
+public sealed record ControlCoverage(string ControlId, string Name, string Assertion, string Outcome);
+
+/// <summary>A skill in the platform library with its packaging, price, and
+/// value: the controls it provides and the assertions those controls cover.</summary>
+public sealed record SkillValue(
+    string PackageId,
+    string DisplayName,
+    string Tier,
+    string Packaging,
+    decimal MonthlyPrice,
+    string Currency,
+    string? WhatItDoes,
+    int ExecutableControls,
+    int ReferenceCatalogs,
+    IReadOnlyList<string> AssertionsCovered,
+    IReadOnlyList<ControlCoverage> Controls,
+    IReadOnlyList<string> InstalledInTenants);
 
 /// <summary>Skill tiers, cheapest-to-govern first.</summary>
 public static class SkillTiers
@@ -45,9 +66,17 @@ public interface ISkillCatalog
     /// <summary>Turn a skill off for a tenant (deactivate its package).</summary>
     Task<SkillActionResult> DeactivateAsync(string packageId, string tenantId, string actor, CancellationToken ct = default);
 
-    /// <summary>Active, priced skills for a tenant — one recurring charge each
-    /// (consumed by billing).</summary>
+    /// <summary>Active, à-la-carte skills for a tenant — one recurring charge
+    /// each (consumed by billing). Essential skills are bundled, not billed.</summary>
     Task<IReadOnlyList<(string Name, decimal Price)>> ActivePricedSkillsAsync(string tenantId, CancellationToken ct = default);
+
+    /// <summary>The whole platform skill library with each skill's packaging,
+    /// price, and value (controls provided and assertions covered).</summary>
+    Task<IReadOnlyList<SkillValue>> LibraryAsync(CancellationToken ct = default);
+
+    /// <summary>Platform-admin: set a skill's packaging (Essential / AlaCarte)
+    /// and à-la-carte price.</summary>
+    Task<SkillActionResult> SetPackagingAsync(string packageId, string packaging, decimal monthlyPrice, string actor, CancellationToken ct = default);
 }
 
 /// <summary>
@@ -65,17 +94,21 @@ public class SkillCatalogService : ISkillCatalog
     private readonly IPackageCatalog _catalog;
     private readonly IPackageStore _packages;
     private readonly IPackageLoader _loader;
+    private readonly ISkillSettingStore _settings;
 
-    public SkillCatalogService(IPackageCatalog catalog, IPackageStore packages, IPackageLoader loader)
+    public SkillCatalogService(
+        IPackageCatalog catalog, IPackageStore packages, IPackageLoader loader, ISkillSettingStore settings)
     {
         _catalog = catalog;
         _packages = packages;
         _loader = loader;
+        _settings = settings;
     }
 
     public async Task<IReadOnlyList<SkillView>> ListForTenantAsync(string tenantId, CancellationToken ct = default)
     {
         var catalog = await _catalog.ListAsync(ct);
+        var overrides = await _settings.GetAllAsync(ct);
         var tenantPackages = await _packages.GetAllAsync(tenantId, ct);
         var tenantState = tenantPackages
             .GroupBy(p => p.Manifest.PackageId, StringComparer.OrdinalIgnoreCase)
@@ -87,10 +120,10 @@ public class SkillCatalogService : ISkillCatalog
             .Select(g => g.OrderByDescending(e => e.PackageVersion, VersionComparer).First())
             .Select(e =>
             {
-                var (tier, price) = Classify(e.PackageId, e.Name);
+                var (tier, packaging, price) = Resolve(overrides, e.PackageId, e.Name);
                 var installed = tenantState.ContainsKey(e.PackageId);
                 return new SkillView(
-                    e.PackageId, e.PackageVersion, Friendly(e.Name), tier, price, DefaultCurrency,
+                    e.PackageId, e.PackageVersion, Friendly(e.Name), tier, packaging, price, DefaultCurrency,
                     e.Description, e.Controls, e.Kpis, e.Agents, e.Dependencies,
                     installed, installed && tenantState[e.PackageId]);
             })
@@ -148,18 +181,86 @@ public class SkillCatalogService : ISkillCatalog
 
     public async Task<IReadOnlyList<(string Name, decimal Price)>> ActivePricedSkillsAsync(string tenantId, CancellationToken ct = default)
     {
-        var active = (await _packages.GetByStateAsync(tenantId, PackageLoadState.Active, ct));
+        var overrides = await _settings.GetAllAsync(ct);
+        var active = await _packages.GetByStateAsync(tenantId, PackageLoadState.Active, ct);
         return active
             .Select(p => (p.Manifest.PackageId, p.Manifest.Name))
             .DistinctBy(x => x.PackageId, StringComparer.OrdinalIgnoreCase)
             .Select(x =>
             {
-                var (_, price) = Classify(x.PackageId, x.Name);
-                return (Name: Friendly(x.Name), Price: price);
+                var (_, packaging, price) = Resolve(overrides, x.PackageId, x.Name);
+                return (Name: Friendly(x.Name), Packaging: packaging, Price: price);
             })
-            .Where(x => x.Price > 0)
+            // Only à-la-carte skills are billed separately; essential skills
+            // are bundled into the tenant's core/industry package.
+            .Where(x => string.Equals(x.Packaging, SkillPackaging.AlaCarte, StringComparison.OrdinalIgnoreCase) && x.Price > 0)
+            .Select(x => (x.Name, x.Price))
             .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
             .ToList();
+    }
+
+    public async Task<IReadOnlyList<SkillValue>> LibraryAsync(CancellationToken ct = default)
+    {
+        var all = await _packages.GetAllAcrossTenantsAsync(ct);
+        var overrides = await _settings.GetAllAsync(ct);
+
+        return all
+            .GroupBy(p => p.Manifest.PackageId, StringComparer.OrdinalIgnoreCase)
+            .Select(g =>
+            {
+                var rep = g.OrderByDescending(p => p.Manifest.PackageVersion, VersionComparer).First().Manifest;
+                var installedIn = g.Where(p => p.State == PackageLoadState.Active)
+                    .Select(p => p.TenantId).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(t => t).ToList();
+
+                var controls = rep.Rules.Select(r => new ControlCoverage(
+                    r.RuleId, r.Name,
+                    ControlAssertions.Classify(r.RuleId, r.Name, r.Description, r.OutcomeOnMatch),
+                    r.OutcomeOnMatch)).ToList();
+
+                var (tier, packaging, price) = Resolve(overrides, rep.PackageId, rep.Name);
+                var assertions = controls.Select(c => c.Assertion).Distinct()
+                    .OrderBy(a => Array.IndexOf(ControlAssertions.All, a)).ToList();
+
+                return new SkillValue(
+                    rep.PackageId, Friendly(rep.Name), tier, packaging, price, DefaultCurrency,
+                    rep.Description, controls.Count, rep.KnowledgeAssets.Count,
+                    assertions, controls, installedIn);
+            })
+            .OrderBy(s => Array.IndexOf(SkillTiers.Ordered, s.Tier))
+            .ThenByDescending(s => s.ExecutableControls)
+            .ThenBy(s => s.DisplayName, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    public async Task<SkillActionResult> SetPackagingAsync(
+        string packageId, string packaging, decimal monthlyPrice, string actor, CancellationToken ct = default)
+    {
+        if (!SkillPackaging.IsValid(packaging))
+            return new SkillActionResult(false, $"packaging must be one of: {string.Join(", ", SkillPackaging.All)}.");
+        if (monthlyPrice < 0)
+            return new SkillActionResult(false, "monthlyPrice cannot be negative.");
+
+        var normalized = SkillPackaging.All.First(p => string.Equals(p, packaging, StringComparison.OrdinalIgnoreCase));
+        // Essential skills are bundled — force their à-la-carte price to zero so
+        // billing never charges for them.
+        var price = string.Equals(normalized, SkillPackaging.Essential, StringComparison.OrdinalIgnoreCase) ? 0m : monthlyPrice;
+        await _settings.UpsertAsync(new SkillSetting(packageId, normalized, price), actor, ct);
+        return new SkillActionResult(true, $"Skill packaged as {normalized}{(price > 0 ? $" at {price:0} {DefaultCurrency}/mo" : "")}.");
+    }
+
+    /// <summary>Resolve a skill's tier, packaging, and price: a stored admin
+    /// override wins; otherwise the code default (add-ons à la carte at their
+    /// tier price, everything else essential and bundled).</summary>
+    private static (string Tier, string Packaging, decimal Price) Resolve(
+        IReadOnlyDictionary<string, SkillSetting> overrides, string packageId, string name)
+    {
+        var (tier, tierPrice) = Classify(packageId, name);
+        if (overrides.TryGetValue(packageId, out var o))
+            return (tier, o.Packaging, o.MonthlyPrice);
+
+        var packaging = tier == SkillTiers.AddOn ? SkillPackaging.AlaCarte : SkillPackaging.Essential;
+        var price = packaging == SkillPackaging.AlaCarte ? tierPrice : 0m;
+        return (tier, packaging, price);
     }
 
     /// <summary>Code-defined tier + monthly price. Core (integrations,

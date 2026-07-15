@@ -40,6 +40,7 @@ public class ECARMFDbContext : DbContext
     public DbSet<TenantAiSettingsRecord> TenantAiSettings => Set<TenantAiSettingsRecord>();
 
     public DbSet<TenantProfileRecord> Tenants => Set<TenantProfileRecord>();
+    public DbSet<SkillSettingRecord> SkillSettings => Set<SkillSettingRecord>();
 
     public DbSet<SourceDocumentRecord> SourceDocuments => Set<SourceDocumentRecord>();
 
@@ -397,6 +398,17 @@ public class ECARMFDbContext : DbContext
             entity.Property(t => t.Notes).HasMaxLength(4000);
             entity.Property(t => t.CreatedBy).HasMaxLength(400).IsRequired();
             entity.HasIndex(t => t.TenantId).IsUnique();
+        });
+
+        modelBuilder.Entity<SkillSettingRecord>(entity =>
+        {
+            entity.ToTable("SkillSettings");
+            entity.HasKey(s => s.Id);
+            entity.Property(s => s.SkillId).HasMaxLength(200).IsRequired();
+            entity.Property(s => s.Packaging).HasMaxLength(50).IsRequired();
+            entity.Property(s => s.MonthlyPrice).HasPrecision(18, 2);
+            entity.Property(s => s.UpdatedBy).HasMaxLength(400);
+            entity.HasIndex(s => s.SkillId).IsUnique();
         });
 
         modelBuilder.Entity<TenantAiSettingsRecord>(entity =>
