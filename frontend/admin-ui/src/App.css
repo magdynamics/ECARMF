@@ -156,6 +156,47 @@
   border: 1px solid #5c5227;
 }
 
+/* Masked-Field / PHI pattern (§2.4). */
+.phi-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.phi-badge {
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 0.08rem 0.34rem;
+  border-radius: 4px;
+  background: #3a2330;
+  color: #f0a9c4;
+  border: 1px solid #6b3350;
+}
+
+.phi-masked {
+  letter-spacing: 0.15em;
+  color: #7c8893;
+  user-select: none;
+}
+
+.phi-value {
+  color: #d8e0e8;
+  background: #232a33;
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+}
+
+.phi-toggle {
+  font-size: 0.72rem;
+  padding: 0.1rem 0.5rem;
+}
+
+.phi-lastviewed {
+  font-style: italic;
+}
+
 .sidebar .nav-group {
   margin: 0.7rem 0 0.25rem 0.5rem;
   font-size: 0.68rem;

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../api'
 import type { ActivityItem, PackageSummary, ScoreRecord } from '../types'
+import { tenantConfig } from '../tenantConfig'
+import { MaskedField } from './MaskedField'
 
 interface HomeProps {
   tenant: string
@@ -80,6 +82,28 @@ export function Home({ tenant, user, go }: HomeProps) {
           status for tenant <strong>{tenant}</strong>.
         </p>
       </section>
+
+      {tenantConfig(tenant).phi && (
+        <section className="panel" style={{ borderLeft: '3px solid var(--tenant-accent)' }}>
+          <h2>Regulated data — HIPAA / PHI</h2>
+          <p className="muted">
+            This tenant handles protected health information. PHI-touching fields are
+            masked by default and carry a <span className="phi-badge">PHI</span> badge;
+            revealing one is an explicit action that is audit-logged server-side, so who
+            saw what and when is always attributable. Example:
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div>
+              <span className="muted small" style={{ marginRight: '0.5rem' }}>Member ID</span>
+              <MaskedField value="MBR-4471-882-0093" fieldKey="member.memberId" subjectRef="CLM-2026-0006" screen="home" />
+            </div>
+            <div>
+              <span className="muted small" style={{ marginRight: '0.5rem' }}>Diagnosis (ICD-10)</span>
+              <MaskedField value="E11.9 — Type 2 diabetes mellitus without complications" fieldKey="claim.diagnosis" subjectRef="CLM-2026-0006" screen="home" />
+            </div>
+          </div>
+        </section>
+      )}
 
       <Step n={1} title="Activate Knowledge Packages" kind="setup" tab="packages"
         done={activePackages > 0}

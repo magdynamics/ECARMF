@@ -89,4 +89,5 @@ public static class AuditCategories
     public const string EntityRelationshipRemoved = "EntityRelationshipRemoved";
     public const string CompositeHealthComputed = "CompositeHealthComputed";
     public const string PackageSuperseded = "PackageSuperseded";
+    public const string PhiFieldRevealed = "PhiFieldRevealed";
 }
