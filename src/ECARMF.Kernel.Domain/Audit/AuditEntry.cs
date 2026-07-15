@@ -57,6 +57,7 @@ public static class AuditCategories
     public const string AgentConsulted = "AgentConsulted";
     public const string PackageLoaded = "PackageLoaded";
     public const string PackageActivated = "PackageActivated";
+    public const string PackageInstalledFromCatalog = "PackageInstalledFromCatalog";
     public const string PackageDeactivated = "PackageDeactivated";
     public const string PackageFailed = "PackageFailed";
     public const string RenewalAlertRaised = "RenewalAlertRaised";

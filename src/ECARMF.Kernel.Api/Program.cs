@@ -97,6 +97,7 @@ app.MapMailEndpoints();
 app.MapReportEndpoints();
 app.MapBulkImportEndpoints();
 app.MapTemplateEndpoints();
+app.MapCatalogEndpoints();
 app.MapHealthBoardEndpoints();
 app.MapHardeningEndpoints();
 app.MapOrgUnitEndpoints();

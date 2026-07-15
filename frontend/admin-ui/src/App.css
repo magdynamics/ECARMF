@@ -951,3 +951,12 @@ select {
   align-self: center; font-size: 1.3rem; line-height: 1;
   color: var(--tenant-accent, #3d8bfd); opacity: 0.7; margin: 0.1rem 0;
 }
+
+/* Package Library install */
+.catalog-install {
+  display: flex; align-items: flex-end; gap: 0.8rem; flex-wrap: wrap;
+  margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid #17202b;
+}
+.catalog-install label { display: flex; flex-direction: column; gap: 0.25rem; }
+.catalog-deps { flex-direction: row !important; align-items: center; gap: 0.4rem; }
+.catalog-deps input { width: auto; }

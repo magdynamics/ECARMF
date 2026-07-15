@@ -53,6 +53,9 @@ public class InMemoryPackageStore : IPackageStore
     public Task<IReadOnlyList<StoredPackage>> GetByStateAllTenantsAsync(PackageLoadState state, CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<StoredPackage>>(_packages.Where(p => p.State == state).ToList());
 
+    public Task<IReadOnlyList<StoredPackage>> GetAllAcrossTenantsAsync(CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<StoredPackage>>(_packages.ToList());
+
     private static bool SameTenant(StoredPackage p, string tenantId) =>
         string.Equals(p.TenantId, tenantId, StringComparison.OrdinalIgnoreCase);
 

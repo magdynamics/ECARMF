@@ -63,6 +63,9 @@ public class RosettaKernelTests
         public Task<IReadOnlyList<ECARMF.Kernel.Application.Packages.StoredPackage>> GetByStateAllTenantsAsync(
             Domain.Packages.PackageLoadState s, CancellationToken ct = default) =>
             Task.FromResult(Active(Tenant));
+        public Task<IReadOnlyList<ECARMF.Kernel.Application.Packages.StoredPackage>> GetAllAcrossTenantsAsync(
+            CancellationToken ct = default) =>
+            Task.FromResult(Active(Tenant));
 
         private IReadOnlyList<ECARMF.Kernel.Application.Packages.StoredPackage> Active(string tenantId) =>
             _active.Select(id => new ECARMF.Kernel.Application.Packages.StoredPackage(

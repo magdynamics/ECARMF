@@ -29,4 +29,8 @@ public interface IPackageStore
     /// <summary>All packages in the given state across every tenant.
     /// Used only by startup rehydration.</summary>
     Task<IReadOnlyList<StoredPackage>> GetByStateAllTenantsAsync(PackageLoadState state, CancellationToken ct = default);
+
+    /// <summary>Every package across every tenant, any state. Operator-only —
+    /// backs the platform package catalog (what's available to install).</summary>
+    Task<IReadOnlyList<StoredPackage>> GetAllAcrossTenantsAsync(CancellationToken ct = default);
 }

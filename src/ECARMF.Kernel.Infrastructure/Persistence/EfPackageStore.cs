@@ -99,6 +99,12 @@ public class EfPackageStore : IPackageStore
         return records.Select(ToStoredPackage).ToList();
     }
 
+    public async Task<IReadOnlyList<StoredPackage>> GetAllAcrossTenantsAsync(CancellationToken ct = default)
+    {
+        var records = await _db.KnowledgePackages.AsNoTracking().ToListAsync(ct);
+        return records.Select(ToStoredPackage).ToList();
+    }
+
     private static StoredPackage ToStoredPackage(KnowledgePackageRecord record)
     {
         var manifest = JsonSerializer.Deserialize<KnowledgePackageManifest>(record.ManifestJson, JsonOptions)
