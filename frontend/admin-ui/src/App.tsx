@@ -27,6 +27,7 @@ import { EnrollTenant } from './components/EnrollTenant'
 import { SystemMap } from './components/SystemMap'
 import { Glossary } from './components/Glossary'
 import { Demos } from './components/Demos'
+import { CommandPalette } from './components/CommandPalette'
 import { PackageCatalog } from './components/PackageCatalog'
 import { Skills } from './components/Skills'
 import { SkillsLibrary } from './components/SkillsLibrary'
@@ -171,6 +172,8 @@ function App() {
   const [keyOnly, setKeyOnly] = useState(false)
   // Server-persisted shell branding for the tenant currently being viewed.
   const [serverCfg, setServerCfg] = useState<TenantConfigDto | null>(null)
+  // Global search (⌘K / Ctrl-K).
+  const [paletteOpen, setPaletteOpen] = useState(false)
 
   function openTab(next: string) {
     setTab(next)
@@ -257,6 +260,18 @@ function App() {
     setUser(id)
     setUserState(id)
   }
+
+  // Global ⌘K / Ctrl-K opens search from anywhere.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault()
+        setPaletteOpen((o) => !o)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   // Learn whether this deployment allows header identity (dev) or is key-only
   // (production lockdown) so an unauthenticated visitor gets a sign-in screen.
@@ -379,6 +394,9 @@ function App() {
           <h1>
             ECARMF <span className="accent">Platform Kernel</span>
           </h1>
+          <button className="search-btn" onClick={() => setPaletteOpen(true)} title="Search (Ctrl-K)">
+            🔍 Search <span className="kbd">Ctrl K</span>
+          </button>
         </div>
         <div className="tenant-bar">
           {signedInWithKey ? (
@@ -607,6 +625,20 @@ function App() {
           </ScreenBoundary>
         </main>
       </div>
+
+      {paletteOpen && effectiveTenant && (
+        <CommandPalette
+          tenant={effectiveTenant}
+          isPlatform={onPlatformTenant}
+          go={(t) => { openTab(t); setPaletteOpen(false) }}
+          onOpenTenant={(id) => {
+            setKnownTenants((prev) => prev.includes(id) ? prev : [...prev, id])
+            setTenant(id); setTenantState(id); setTenantInput(id); setTab('home')
+            setPaletteOpen(false)
+          }}
+          onClose={() => setPaletteOpen(false)}
+        />
+      )}
     </div>
   )
 }

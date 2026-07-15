@@ -1007,3 +1007,43 @@ select {
 .gloss-item dd { margin: 0.2rem 0 0; font-size: 0.9rem; line-height: 1.5; }
 .gloss-short { color: #cbd5e1; }
 .gloss-go { padding: 0.05rem 0.5rem; }
+
+/* Global search / command palette */
+.search-btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  margin-left: 1rem; padding: 0.25rem 0.6rem; font-size: 0.82rem;
+  background: #0e141b; border: 1px solid #2a3746; color: #8aa0b6; border-radius: 8px; cursor: pointer;
+}
+.search-btn:hover { background: #131c26; color: #d8e6f5; }
+.kbd {
+  font-size: 0.68rem; font-family: ui-monospace, monospace;
+  padding: 0.02rem 0.32rem; border: 1px solid #2a3746; border-radius: 4px; color: #6b7f93;
+}
+.cmdk-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+  display: flex; align-items: flex-start; justify-content: center; z-index: 1000; padding-top: 12vh;
+}
+.cmdk {
+  width: min(640px, 92vw); max-height: 70vh; display: flex; flex-direction: column;
+  background: #0d141c; border: 1px solid #2a3746; border-radius: 12px; overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.cmdk-input {
+  border: none; border-bottom: 1px solid #1f2a36; background: transparent;
+  padding: 0.9rem 1rem; font-size: 1rem; color: #e6eef7; outline: none;
+}
+.cmdk-results { overflow-y: auto; padding: 0.3rem; }
+.cmdk-empty { padding: 1.2rem; text-align: center; color: #6b7f93; }
+.cmdk-row {
+  display: flex; align-items: center; gap: 0.6rem; width: 100%; text-align: left;
+  padding: 0.45rem 0.6rem; background: transparent; border: none; border-radius: 8px; cursor: pointer; color: #d8e6f5;
+}
+.cmdk-row.sel { background: #16222f; }
+.cmdk-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cmdk-sub { flex: 0 0 auto; opacity: 0.6; }
+.cmdk-foot { padding: 0.5rem 0.8rem; border-top: 1px solid #1f2a36; }
+.cap-screen { background: #14202c; color: #9fb4c8; }
+.cap-tenant { background: #101d29; color: #7dd3fc; }
+.cap-skill { background: #1a1030; color: #c4b5fd; }
+.cap-record { background: #05202a; color: #7dd3fc; }
+.cap-renewal { background: #201217; color: #fda4af; }
