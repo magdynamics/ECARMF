@@ -42,6 +42,7 @@ public class ECARMFDbContext : DbContext
     public DbSet<TenantProfileRecord> Tenants => Set<TenantProfileRecord>();
     public DbSet<SkillSettingRecord> SkillSettings => Set<SkillSettingRecord>();
     public DbSet<CaseRecord> Cases => Set<CaseRecord>();
+    public DbSet<RiskTreatmentRecord> RiskTreatments => Set<RiskTreatmentRecord>();
 
     public DbSet<SourceDocumentRecord> SourceDocuments => Set<SourceDocumentRecord>();
 
@@ -410,6 +411,23 @@ public class ECARMFDbContext : DbContext
             entity.Property(s => s.MonthlyPrice).HasPrecision(18, 2);
             entity.Property(s => s.UpdatedBy).HasMaxLength(400);
             entity.HasIndex(s => s.SkillId).IsUnique();
+        });
+
+        modelBuilder.Entity<RiskTreatmentRecord>(entity =>
+        {
+            entity.ToTable("RiskTreatments");
+            entity.HasKey(r => r.Id);
+            entity.Property(r => r.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(r => r.RiskKey).HasMaxLength(400).IsRequired();
+            entity.Property(r => r.Title).HasMaxLength(400).IsRequired();
+            entity.Property(r => r.Domain).HasMaxLength(200);
+            entity.Property(r => r.Owner).HasMaxLength(400);
+            entity.Property(r => r.Strategy).HasMaxLength(50).IsRequired();
+            entity.Property(r => r.Status).HasMaxLength(50).IsRequired();
+            entity.Property(r => r.MitigationPlan).HasMaxLength(4000);
+            entity.Property(r => r.LinkedActionRef).HasMaxLength(400);
+            entity.Property(r => r.CreatedBy).HasMaxLength(400).IsRequired();
+            entity.HasIndex(r => new { r.TenantId, r.RiskKey }).IsUnique();
         });
 
         modelBuilder.Entity<CaseRecord>(entity =>
