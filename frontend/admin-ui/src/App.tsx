@@ -20,6 +20,7 @@ import { Organization } from './components/Organization'
 import { PackageInspector } from './components/PackageInspector'
 import { RecordActivity } from './components/RecordActivity'
 import { RiskRegister } from './components/RiskRegister'
+import { ControlsExplorer } from './components/ControlsExplorer'
 import { Renewals } from './components/Renewals'
 import { Reports } from './components/Reports'
 import { StatementReview } from './components/StatementReview'
@@ -75,6 +76,7 @@ const NAV: { tab: string; label: string; icon: string; group: string }[] = [
   { tab: 'home', label: 'Start Here', icon: '🏠', group: '' },
   { tab: 'organization', label: 'Organization', icon: '🏛️', group: 'Setup' },
   { tab: 'packages', label: 'Packages', icon: '📦', group: 'Setup' },
+  { tab: 'controls', label: 'Controls', icon: '🛡️', group: 'Setup' },
   { tab: 'integrations', label: 'Integrations', icon: '🔌', group: 'Setup' },
   { tab: 'benchmarks', label: 'Benchmarks', icon: '🎯', group: 'Setup' },
   { tab: 'renewals', label: 'Renewals', icon: '📅', group: 'Setup' },
@@ -497,6 +499,8 @@ function App() {
             <Organization tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'packages' ? (
             <PackageInspector tenant={effectiveTenant} user={effectiveUser} />
+          ) : tab === 'controls' ? (
+            <ControlsExplorer tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'integrations' ? (
             <Integrations tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'benchmarks' ? (

@@ -243,6 +243,28 @@
   border-left: 3px solid var(--tenant-accent); border-radius: 6px;
 }
 
+/* Progressive Disclosure controls (§2.2). */
+.ctrl-domain { border-bottom: 1px solid #1d2a33; }
+.ctrl-domain-head {
+  display: flex; align-items: center; gap: 0.5rem; width: 100%;
+  background: none; border: none; text-align: left; padding: 0.55rem 0.3rem; color: inherit; cursor: pointer;
+}
+.ctrl-domain-head:hover { background: #16222b; }
+.ctrl-caret { color: var(--tenant-accent); width: 1rem; }
+.ctrl-cat { margin: 0 0 0.4rem 1.6rem; }
+.ctrl-cat-head {
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em;
+  color: #8fa2b0; margin: 0.35rem 0 0.2rem;
+}
+.ctrl-item { margin-left: 0.4rem; border-left: 2px solid #1d3a4a; padding-left: 0.6rem; }
+.ctrl-item-head {
+  display: block; width: 100%; text-align: left; background: none; border: none;
+  color: inherit; cursor: pointer; padding: 0.25rem 0; font-size: 0.86rem;
+}
+.ctrl-item-head:hover { color: var(--tenant-accent); }
+.ctrl-item-body { padding: 0 0 0.4rem 0.2rem; }
+.ctrl-item-body p { margin: 0.15rem 0; }
+
 .sidebar .nav-group {
   margin: 0.7rem 0 0.25rem 0.5rem;
   font-size: 0.68rem;
