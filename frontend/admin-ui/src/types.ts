@@ -64,6 +64,15 @@ export interface Manifest {
   events: EventDeclaration[]
   rules: RuleDeclaration[]
   capabilities: CapabilityDeclaration[]
+  // Optional declaration kinds — present in the full manifest JSON but not on
+  // every package; rendered by the inspector only when they exist.
+  knowledgeAssets?: { assetId: string; title?: string | null; summary?: string | null; category?: string | null }[]
+  agents?: { agentId: string; name?: string | null; description?: string | null }[]
+  performanceFrameworks?: {
+    frameworkId: string
+    name?: string | null
+    kpis?: { kpiId: string; name?: string | null; description?: string | null }[]
+  }[]
 }
 
 export interface PackageDetail {

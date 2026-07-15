@@ -24,6 +24,7 @@ import { ControlsExplorer } from './components/ControlsExplorer'
 import { CapabilityExplorer } from './components/CapabilityExplorer'
 import { Agents } from './components/Agents'
 import { EnrollTenant } from './components/EnrollTenant'
+import { SystemMap } from './components/SystemMap'
 import { Renewals } from './components/Renewals'
 import { Reports } from './components/Reports'
 import { StatementReview } from './components/StatementReview'
@@ -77,6 +78,7 @@ class ScreenBoundary extends Component<
 // 'platform' tenant, and the gate below offers the switch.
 const NAV: { tab: string; label: string; icon: string; group: string }[] = [
   { tab: 'home', label: 'Start Here', icon: '🏠', group: '' },
+  { tab: 'systemmap', label: 'System Map', icon: '🗺️', group: '' },
   { tab: 'explore', label: 'Capability Explorer', icon: '🔎', group: '' },
   { tab: 'organization', label: 'Organization', icon: '🏛️', group: 'Setup' },
   { tab: 'packages', label: 'Packages', icon: '📦', group: 'Setup' },
@@ -509,6 +511,10 @@ function App() {
             ) : (
               <Home tenant={effectiveTenant} user={effectiveUser} go={setTab} />
             )
+          ) : tab === 'systemmap' ? (
+            // A guide, not tenant data — always available, even on the
+            // operator tenant, so anyone can see how to move through the system.
+            <SystemMap tenant={effectiveTenant} user={effectiveUser} go={setTab} />
           ) : operator && onPlatformTenant && !isPlatformTab ? (
             <section className="panel">
               <h2>Nothing here on the operator tenant</h2>

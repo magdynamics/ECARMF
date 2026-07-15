@@ -931,3 +931,23 @@ select {
 }
 .enroll-key code { display: block; margin-top: 0.4rem; font-size: 1.05rem; color: #ffcf70; word-break: break-all; }
 .enroll-actions { display: flex; gap: 0.6rem; margin-top: 1rem; flex-wrap: wrap; }
+
+/* System Map — guided journey */
+.sysmap { display: flex; flex-direction: column; align-items: stretch; }
+.sysmap-stage { border-left: 3px solid var(--tenant-accent, #3d8bfd); }
+.sysmap-op { border-left-color: #c69749; }
+.sysmap-head { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.sysmap-head h3 { margin: 0; }
+.sysmap-num {
+  flex: 0 0 auto; width: 1.7rem; height: 1.7rem; border-radius: 999px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.9rem;
+  background: var(--tenant-accent, #3d8bfd); color: #05121f;
+}
+.sysmap-op .sysmap-num { background: #c69749; }
+.sysmap-icon { font-size: 1.2rem; }
+.sysmap-links { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+.sysmap-arrow {
+  align-self: center; font-size: 1.3rem; line-height: 1;
+  color: var(--tenant-accent, #3d8bfd); opacity: 0.7; margin: 0.1rem 0;
+}

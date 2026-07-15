@@ -152,6 +152,29 @@ export function PackageInspector({ tenant, user }: { tenant: string; user: strin
             </p>
             {detail.manifest.description && <p className="muted">{detail.manifest.description}</p>}
 
+            {detail.manifest.dependencies.length > 0 && (
+              <p className="small">
+                <span className="muted">Depends on: </span>
+                {detail.manifest.dependencies.map((d) => <code key={d.packageId} style={{ marginRight: '0.4rem' }}>{d.packageId}</code>)}
+              </p>
+            )}
+
+            {/* Knowledge assets carry the package's narrative — control
+                catalogs, boundaries, "how it works". Shown first because for
+                many packages (e.g. TCEL T9-041/042) this IS the explanation. */}
+            {(detail.manifest.knowledgeAssets?.length ?? 0) > 0 && (
+              <>
+                <h3>Knowledge & Control Catalogs ({detail.manifest.knowledgeAssets!.length})</h3>
+                {detail.manifest.knowledgeAssets!.map((k) => (
+                  <div key={k.assetId} className="card">
+                    <strong>{k.title ?? k.assetId}</strong>
+                    {k.category && <span className="muted small"> · {k.category}</span>}
+                    {k.summary && <div className="muted small">{k.summary}</div>}
+                  </div>
+                ))}
+              </>
+            )}
+
             <h3>Entities ({detail.manifest.entities.length})</h3>
             {detail.manifest.entities.map((entity) => (
               <div key={entity.entityTypeName} className="card">
@@ -195,6 +218,32 @@ export function PackageInspector({ tenant, user }: { tenant: string; user: strin
                 {cap.description && <div className="muted small">{cap.description}</div>}
               </div>
             ))}
+
+            {(detail.manifest.agents?.length ?? 0) > 0 && (
+              <>
+                <h3>Agents ({detail.manifest.agents!.length})</h3>
+                {detail.manifest.agents!.map((a) => (
+                  <div key={a.agentId} className="card">
+                    <strong>{a.name ?? a.agentId}</strong>
+                    <div className="muted small">{a.agentId}</div>
+                    {a.description && <div className="muted small">{a.description}</div>}
+                  </div>
+                ))}
+              </>
+            )}
+
+            {(detail.manifest.performanceFrameworks?.length ?? 0) > 0 && (
+              <>
+                <h3>KPIs ({detail.manifest.performanceFrameworks!.reduce((n, f) => n + (f.kpis?.length ?? 0), 0)})</h3>
+                {detail.manifest.performanceFrameworks!.flatMap((f) => (f.kpis ?? []).map((k) => (
+                  <div key={k.kpiId} className="card">
+                    <strong>{k.name ?? k.kpiId}</strong>
+                    <div className="muted small">{k.kpiId}</div>
+                    {k.description && <div className="muted small">{k.description}</div>}
+                  </div>
+                )))}
+              </>
+            )}
           </>
         )}
       </section>
