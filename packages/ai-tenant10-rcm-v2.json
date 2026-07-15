@@ -1,0 +1,1932 @@
+﻿{
+    "entityType":  "KnowledgePackageManifest",
+    "entityName":  "AI Tenant-10 RCM (official spec)",
+    "version":  "2",
+    "status":  "Published",
+    "owner":  "Tenant-10 (Medical Billing / RCM)",
+    "description":  "Tenant-10 (RCM) onboarded from the OFFICIAL spec package (74 risks / 155 controls / 53 KPIs / 145 alert rules / 178 fields / 25 agents). First HIPAA-regulated tenant. Domain model from the data dictionary (PHI-flagged); risk register enforced as a dynamic-{domain}-riskType KPI; a field-expressible control subset as executable rules; full control/KPI/alert/risk catalogs + PHI inventory carried as traceability knowledge assets; 25 advisory-only agents. Supersedes the earlier representative ai-tenant10-rcm 1.0.0. NOTE: OI-01 (HIPAA field-encryption / audit substrate / per-tenant RegulatedDataProfile) is a platform GATE for Phase-1 PHI DATA handling - this package is domain METADATA and does not itself store PHI. Does NOT re-declare RecordReceived; declares its own for standalone activation.",
+    "packageId":  "ecarmf.ai-tenant10-rcm",
+    "name":  "AI Tenant-10 RCM (official spec)",
+    "packageVersion":  "2.0.0",
+    "publisher":  "MAG Dynamics",
+    "dependencies":  [
+
+                     ],
+    "events":  [
+                   {
+                       "eventName":  "RecordReceived",
+                       "description":  "A record has been durably persisted and is ready for rule/KPI evaluation."
+                   }
+               ],
+    "entities":  [
+                     {
+                         "entityTypeName":  "AlertInstance",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "alert_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "acknowledged_at",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "Authorization",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "authorization_number",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "auth_effective_date",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "auth_expiry_date",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "auth_visits_allowed",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "auth_visits_used",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "auth_cpt_codes",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "BackupJob",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "job_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "job_status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "dataset_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "has_immutable_copy",
+                                                "dataType":  "boolean",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "last_restore_test_date",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "BankTransaction",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "deposit_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "deposit_date",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "deposit_amount",
+                                                "dataType":  "number",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "unapplied_balance",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "credit_balance_amount",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "BusinessProcess",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "process_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "backup_owner_id",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "sop_ref",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "ChangeRecord",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "change_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "approval_status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "hotfix_count_since_release",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "Claim",
+                         "description":  "T10 RCM entity (1 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "claim_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "claim_status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "charge_entry_date",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "claim_submission_date",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "filing_limit_date",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "total_charge_amount",
+                                                "dataType":  "number",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "last_followup_date",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "next_action_date",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "assigned_employee_id",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "coder_employee_id",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "biller_employee_id",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "entry_method",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "ar_balance",
+                                                "dataType":  "number",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "ClaimLine",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "claim_line_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "cpt_hcpcs_code",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "icd_codes",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "modifiers",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "units",
+                                                "dataType":  "number",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "charge_amount",
+                                                "dataType":  "number",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "expected_allowed_amount",
+                                                "dataType":  "number",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "Client",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "client_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "go_live_date",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "sla_definition_ref",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "invoice_due_day",
+                                                "dataType":  "number",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "ClientReport",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "report_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "data_last_refresh_utc",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "recon_variance_pct",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "Complaint",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "complaint_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "logged_date",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "severity",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "owner_employee_id",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "resolution_date",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "category",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "CredentialingApplication",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "application_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "application_date",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "payer_response_date",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "missing_document_list",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "revalidation_due_date",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "status_last_update_date",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "Employee",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "employee_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "role",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "hire_date",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "termination_date",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "is_regrettable_attrition",
+                                                "dataType":  "boolean",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "overtime_hours_weekly",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "client_assignment_list",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "certifications",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "training_due_date",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "exclusion_screening_date",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "Encounter",
+                         "description":  "T10 RCM entity (3 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "encounter_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "date_of_service",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "encounter_receipt_date",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "place_of_service",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "rendering_provider_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "documentation_status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "provider_signature_date",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "allergy_list_status",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "EvidenceArtifact",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "artifact_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "control_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "captured_date",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "FeeSchedule",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "fee_schedule_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "effective_date",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "last_update_date",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "cpt_rate",
+                                                "dataType":  "number",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "HrConcern",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "concern_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "logged_date",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "resolution_date",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "InsuranceCoverage",
+                         "description":  "T10 RCM entity (1 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "coverage_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "payer_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "member_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "coverage_rank",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "coverage_status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "effective_date",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "termination_date",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "eligibility_check_date",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "eligibility_response_code",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "deductible_total",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "deductible_met",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "copay_amount",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "coinsurance_pct",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "IntegrationJob",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "job_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "job_type",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "job_status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "consecutive_failure_count",
+                                                "dataType":  "number",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "Patient",
+                         "description":  "T10 RCM entity (9 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "patient_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "mrn",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "first_name",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "last_name",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "date_of_birth",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "gender",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "address_line1",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "postal_code",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "phone",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "client_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "PayerContract",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "contract_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "filing_limit_days",
+                                                "dataType":  "number",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "appeal_window_days",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "contract_expiry_date",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "PhiAccessEvent",
+                         "description":  "T10 RCM entity (2 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "event_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "event_timestamp",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "account_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "patient_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "action_type",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "record_count",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "PortalCredential",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "credential_expiry_date",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "consecutive_login_failures",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "Provider",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "provider_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "npi",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "taxonomy_code",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "ptan",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "start_date",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "Remittance",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "remit_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "remit_source",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "remit_receipt_date",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "posting_date",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "paid_amount",
+                                                "dataType":  "number",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "adjustment_amount",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "adjustment_reason_code",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "patient_responsibility_amount",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "denial_code",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "appeal_deadline",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "poster_employee_id",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "RetentionRecord",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "retention_expiry_date",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "RiskRegisterEntry",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "risk_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "risk_owner",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "severity_value",
+                                                "dataType":  "number",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "likelihood",
+                                                "dataType":  "number",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "last_scored_date",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "SecurityAgent",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "agent_status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "file_modification_rate",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "StandardOperatingProcedure",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "last_review_date",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "attestation_due_date",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "SystemHealth",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "availability_status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "avg_response_time_ms",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "downtime_minutes",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "TechnicalAsset",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "asset_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "asset_type",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "expiry_date",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "payment_status",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "ha_status",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "alternate_site_test_date",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "remote_capable_staff_pct",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "UserAccount",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "account_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "mfa_enabled",
+                                                "dataType":  "boolean",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "last_login_date",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "is_privileged",
+                                                "dataType":  "boolean",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "is_offshore",
+                                                "dataType":  "boolean",
+                                                "required":  true
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "Vendor",
+                         "description":  "T10 RCM entity (0 PHI field(s)).",
+                         "attributes":  [
+                                            {
+                                                "name":  "vendor_id",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "has_phi_access",
+                                                "dataType":  "boolean",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "baa_status",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "baa_expiry_date",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "soc_report_date",
+                                                "dataType":  "string",
+                                                "required":  false
+                                            },
+                                            {
+                                                "name":  "contract_expiry_date",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "response_sla_hours",
+                                                "dataType":  "number",
+                                                "required":  false
+                                            }
+                                        ]
+                     },
+                     {
+                         "entityTypeName":  "T10RiskAssessment",
+                         "description":  "A risk-register assessment; domain drives the riskType tag via the {domain} token.",
+                         "attributes":  [
+                                            {
+                                                "name":  "riskId",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "domain",
+                                                "dataType":  "string",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "severityValue",
+                                                "dataType":  "number",
+                                                "required":  true
+                                            },
+                                            {
+                                                "name":  "likelihood",
+                                                "dataType":  "number",
+                                                "required":  true
+                                            }
+                                        ]
+                     }
+                 ],
+    "rules":  [
+                  {
+                      "ruleId":  "RCM-CMP-011",
+                      "name":  "Minimum-necessary cross-client access",
+                      "description":  "Preventive/Critical (PrivacyOfficer). A biller may not read another client practice\u0027s PHI.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "PhiAccess"
+                                         },
+                                         {
+                                             "field":  "crossClient",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "RCM-CMP-011: PHI access denied - minimum-necessary rule; staff may only access their assigned client\u0027s patients (PrivacyOfficer)."
+                  },
+                  {
+                      "ruleId":  "T10-ALR-A1-02",
+                      "name":  "Access after termination",
+                      "description":  "Preventive/Critical (SecurityOfficer). PHI access after an employee\u0027s termination date is denied.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "PhiAccess"
+                                         },
+                                         {
+                                             "field":  "userTerminated",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "T10-ALR-A1-02: PHI access denied - the user is terminated (SecurityOfficer)."
+                  },
+                  {
+                      "ruleId":  "RCM-CMP-006",
+                      "name":  "Privileged access without MFA",
+                      "description":  "Preventive/Critical (SecurityOfficer). Deny privileged/PHI access without MFA.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "PhiAccess"
+                                         },
+                                         {
+                                             "field":  "mfaEnabled",
+                                             "operator":  "Equals",
+                                             "value":  "false"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "RCM-CMP-006: PHI access denied - MFA is not enabled on the account (SecurityOfficer)."
+                  },
+                  {
+                      "ruleId":  "RCM-CMP-020",
+                      "name":  "OIG exclusion screening",
+                      "description":  "Preventive/Critical (ComplianceManager). Block work assignment for an OIG-excluded person/vendor.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  10,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "WorkAssignment"
+                                         },
+                                         {
+                                             "field":  "oigExcluded",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "RCM-CMP-020: assignment blocked - the individual/vendor is on a federal exclusion list (ComplianceManager)."
+                  },
+                  {
+                      "ruleId":  "RCM-EHR-006",
+                      "name":  "Block on stale critical data",
+                      "description":  "Preventive/Critical (Technology). Block billing/posting on stale source data.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  10,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "BillingAction"
+                                         },
+                                         {
+                                             "field":  "sourceDataStale",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Flagged",
+                      "reasonTemplate":  "RCM-EHR-006: billing/posting held - source data is stale (Technology)."
+                  },
+                  {
+                      "ruleId":  "RCM-CLM-003",
+                      "name":  "Payer filing limit",
+                      "description":  "Preventive/Critical (ContractManager). Reject a claim past the payer filing limit.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  10,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "Claim"
+                                         },
+                                         {
+                                             "field":  "pastFilingLimit",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "RCM-CLM-003: claim rejected - past the payer filing limit (ContractManager)."
+                  },
+                  {
+                      "ruleId":  "T10-AI-BOUNDARY",
+                      "name":  "AI execution boundary",
+                      "description":  "Preventive/Critical (Governance). Agents are advisory-only; deny material actions.",
+                      "triggerEvent":  "RecordReceived",
+                      "priority":  5,
+                      "conditions":  [
+                                         {
+                                             "field":  "recordType",
+                                             "operator":  "Equals",
+                                             "value":  "AgentAction"
+                                         },
+                                         {
+                                             "field":  "materialAction",
+                                             "operator":  "Equals",
+                                             "value":  "true"
+                                         }
+                                     ],
+                      "outcomeOnMatch":  "Rejected",
+                      "reasonTemplate":  "T10-AI-BOUNDARY: denied - RCM agents are advisory-only and may not take material actions (Governance)."
+                  }
+              ],
+    "capabilities":  [
+                         {
+                             "capabilityId":  "ecarmf.ai-tenant10-rcm.RcmIntelligence",
+                             "name":  "Tenant-10 RCM Intelligence",
+                             "description":  "Revenue-cycle risk register, controls, KPIs, alerts, PHI governance, and advisory agents for the medical-billing tenant."
+                         }
+                     ],
+    "performanceFrameworks":  [
+                                  {
+                                      "frameworkId":  "t10-risk-register-v1",
+                                      "name":  "Tenant-10 RCM Risk Register v1",
+                                      "industry":  "Healthcare-RCM",
+                                      "description":  "The 74-risk register as ONE record type + ONE KPI: risk index = severityValue x likelihood, riskType from the record\u0027s own {domain} (RCM-CMP, RCM-CLM, RCM-PAY, ...). Higher = worse.",
+                                      "kpis":  [
+                                                   {
+                                                       "kpiId":  "t10-risk-index",
+                                                       "name":  "RCM risk index",
+                                                       "formula":  "severityValue * likelihood",
+                                                       "triggerRecordType":  "T10RiskAssessment",
+                                                       "subjectField":  "riskId",
+                                                       "subjectType":  "Risk",
+                                                       "riskType":  "{domain}",
+                                                       "unit":  "index",
+                                                       "targetValue":  6,
+                                                       "direction":  "lower"
+                                                   }
+                                               ],
+                                      "okrs":  [
+
+                                               ]
+                                  }
+                              ],
+    "agents":  [
+                   {
+                       "agentId":  "t10.chargeentrybacklogagent",
+                       "name":  "ChargeEntryBacklogAgent",
+                       "description":  "Prioritizes un-entered encounters by client, age and value and proposes a work order for the day. Domain: RCM-CLM. Advisory-only (Advisory). Phase: P2. PHI access: Yes.",
+                       "persona":  "You are ChargeEntryBacklogAgent for TCEL Tenant-10 (medical billing / RCM). Prioritizes un-entered encounters by client, age and value and proposes a work order for the day. You ground every finding in the approved data you can see (Encounter;Claim;Client SLA config), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-CLM domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Regulated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - ChargeEntryBacklogAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   },
+                   {
+                       "agentId":  "t10.timelyfilingsentinelagent",
+                       "name":  "TimelyFilingSentinelAgent",
+                       "description":  "Ranks claims by days-to-filing-deadline and recoverable value, and drafts the escalation note. Domain: RCM-CLM. Advisory-only (Advisory). Phase: P2. PHI access: Yes.",
+                       "persona":  "You are TimelyFilingSentinelAgent for TCEL Tenant-10 (medical billing / RCM). Ranks claims by days-to-filing-deadline and recoverable value, and drafts the escalation note. You ground every finding in the approved data you can see (Claim;PayerContract;Config thresholds), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-CLM domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Regulated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - TimelyFilingSentinelAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   },
+                   {
+                       "agentId":  "t10.codingqasampleragent",
+                       "name":  "CodingQaSamplerAgent",
+                       "description":  "Selects a risk-weighted QA sample per coder rather than a flat random sample. Domain: RCM-CLM. Advisory-only (Advisory). Phase: P3. PHI access: Yes.",
+                       "persona":  "You are CodingQaSamplerAgent for TCEL Tenant-10 (medical billing / RCM). Selects a risk-weighted QA sample per coder rather than a flat random sample. You ground every finding in the approved data you can see (ClaimLine;QA history;Denial history), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-CLM domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Regulated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - CodingQaSamplerAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   },
+                   {
+                       "agentId":  "t10.documentationgapagent",
+                       "name":  "DocumentationGapAgent",
+                       "description":  "Explains why a claim failed the documentation gate and what is needed to clear it. Domain: RCM-CLM. Advisory-only (Advisory). Phase: P3. PHI access: Yes.",
+                       "persona":  "You are DocumentationGapAgent for TCEL Tenant-10 (medical billing / RCM). Explains why a claim failed the documentation gate and what is needed to clear it. You ground every finding in the approved data you can see (Encounter;Claim;Documentation status), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-CLM domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Regulated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - DocumentationGapAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   },
+                   {
+                       "agentId":  "t10.followuptriageagent",
+                       "name":  "FollowUpTriageAgent",
+                       "description":  "Triages the open-claim worklist by expected recovery value and deadline proximity. Domain: RCM-CLM. Advisory-only (Advisory). Phase: P2. PHI access: Yes.",
+                       "persona":  "You are FollowUpTriageAgent for TCEL Tenant-10 (medical billing / RCM). Triages the open-claim worklist by expected recovery value and deadline proximity. You ground every finding in the approved data you can see (Claim;Remittance;Worklist), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-CLM domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Regulated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - FollowUpTriageAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   },
+                   {
+                       "agentId":  "t10.eligibilityexceptionagent",
+                       "name":  "EligibilityExceptionAgent",
+                       "description":  "Summarizes eligibility failures by payer and distinguishes outage from data defect. Domain: RCM-ELG. Advisory-only (Advisory). Phase: P2. PHI access: Yes.",
+                       "persona":  "You are EligibilityExceptionAgent for TCEL Tenant-10 (medical billing / RCM). Summarizes eligibility failures by payer and distinguishes outage from data defect. You ground every finding in the approved data you can see (IntegrationJob;InsuranceCoverage), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-ELG domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Regulated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - EligibilityExceptionAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   },
+                   {
+                       "agentId":  "t10.authorizationlinkageagent",
+                       "name":  "AuthorizationLinkageAgent",
+                       "description":  "Checks authorization-to-claim linkage and explains mismatches in plain language. Domain: RCM-ELG. Advisory-only (Advisory). Phase: P3. PHI access: Yes.",
+                       "persona":  "You are AuthorizationLinkageAgent for TCEL Tenant-10 (medical billing / RCM). Checks authorization-to-claim linkage and explains mismatches in plain language. You ground every finding in the approved data you can see (Authorization;Claim;ClaimLine), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-ELG domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Regulated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - AuthorizationLinkageAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   },
+                   {
+                       "agentId":  "t10.denialrootcauseagent",
+                       "name":  "DenialRootCauseAgent",
+                       "description":  "Clusters denials into root-cause themes and attributes them to coding, billing, eligibility or credentialing. Domain: RCM-PAY. Advisory-only (Advisory). Phase: P3. PHI access: Yes.",
+                       "persona":  "You are DenialRootCauseAgent for TCEL Tenant-10 (medical billing / RCM). Clusters denials into root-cause themes and attributes them to coding, billing, eligibility or credentialing. You ground every finding in the approved data you can see (Remittance;Claim;Employee attribution), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-PAY domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Regulated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - DenialRootCauseAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   },
+                   {
+                       "agentId":  "t10.underpaymentdetectionagent",
+                       "name":  "UnderpaymentDetectionAgent",
+                       "description":  "Explains expected-versus-paid variance against contract terms and drafts the payer appeal. Domain: RCM-PAY. Advisory-only (Approval). Phase: P3. PHI access: Yes.",
+                       "persona":  "You are UnderpaymentDetectionAgent for TCEL Tenant-10 (medical billing / RCM). Explains expected-versus-paid variance against contract terms and drafts the payer appeal. You ground every finding in the approved data you can see (ClaimLine;PayerContract;FeeSchedule;Remittance), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-PAY domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Regulated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - UnderpaymentDetectionAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   },
+                   {
+                       "agentId":  "t10.postingreconciliationagent",
+                       "name":  "PostingReconciliationAgent",
+                       "description":  "Investigates bank-to-remit variance and proposes the matching hypothesis. Domain: RCM-PAY. Advisory-only (Advisory). Phase: P3. PHI access: No.",
+                       "persona":  "You are PostingReconciliationAgent for TCEL Tenant-10 (medical billing / RCM). Investigates bank-to-remit variance and proposes the matching hypothesis. You ground every finding in the approved data you can see (BankTransaction;Remittance), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-PAY domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Elevated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - PostingReconciliationAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   },
+                   {
+                       "agentId":  "t10.arnarrativeagent",
+                       "name":  "ArNarrativeAgent",
+                       "description":  "Turns AR aging movement into a written explanation of what drove the change. Domain: RCM-PAY. Advisory-only (Advisory). Phase: P4. PHI access: No.",
+                       "persona":  "You are ArNarrativeAgent for TCEL Tenant-10 (medical billing / RCM). Turns AR aging movement into a written explanation of what drove the change. You ground every finding in the approved data you can see (KpiMeasurement;Claim;Remittance), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-PAY domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Elevated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - ArNarrativeAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   },
+                   {
+                       "agentId":  "t10.credentialingchaseagent",
+                       "name":  "CredentialingChaseAgent",
+                       "description":  "Drafts payer and provider follow-up correspondence for stalled credentialing applications. Domain: RCM-CRD. Advisory-only (Approval). Phase: P3. PHI access: No.",
+                       "persona":  "You are CredentialingChaseAgent for TCEL Tenant-10 (medical billing / RCM). Drafts payer and provider follow-up correspondence for stalled credentialing applications. You ground every finding in the approved data you can see (CredentialingApplication;Provider), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-CRD domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Elevated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - CredentialingChaseAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   },
+                   {
+                       "agentId":  "t10.revalidationforecastagent",
+                       "name":  "RevalidationForecastAgent",
+                       "description":  "Forecasts revalidation and enrollment expiry workload across the notice windows. Domain: RCM-CRD. Advisory-only (Advisory). Phase: P3. PHI access: No.",
+                       "persona":  "You are RevalidationForecastAgent for TCEL Tenant-10 (medical billing / RCM). Forecasts revalidation and enrollment expiry workload across the notice windows. You ground every finding in the approved data you can see (CredentialingApplication;Provider;Payer), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-CRD domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Elevated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - RevalidationForecastAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   },
+                   {
+                       "agentId":  "t10.feescheduledriftagent",
+                       "name":  "FeeScheduleDriftAgent",
+                       "description":  "Detects fee schedule staleness and missing CPT rates and quantifies the revenue exposure. Domain: RCM-FEE. Advisory-only (Advisory). Phase: P3. PHI access: No.",
+                       "persona":  "You are FeeScheduleDriftAgent for TCEL Tenant-10 (medical billing / RCM). Detects fee schedule staleness and missing CPT rates and quantifies the revenue exposure. You ground every finding in the approved data you can see (FeeSchedule;ClaimLine;PayerContract), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-FEE domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Elevated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - FeeScheduleDriftAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   },
+                   {
+                       "agentId":  "t10.payerpolicywatchagent",
+                       "name":  "PayerPolicyWatchAgent",
+                       "description":  "Monitors payer bulletins and maps each change to the configuration it affects. Domain: RCM-FEE. Advisory-only (Approval). Phase: P4. PHI access: No.",
+                       "persona":  "You are PayerPolicyWatchAgent for TCEL Tenant-10 (medical billing / RCM). Monitors payer bulletins and maps each change to the configuration it affects. You ground every finding in the approved data you can see (Payer bulletin feed;PayerContract;ConfigParameter), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-FEE domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Elevated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - PayerPolicyWatchAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   },
+                   {
+                       "agentId":  "t10.duplicatepatientagent",
+                       "name":  "DuplicatePatientAgent",
+                       "description":  "Reviews duplicate-candidate pairs above the confidence threshold and recommends merge or reject. Domain: RCM-EHR. Advisory-only (Approval). Phase: P4. PHI access: Yes.",
+                       "persona":  "You are DuplicatePatientAgent for TCEL Tenant-10 (medical billing / RCM). Reviews duplicate-candidate pairs above the confidence threshold and recommends merge or reject. You ground every finding in the approved data you can see (Patient fingerprint;Encounter), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-EHR domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Regulated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - DuplicatePatientAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   },
+                   {
+                       "agentId":  "t10.phiaccessanomalyagent",
+                       "name":  "PhiAccessAnomalyAgent",
+                       "description":  "Explains why a PHI access event was flagged anomalous relative to the user baseline. Domain: RCM-CMP. Advisory-only (Advisory). Phase: P2. PHI access: Yes.",
+                       "persona":  "You are PhiAccessAnomalyAgent for TCEL Tenant-10 (medical billing / RCM). Explains why a PHI access event was flagged anomalous relative to the user baseline. You ground every finding in the approved data you can see (PhiAccessEvent;UserAccount;Employee), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-CMP domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Regulated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - PhiAccessAnomalyAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   },
+                   {
+                       "agentId":  "t10.baacoverageagent",
+                       "name":  "BaaCoverageAgent",
+                       "description":  "Reconciles PHI-access parties against the BAA register and lists gaps with owners. Domain: RCM-CMP. Advisory-only (Advisory). Phase: P1. PHI access: No.",
+                       "persona":  "You are BaaCoverageAgent for TCEL Tenant-10 (medical billing / RCM). Reconciles PHI-access parties against the BAA register and lists gaps with owners. You ground every finding in the approved data you can see (Vendor;Client;Compliance register), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-CMP domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Elevated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - BaaCoverageAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   },
+                   {
+                       "agentId":  "t10.billingpatternoutlieragent",
+                       "name":  "BillingPatternOutlierAgent",
+                       "description":  "Compares provider billing patterns to specialty peers and narrates the outlier. Domain: RCM-CMP. Advisory-only (Approval). Phase: P4. PHI access: Yes.",
+                       "persona":  "You are BillingPatternOutlierAgent for TCEL Tenant-10 (medical billing / RCM). Compares provider billing patterns to specialty peers and narrates the outlier. You ground every finding in the approved data you can see (ClaimLine;Provider;Peer baseline), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-CMP domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Regulated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - BillingPatternOutlierAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   },
+                   {
+                       "agentId":  "t10.backupassuranceagent",
+                       "name":  "BackupAssuranceAgent",
+                       "description":  "Assesses backup coverage, job outcomes and restore-test age against RPO and RTO. Domain: RCM-TEC. Advisory-only (Advisory). Phase: P2. PHI access: No.",
+                       "persona":  "You are BackupAssuranceAgent for TCEL Tenant-10 (medical billing / RCM). Assesses backup coverage, job outcomes and restore-test age against RPO and RTO. You ground every finding in the approved data you can see (BackupJob;TechnicalAsset), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-TEC domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Elevated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - BackupAssuranceAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   },
+                   {
+                       "agentId":  "t10.expiryhorizonagent",
+                       "name":  "ExpiryHorizonAgent",
+                       "description":  "Consolidates every expiry (domain, certificate, subscription, BAA, contract, revalidation) into one horizon view. Domain: RCM-TEC. Advisory-only (Advisory). Phase: P2. PHI access: No.",
+                       "persona":  "You are ExpiryHorizonAgent for TCEL Tenant-10 (medical billing / RCM). Consolidates every expiry (domain, certificate, subscription, BAA, contract, revalidation) into one horizon view. You ground every finding in the approved data you can see (TechnicalAsset;Vendor;PayerContract;CredentialingApplication), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-TEC domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Elevated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - ExpiryHorizonAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   },
+                   {
+                       "agentId":  "t10.complaintthemeagent",
+                       "name":  "ComplaintThemeAgent",
+                       "description":  "Clusters client complaints into themes and flags churn-risk signals early. Domain: RCM-CLT. Advisory-only (Advisory). Phase: P3. PHI access: No.",
+                       "persona":  "You are ComplaintThemeAgent for TCEL Tenant-10 (medical billing / RCM). Clusters client complaints into themes and flags churn-risk signals early. You ground every finding in the approved data you can see (Complaint;KpiMeasurement), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-CLT domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Elevated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - ComplaintThemeAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   },
+                   {
+                       "agentId":  "t10.slabreachforecastagent",
+                       "name":  "SlaBreachForecastAgent",
+                       "description":  "Forecasts which in-flight items will breach SLA before they do. Domain: RCM-CLT. Advisory-only (Advisory). Phase: P3. PHI access: No.",
+                       "persona":  "You are SlaBreachForecastAgent for TCEL Tenant-10 (medical billing / RCM). Forecasts which in-flight items will breach SLA before they do. You ground every finding in the approved data you can see (Claim;Complaint;SLA config), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-CLT domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Elevated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - SlaBreachForecastAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   },
+                   {
+                       "agentId":  "t10.keypersonriskagent",
+                       "name":  "KeyPersonRiskAgent",
+                       "description":  "Identifies processes with single-owner dependency and missing SOPs. Domain: RCM-HRM. Advisory-only (Advisory). Phase: P4. PHI access: No.",
+                       "persona":  "You are KeyPersonRiskAgent for TCEL Tenant-10 (medical billing / RCM). Identifies processes with single-owner dependency and missing SOPs. You ground every finding in the approved data you can see (BusinessProcess;Employee), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-HRM domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Elevated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - KeyPersonRiskAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   },
+                   {
+                       "agentId":  "t10.riskportfoliosynthesisagent",
+                       "name":  "RiskPortfolioSynthesisAgent",
+                       "description":  "Single executive-scope agent: synthesizes register, alerts and KPIs into one management brief. No other agent may hold executive scope (see T9 lesson on executive-agent proliferation). Domain: RCM-GOV. Advisory-only (Approval). Phase: P4. PHI access: No.",
+                       "persona":  "You are RiskPortfolioSynthesisAgent for TCEL Tenant-10 (medical billing / RCM). Single executive-scope agent: synthesizes register, alerts and KPIs into one management brief. No other agent may hold executive scope (see T9 lesson on executive-agent proliferation). You ground every finding in the approved data you can see (RiskDefinition;AlertInstance;KpiMeasurement;MitigationAction), cite what you relied on, and state confidence and required approvers. You recommend and explain; you never execute, approve, post, or bill - a human decides. You never expose PHI beyond a user\u0027s minimum-necessary scope.",
+                       "contextSources":  [
+                                              "scores",
+                                              "deviations",
+                                              "references"
+                                          ],
+                       "sampleQuestions":  [
+                                               "What does the RCM-GOV domain need attention on right now?"
+                                           ],
+                       "owner":  "Tenant-10 Operations",
+                       "independentValidator":  "Compliance / Model Risk",
+                       "riskTier":  "Elevated",
+                       "prohibited":  [
+                                          "execute, approve, post, or bill any transaction",
+                                          "expose PHI beyond minimum-necessary scope; alter records or evidence; change its own permissions"
+                                      ],
+                       "outputDisclaimer":  "Advisory only - RiskPortfolioSynthesisAgent recommends; authorized humans make every billing, coding, and compliance decision, not this agent."
+                   }
+               ],
+    "knowledgeAssets":  [
+                            {
+                                "assetId":  "t10-risk-register-catalog-2026",
+                                "docKey":  "t10-risk-register-catalog",
+                                "title":  "Tenant-10 RCM Risk Register (74 risks, 12 domains)",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "RiskRegister",
+                                "issuer":  "Tenant-10 Compliance",
+                                "jurisdiction":  "US-Federal-HIPAA",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The full RCM risk register. RiskScore = SeverityValue x Likelihood. Enforced live as the t10-risk-index KPI over T10RiskAssessment records, riskType from {domain}.",
+                                "contentText":  "T10-RSK-A1 [RCM-CMP] PHI breach or unauthorized disclosure - Critical (score 12). T10-RSK-A2 [RCM-CMP] HIPAA Security Rule non-compliance - High (score 9). T10-RSK-A3 [RCM-CMP] Business Associate Agreement gaps - Critical (score 12). T10-RSK-A4 [RCM-CMP] Minimum necessary access violation - High (score 9). T10-RSK-A5 [RCM-CMP] Use of excluded or sanctioned individuals or entities - High (score 6). T10-RSK-A6 [RCM-CMP] Improper claim submission or false-claim exposure - High (score 9). T10-RSK-A7 [RCM-CMP] Data retention and record availability failure - Medium (score 6). T10-RSK-B1 [RCM-CLM] Claims not entered on time - High (score 12). T10-RSK-B2 [RCM-CLM] Timely filing deadline missed - Critical (score 12). T10-RSK-B3 [RCM-CLM] Incorrect ICD/CPT/HCPCS coding - Critical (score 12). T10-RSK-B4 [RCM-CLM] Biller data-entry errors - High (score 12). T10-RSK-B5 [RCM-CLM] Incomplete documentation before claim submission - High (score 9). T10-RSK-B6 [RCM-CLM] Claim status not followed up properly - High (score 12). T10-RSK-B7 [RCM-CLM] Lack of productivity and quality visibility - Medium (score 8). T10-RSK-B8 [RCM-CLM] Overdependence on manual claim processing - Medium (score 8). T10-RSK-C1 [RCM-ELG] Eligibility service outage - Critical (score 12). T10-RSK-C2 [RCM-ELG] Incorrect eligibility response or stale eligibility data - High (score 9). T10-RSK-C3 [RCM-ELG] Deductible-period payment risk - Medium (score 8). T10-RSK-C4 [RCM-ELG] Failure to verify secondary insurance or coordination of benefits - Medium (score 6). T10-RSK-C5 [RCM-ELG] Prior authorization not obtained or not linked to claim - High (score 9). T10-RSK-D1 [RCM-PAY] ERA not received or not imported - Critical (score 12). T10-RSK-D2 [RCM-PAY] EOBs not entered on time - Critical (score 12). T10-RSK-D3 [RCM-PAY] Payment posting errors - High (score 9). T10-RSK-D4 [RCM-PAY] Unapplied cash and bank reconciliation gaps - High (score 9). T10-RSK-D5 [RCM-PAY] Denial backlog not managed - High (score 12). T10-RSK-D6 [RCM-PAY] Underpayment not detected - High (score 12). T10-RSK-D7 [RCM-PAY] Overpayment not identified or refunded timely - High (score 9). T10-RSK-D8 [RCM-PAY] AR aging deterioration - High (score 12). T10-RSK-E1 [RCM-CRD] Credentialing not completed on time - Critical (score 12). T10-RSK-E2 [RCM-CRD] Enrollment or revalidation failure - Critical (score 8). T10-RSK-E3 [RCM-CRD] Provider does not know credentialing status - Low (score 4). T10-RSK-E4 [RCM-CRD] Incorrect provider, NPI, taxonomy or location used on claims - High (score 9). T10-RSK-E5 [RCM-CRD] Payer portal access failure - Medium (score 8). T10-RSK-F1 [RCM-FEE] CPT fee plans not updated when required - High (score 9). T10-RSK-F2 [RCM-FEE] Payer contract terms not monitored - High (score 9). T10-RSK-F3 [RCM-FEE] Incorrect write-offs or adjustment mapping - Medium (score 6). T10-RSK-F4 [RCM-FEE] Patient billing and collections not controlled - Medium (score 8). T10-RSK-G1 [RCM-EHR] EHR or practice-management system outage - Critical (score 8). T10-RSK-G2 [RCM-EHR] EHR shows wrong or stale patient data - Critical (score 12). T10-RSK-G3 [RCM-EHR] Allergies not visible during charting or prescribing - Critical (score 8). T10-RSK-G4 [RCM-EHR] Lab, drug orders or reports routed to wrong address, location or provider - High (score 6). T10-RSK-G5 [RCM-EHR] Wrong-patient chart or duplicate patient record - Critical (score 12). T10-RSK-G6 [RCM-EHR] System performance degradation - Medium (score 8). T10-RSK-H1 [RCM-TEC] Ransomware or malware attack - Critical (score 8). T10-RSK-H2 [RCM-TEC] Weak MFA and remote access controls - High (score 9). T10-RSK-H3 [RCM-TEC] Single point of failure in infrastructure - High (score 6). T10-RSK-H4 [RCM-TEC] Backup failure or untested restore - Critical (score 12). T10-RSK-H5 [RCM-TEC] No hot backup location or alternate operating site - Critical (score 8). T10-RSK-H6 [RCM-TEC] Domain, hosting, SSL, email, VPN, software or subscription expiry - High (score 9). T10-RSK-H7 [RCM-TEC] Clearinghouse or payer connectivity outage - High (score 9). T10-RSK-H8 [RCM-TEC] Poor change management by developers or IT - High (score 9). T10-RSK-I1 [RCM-HRM] Loss of experienced billers, coders, developers, credentialing staff or posters - Critical (score 12). T10-RSK-I2 [RCM-HRM] HR ignores employee concerns - High (score 9). T10-RSK-I3 [RCM-HRM] Coder quality not measured - High (score 9). T10-RSK-I4 [RCM-HRM] Biller quality not measured - Medium (score 6). T10-RSK-I5 [RCM-HRM] Follow-up productivity not measured - Medium (score 8). T10-RSK-I6 [RCM-HRM] ERA/EOB posting productivity not measured - Medium (score 6). T10-RSK-I7 [RCM-HRM] Insufficient training and certification - Medium (score 6). T10-RSK-I8 [RCM-HRM] Key-person dependency - High (score 12). T10-RSK-J1 [RCM-CLT] Client complaints ignored - Critical (score 12). T10-RSK-J2 [RCM-CLT] Client invoices not generated on time - Medium (score 6). T10-RSK-J3 [RCM-CLT] Incorrect client reports - High (score 9). T10-RSK-J4 [RCM-CLT] Service-level agreement failure - High (score 12). T10-RSK-J5 [RCM-CLT] Poor client onboarding - Medium (score 6). T10-RSK-K1 [RCM-VND] Clearinghouse dependency risk - High (score 9). T10-RSK-K2 [RCM-VND] Vendor support failure - Medium (score 8). T10-RSK-K3 [RCM-VND] Vendor contract or subscription expiry - High (score 9). T10-RSK-K4 [RCM-VND] Vendor security weakness - High (score 9). T10-RSK-K5 [RCM-VND] Offshore workforce or subcontractor risk - Critical (score 12). T10-RSK-L1 [RCM-GOV] No central risk owner - High (score 9). T10-RSK-L2 [RCM-GOV] No risk scoring or prioritization - Medium (score 6). T10-RSK-L3 [RCM-GOV] Audit evidence not maintained - High (score 9). T10-RSK-L4 [RCM-GOV] Policies and SOPs outdated - Medium (score 6). T10-RSK-L5 [RCM-GOV] Management ignores early warnings - High (score 12)."
+                            },
+                            {
+                                "assetId":  "t10-control-catalog-2026",
+                                "docKey":  "t10-control-catalog",
+                                "title":  "Tenant-10 RCM Control Catalog (155 controls)",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "ControlCatalog",
+                                "issuer":  "Tenant-10 Compliance",
+                                "jurisdiction":  "US-Federal-HIPAA",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The 155 deterministic RCM controls (41 Preventive, 41 Detective, 18 Corrective, +governance). A field-expressible subset is enforced as executable rules; the rest are carried for traceability with their test cases in the source spec.",
+                                "contentText":  "RCM-CLM-001 [RCM-CLM] Encounter-to-charge SLA tracking - Detective, owner BillingManager. RCM-CLM-002 [RCM-CLM] Charge-entry backlog worklist - Corrective, owner BillingManager. RCM-CLM-003 [RCM-CLM] Payer filing limit master data - Preventive, owner ContractManager. RCM-CLM-004 [RCM-CLM] Filing deadline countdown and escalation - Detective, owner BillingManager. RCM-CLM-005 [RCM-CLM] Coding QA sampling program - Detective, owner CodingManager. RCM-CLM-006 [RCM-CLM] Payer edit and NCCI rule application - Preventive, owner CodingManager. RCM-CLM-007 [RCM-CLM] High-risk code and modifier monitoring - Detective, owner CodingManager. RCM-CLM-008 [RCM-CLM] Front-end claim scrubbing - Preventive, owner BillingManager. RCM-CLM-009 [RCM-CLM] Biller error categorization - Detective, owner BillingManager. RCM-CLM-010 [RCM-CLM] Documentation completeness gate - Preventive, owner BillingManager. RCM-CLM-011 [RCM-CLM] Provider signature chase workflow - Corrective, owner BillingManager. RCM-CLM-012 [RCM-CLM] Follow-up worklist with next-action dating - Preventive, owner ARManager. RCM-CLM-013 [RCM-CLM] Appeal deadline tracking - Detective, owner ARManager. RCM-CLM-014 [RCM-CLM] Per-employee productivity capture - Detective, owner OperationsManager. RCM-CLM-015 [RCM-CLM] Productivity and quality dashboard - Detective, owner OperationsManager. RCM-CLM-016 [RCM-CLM] Automation candidate assessment - Preventive, owner OperationsManager. RCM-CLT-001 [RCM-CLT] Complaint intake with severity and owner - Preventive, owner ClientSuccessManager. RCM-CLT-002 [RCM-CLT] Complaint theme analysis - Detective, owner ClientSuccessManager. RCM-CLT-003 [RCM-CLT] Client invoice calendar - Preventive, owner Controller. RCM-CLT-004 [RCM-CLT] Invoice generation verification - Detective, owner Controller. RCM-CLT-005 [RCM-CLT] Client report reconciliation - Preventive, owner OperationsManager. RCM-CLT-006 [RCM-CLT] Report data lineage and refresh tracking - Detective, owner OperationsManager. RCM-CLT-007 [RCM-CLT] SLA definition per client and process - Preventive, owner OperationsManager. RCM-CLT-008 [RCM-CLT] Pre-breach SLA escalation - Corrective, owner OperationsManager. RCM-CLT-009 [RCM-CLT] Onboarding checklist gate - Preventive, owner ClientSuccessManager. RCM-CLT-010 [RCM-CLT] Go-live readiness review - Preventive, owner ClientSuccessManager. RCM-CMP-001 [RCM-CMP] PHI system inventory maintained - Preventive, owner SecurityOfficer. RCM-CMP-002 [RCM-CMP] PHI access audit logging enabled - Detective, owner SecurityOfficer. RCM-CMP-003 [RCM-CMP] Bulk export and anomaly detection - Detective, owner SecurityOfficer. RCM-CMP-004 [RCM-CMP] Breach risk assessment workflow - Corrective, owner PrivacyOfficer. RCM-CMP-005 [RCM-CMP] Periodic HIPAA security risk analysis - Preventive, owner SecurityOfficer. RCM-CMP-006 [RCM-CMP] Encryption at rest and in transit - Preventive, owner SecurityOfficer. RCM-CMP-007 [RCM-CMP] Remediation tracking to closure - Corrective, owner SecurityOfficer. RCM-CMP-008 [RCM-CMP] BAA inventory with lifecycle dates - Preventive, owner ComplianceManager. RCM-CMP-009 [RCM-CMP] Subcontractor flow-down verification - Preventive, owner ComplianceManager. RCM-CMP-010 [RCM-CMP] Role-based access matrix - Preventive, owner SecurityOfficer. RCM-CMP-011 [RCM-CMP] Client-scoped data partitioning - Preventive, owner ITOperations. RCM-CMP-012 [RCM-CMP] Joiner-mover-leaver deprovisioning - Corrective, owner ITOperations. RCM-CMP-013 [RCM-CMP] Monthly OIG and SAM exclusion screening - Detective, owner ComplianceManager. RCM-CMP-014 [RCM-CMP] Pre-hire and pre-engagement screening - Preventive, owner ComplianceManager. RCM-CMP-015 [RCM-CMP] Pre-submission coding and documentation edit - Preventive, owner CodingManager. RCM-CMP-016 [RCM-CMP] Billing pattern outlier review - Detective, owner ComplianceManager. RCM-CMP-017 [RCM-CMP] Overpayment identification and refund workflow - Corrective, owner Controller. RCM-CMP-018 [RCM-CMP] Retention schedule enforcement - Preventive, owner ComplianceManager. RCM-CMP-019 [RCM-CMP] Archive job monitoring - Detective, owner ITOperations. RCM-CMP-020 [RCM-CMP] BAA expiry and coverage monitoring - Detective, owner ComplianceManager. RCM-CRD-001 [RCM-CRD] Credentialing application tracking - Preventive, owner CredentialingManager. RCM-CRD-002 [RCM-CRD] Missing document chase workflow - Corrective, owner CredentialingManager. RCM-CRD-003 [RCM-CRD] Revalidation calendar - Preventive, owner CredentialingManager. RCM-CRD-004 [RCM-CRD] Enrollment status verification - Detective, owner CredentialingManager. RCM-CRD-005 [RCM-CRD] Provider-facing status dashboard - Detective, owner CredentialingManager. RCM-CRD-006 [RCM-CRD] Provider master data governance - Preventive, owner CredentialingManager. RCM-CRD-007 [RCM-CRD] Claim-to-enrollment field validation - Preventive, owner BillingManager. RCM-CRD-008 [RCM-CRD] Payer portal credential register - Preventive, owner ITOperations. RCM-CRD-009 [RCM-CRD] Portal access health monitoring - Detective, owner ITOperations. RCM-CRD-010 [RCM-CRD] Credentialing aging and go-live risk monitoring - Detective, owner CredentialingManager. RCM-EHR-001 [RCM-EHR] EHR/PM availability monitoring - Detective, owner ITOperations. RCM-EHR-002 [RCM-EHR] Downtime operating procedure - Corrective, owner ITOperations. RCM-EHR-003 [RCM-EHR] Interface synchronization monitoring - Detective, owner ITOperations. RCM-EHR-004 [RCM-EHR] Data freshness validation at point of use - Preventive, owner ITOperations. RCM-EHR-005 [RCM-EHR] Allergy list completeness check - Detective, owner ClinicalLiaison. RCM-EHR-006 [RCM-EHR] Clinical alert override review - Detective, owner ClinicalLiaison. RCM-EHR-007 [RCM-EHR] Routing directory validation - Preventive, owner ClinicalLiaison. RCM-EHR-008 [RCM-EHR] Result acknowledgement tracking - Detective, owner ClinicalLiaison. RCM-EHR-009 [RCM-EHR] Duplicate patient detection - Detective, owner ITOperations. RCM-EHR-010 [RCM-EHR] Patient merge and correction control - Corrective, owner ITOperations. RCM-EHR-011 [RCM-EHR] Application performance monitoring - Detective, owner ITOperations. RCM-ELG-001 [RCM-ELG] Eligibility service health monitoring - Detective, owner ITOperations. RCM-ELG-002 [RCM-ELG] Eligibility fallback workflow - Corrective, owner EligibilitySupervisor. RCM-ELG-003 [RCM-ELG] Eligibility recency rule - Preventive, owner EligibilitySupervisor. RCM-ELG-004 [RCM-ELG] Coverage status reconciliation - Detective, owner EligibilitySupervisor. RCM-ELG-005 [RCM-ELG] Patient responsibility estimation - Preventive, owner PatientAccountsManager. RCM-ELG-006 [RCM-ELG] Deductible exposure reporting - Detective, owner PatientAccountsManager. RCM-ELG-007 [RCM-ELG] COB and payer sequence validation - Preventive, owner EligibilitySupervisor. RCM-ELG-008 [RCM-ELG] Prior authorization requirement matrix - Preventive, owner EligibilitySupervisor. RCM-ELG-009 [RCM-ELG] Authorization-to-claim linkage validation - Preventive, owner EligibilitySupervisor. RCM-FEE-001 [RCM-FEE] Fee schedule version control - Preventive, owner Controller. RCM-FEE-002 [RCM-FEE] Fee schedule completeness check - Detective, owner Controller. RCM-FEE-003 [RCM-FEE] Payer contract repository - Preventive, owner ContractManager. RCM-FEE-004 [RCM-FEE] Payer bulletin monitoring - Detective, owner ContractManager. RCM-FEE-005 [RCM-FEE] Adjustment code mapping governance - Preventive, owner Controller. RCM-FEE-006 [RCM-FEE] Write-off approval matrix - Preventive, owner Controller. RCM-FEE-007 [RCM-FEE] Patient statement cycle - Preventive, owner PatientAccountsManager. RCM-FEE-008 [RCM-FEE] Patient collection escalation ladder - Corrective, owner PatientAccountsManager. RCM-GOV-001 [RCM-GOV] Risk owner assignment - Preventive, owner RiskManager. RCM-GOV-002 [RCM-GOV] Mitigation plan tracking - Corrective, owner RiskManager. RCM-GOV-003 [RCM-GOV] Severity and likelihood scoring model - Preventive, owner RiskManager. RCM-GOV-004 [RCM-GOV] Risk heat map reporting - Detective, owner RiskManager. RCM-GOV-005 [RCM-GOV] Evidence repository with control linkage - Preventive, owner ComplianceManager. RCM-GOV-006 [RCM-GOV] Evidence completeness review - Detective, owner ComplianceManager. RCM-GOV-007 [RCM-GOV] SOP library with review cycle - Preventive, owner ComplianceManager. RCM-GOV-008 [RCM-GOV] Employee attestation on SOP updates - Detective, owner ComplianceManager. RCM-GOV-009 [RCM-GOV] Alert acknowledgement tracking - Detective, owner RiskManager. RCM-GOV-010 [RCM-GOV] Executive escalation and closure review - Corrective, owner RiskManager. RCM-HRM-001 [RCM-HRM] Attrition and tenure monitoring - Detective, owner HRManager. RCM-HRM-002 [RCM-HRM] Workload and overtime monitoring - Detective, owner HRManager. RCM-HRM-003 [RCM-HRM] HR complaint intake and SLA - Preventive, owner HRManager. RCM-HRM-004 [RCM-HRM] Grievance escalation path - Corrective, owner HRManager. RCM-HRM-005 [RCM-HRM] Coder QA scoring model - Detective, owner CodingManager. RCM-HRM-006 [RCM-HRM] Coder accuracy trending - Detective, owner CodingManager. RCM-HRM-007 [RCM-HRM] Biller QA scoring model - Detective, owner BillingManager. RCM-HRM-008 [RCM-HRM] Biller rework tracking - Detective, owner BillingManager. RCM-HRM-009 [RCM-HRM] Follow-up productivity measurement - Detective, owner ARManager. RCM-HRM-010 [RCM-HRM] Posting productivity measurement - Detective, owner PostingSupervisor. RCM-HRM-011 [RCM-HRM] Training and certification register - Preventive, owner HRManager. RCM-HRM-012 [RCM-HRM] Competency gate on work assignment - Preventive, owner HRManager. RCM-HRM-013 [RCM-HRM] Process ownership and backup mapping - Preventive, owner OperationsManager. RCM-HRM-014 [RCM-HRM] SOP availability for critical processes - Preventive, owner OperationsManager. RCM-PAY-001 [RCM-PAY] ERA enrollment tracking - Preventive, owner PostingSupervisor. RCM-PAY-002 [RCM-PAY] ERA receipt and import monitoring - Detective, owner ITOperations. RCM-PAY-003 [RCM-PAY] EOB receipt logging - Preventive, owner PostingSupervisor. RCM-PAY-004 [RCM-PAY] EOB posting SLA monitoring - Detective, owner PostingSupervisor. RCM-PAY-005 [RCM-PAY] Remit-to-posting reconciliation - Detective, owner PostingSupervisor. RCM-PAY-006 [RCM-PAY] Manual override approval - Preventive, owner Controller. RCM-PAY-007 [RCM-PAY] Bank-to-remit daily reconciliation - Detective, owner Controller. RCM-PAY-008 [RCM-PAY] Unapplied cash ledger management - Corrective, owner Controller. RCM-PAY-009 [RCM-PAY] Denial worklist prioritization - Corrective, owner ARManager. RCM-PAY-010 [RCM-PAY] Denial root-cause feedback loop - Corrective, owner ARManager. RCM-PAY-011 [RCM-PAY] Expected reimbursement calculation - Preventive, owner Controller. RCM-PAY-012 [RCM-PAY] Underpayment recovery workflow - Corrective, owner Controller. RCM-PAY-013 [RCM-PAY] Credit balance monitoring - Detective, owner Controller. RCM-PAY-014 [RCM-PAY] Duplicate payment detection - Detective, owner Controller. RCM-PAY-015 [RCM-PAY] AR aging bucket reporting - Detective, owner ARManager. RCM-PAY-016 [RCM-PAY] No-touch claim detection - Detective, owner ARManager. RCM-TEC-001 [RCM-TEC] Endpoint detection and response coverage - Preventive, owner SecurityOfficer. RCM-TEC-002 [RCM-TEC] Phishing awareness and reporting - Preventive, owner SecurityOfficer. RCM-TEC-003 [RCM-TEC] Incident response plan and tabletop - Corrective, owner SecurityOfficer. RCM-TEC-004 [RCM-TEC] MFA enforcement - Preventive, owner SecurityOfficer. RCM-TEC-005 [RCM-TEC] Privileged access review - Detective, owner SecurityOfficer. RCM-TEC-006 [RCM-TEC] High-availability architecture register - Preventive, owner ITOperations. RCM-TEC-007 [RCM-TEC] Failover testing - Detective, owner ITOperations. RCM-TEC-008 [RCM-TEC] Backup job monitoring - Detective, owner ITOperations. RCM-TEC-009 [RCM-TEC] Periodic restore testing - Detective, owner ITOperations. RCM-TEC-010 [RCM-TEC] Immutable and offsite copy - Preventive, owner ITOperations. RCM-TEC-011 [RCM-TEC] Alternate site and remote-work readiness - Preventive, owner ITOperations. RCM-TEC-012 [RCM-TEC] Continuity contact tree and test - Corrective, owner ITOperations. RCM-TEC-013 [RCM-TEC] Asset expiry register - Preventive, owner ITOperations. RCM-TEC-014 [RCM-TEC] Renewal escalation workflow - Corrective, owner ITOperations. RCM-TEC-015 [RCM-TEC] Clearinghouse transaction monitoring - Detective, owner ITOperations. RCM-TEC-016 [RCM-TEC] Connectivity fallback route - Corrective, owner ITOperations. RCM-TEC-017 [RCM-TEC] Change approval and regression gate - Preventive, owner ITOperations. RCM-TEC-018 [RCM-TEC] Rollback plan verification - Corrective, owner ITOperations. RCM-TEC-019 [RCM-TEC] Security event and agent health monitoring - Detective, owner SecurityOfficer. RCM-TEC-020 [RCM-TEC] Continuity readiness monitoring - Detective, owner ITOperations. RCM-VND-001 [RCM-VND] Clearinghouse SLA and uptime monitoring - Detective, owner ITOperations. RCM-VND-002 [RCM-VND] Secondary submission route readiness - Corrective, owner ITOperations. RCM-VND-003 [RCM-VND] Vendor ticket SLA tracking - Detective, owner VendorManager. RCM-VND-004 [RCM-VND] Vendor escalation contact register - Preventive, owner VendorManager. RCM-VND-005 [RCM-VND] Vendor contract expiry register - Preventive, owner VendorManager. RCM-VND-006 [RCM-VND] Renewal approval workflow - Preventive, owner VendorManager. RCM-VND-007 [RCM-VND] Vendor security due diligence - Preventive, owner SecurityOfficer. RCM-VND-008 [RCM-VND] Vendor security evidence refresh - Detective, owner SecurityOfficer. RCM-VND-009 [RCM-VND] Offshore access approval register - Preventive, owner ComplianceManager. RCM-VND-010 [RCM-VND] Offshore technical safeguard enforcement - Preventive, owner SecurityOfficer. RCM-VND-011 [RCM-VND] Offshore PHI access monitoring - Detective, owner ComplianceManager."
+                            },
+                            {
+                                "assetId":  "t10-kpi-catalog-2026",
+                                "docKey":  "t10-kpi-catalog",
+                                "title":  "Tenant-10 RCM KPI Catalog (53 KPIs, 8 groups)",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "KpiCatalog",
+                                "issuer":  "Tenant-10 Operations",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The 53 RCM KPIs with formulas, targets, and grains. Formulas are SQL-grain aggregations (not payload expressions), so carried here as the catalog rather than fake-computed; each maps to configurable targets.",
+                                "contentText":  "T10-KPI-RCM-01 [RevenueCycle] Encounter-to-charge lag: AVG(charge_entry_date - encounter_receipt_date) in business days (target 2 business_days, Lower). T10-KPI-RCM-02 [RevenueCycle] Claim submission lag: AVG(claim_submission_date - charge_entry_date) in business days (target 2 business_days, Lower). T10-KPI-RCM-03 [RevenueCycle] Clean claim rate: COUNT(claims passing all edits first pass) / COUNT(claims submitted) * 100 (target 95 percent, Higher). T10-KPI-RCM-04 [RevenueCycle] Rejection rate: COUNT(claims rejected pre-adjudication) / COUNT(claims submitted) * 100 (target 5 percent, Lower). T10-KPI-RCM-05 [RevenueCycle] Denial rate: COUNT(claim lines denied) / COUNT(claim lines adjudicated) * 100 (target 7 percent, Lower). T10-KPI-RCM-06 [RevenueCycle] AR over 30/60/90/120 days: SUM(AR balance in bucket) / SUM(total AR) * 100 per aging bucket (target 15 percent, Lower). T10-KPI-RCM-07 [RevenueCycle] No-touch claims: COUNT(open claims with no action within followup SLA) and SUM(their value) (target 0 count_and_amount, Lower). T10-KPI-RCM-08 [RevenueCycle] Appeal deadline risk: COUNT(open denials with days_to_appeal_deadline \u003c= notice threshold) (target 0 claims, Lower). T10-KPI-RCM-09 [RevenueCycle] Underpayment variance: SUM(expected_allowed - paid_amount) where positive beyond tolerance (target 0 USD, Lower). T10-KPI-RCM-10 [RevenueCycle] Unapplied cash: SUM(unapplied cash ledger balance) (target 0 USD, Lower). T10-KPI-QUA-01 [CodingBillingQuality] Coder accuracy percentage: COUNT(QA-passed coded claims) / COUNT(QA-sampled coded claims) * 100 (target 95 percent, Higher). T10-KPI-QUA-02 [CodingBillingQuality] Biller entry accuracy percentage: COUNT(QA-passed entered claims) / COUNT(QA-sampled entered claims) * 100 (target 97 percent, Higher). T10-KPI-QUA-03 [CodingBillingQuality] Claims corrected after QA: COUNT(claims corrected following QA finding) (target 0 claims, Lower). T10-KPI-QUA-04 [CodingBillingQuality] Errors by category: COUNT(errors) grouped by error_category (target 0 errors, Lower). T10-KPI-QUA-05 [CodingBillingQuality] Denials by coder, biller, provider or payer: COUNT(denials) grouped by attribution dimension (target 0 denials, Lower). T10-KPI-QUA-06 [CodingBillingQuality] High-risk code usage: COUNT(claims with high-risk codes) / COUNT(claims) * 100 (target 5 percent, Lower). T10-KPI-QUA-07 [CodingBillingQuality] Modifier error rate: COUNT(claims with modifier errors) / COUNT(claims with modifiers) * 100 (target 2 percent, Lower). T10-KPI-ERA-01 [PaymentPosting] ERA receipt success rate: COUNT(ERA files received) / COUNT(ERA files expected) * 100 (target 99 percent, Higher). T10-KPI-ERA-02 [PaymentPosting] ERA import failure rate: COUNT(failed 835 imports) / COUNT(import attempts) * 100 (target 1 percent, Lower). T10-KPI-ERA-03 [PaymentPosting] EOB posting lag: AVG(posting_date - eob_receipt_date) in business days (target 3 business_days, Lower). T10-KPI-ERA-04 [PaymentPosting] Payment posting accuracy: COUNT(postings matching remit within tolerance) / COUNT(postings) * 100 (target 99 percent, Higher). T10-KPI-ERA-05 [PaymentPosting] Bank-to-ERA reconciliation variance: ABS(SUM(bank deposits) - SUM(posted remits)) for the period (target 0 USD, Lower). T10-KPI-ERA-06 [PaymentPosting] Credit balance aging: SUM(credit balances) bucketed by age in days (target 0 USD, Lower). T10-KPI-ELG-01 [Eligibility] Eligibility success rate: COUNT(successful 270/271 transactions) / COUNT(attempts) * 100 (target 95 percent, Higher). T10-KPI-ELG-02 [Eligibility] Visits without verified eligibility: COUNT(scheduled visits without verified eligibility) (target 0 visits, Lower). T10-KPI-ELG-03 [Eligibility] Inactive coverage detection: COUNT(visits where eligibility returned inactive or terminated coverage) (target 0 visits, Higher). T10-KPI-ELG-04 [Eligibility] Deductible exposure: SUM(estimated patient responsibility from deductible remaining) (target 0 USD, Lower). T10-KPI-ELG-05 [Eligibility] Patient AR aging: SUM(patient AR) bucketed by age in days (target 0 USD, Lower). T10-KPI-CRD-01 [Credentialing] Applications pending by payer or provider: COUNT(credentialing applications in pending status) (target 0 applications, Lower). T10-KPI-CRD-02 [Credentialing] Credentialing aging: AVG(current_date - application_date) for pending applications (target 60 days, Lower). T10-KPI-CRD-03 [Credentialing] Missing-document aging: AVG(current_date - document_requested_date) for outstanding documents (target 7 days, Lower). T10-KPI-CRD-04 [Credentialing] Revalidation due within 180/90/60/30 days: COUNT(enrollments with revalidation_due_date inside each notice window) (target 0 enrollments, Lower). T10-KPI-CRD-05 [Credentialing] Provider status dashboard freshness: AVG(current_date - status_last_update_date) (target 7 days, Lower). T10-KPI-SEC-01 [ComplianceSecurity] Users without MFA: COUNT(active accounts where mfa_enabled = false) (target 0 users, Lower). T10-KPI-SEC-02 [ComplianceSecurity] Dormant active accounts: COUNT(active accounts with last_login older than idle threshold) (target 0 accounts, Lower). T10-KPI-SEC-03 [ComplianceSecurity] Privileged access exceptions: COUNT(privileged accounts without current recertification or business justification) (target 0 accounts, Lower). T10-KPI-SEC-04 [ComplianceSecurity] PHI access anomalies: COUNT(PHI access events flagged anomalous by baseline rules) (target 0 events, Lower). T10-KPI-SEC-05 [ComplianceSecurity] Backup success rate: COUNT(successful backup jobs) / COUNT(scheduled backup jobs) * 100 (target 100 percent, Higher). T10-KPI-SEC-06 [ComplianceSecurity] Restore test success: COUNT(successful restore tests) / COUNT(scheduled restore tests) * 100 (target 100 percent, Higher). T10-KPI-SEC-07 [ComplianceSecurity] Vulnerability aging: AVG(current_date - vulnerability_detected_date) for open findings by severity (target 30 days, Lower). T10-KPI-SEC-08 [ComplianceSecurity] Training completion: COUNT(employees with required training complete) / COUNT(employees assigned) * 100 (target 100 percent, Higher). T10-KPI-HR-01 [HRResource] Attrition rate by role: COUNT(separations in period) / AVG(headcount in period) * 100 (target 15 percent, Lower). T10-KPI-HR-02 [HRResource] Regrettable attrition: COUNT(separations flagged regrettable) / COUNT(separations) * 100 (target 5 percent, Lower). T10-KPI-HR-03 [HRResource] Workload per employee: SUM(assigned work units) / COUNT(active employees) for the period (target 0 work_units, Balanced). T10-KPI-HR-04 [HRResource] Overtime trend: SUM(overtime hours) per employee per week, trended (target 10 hours, Lower). T10-KPI-HR-05 [HRResource] HR complaint aging: AVG(current_date - complaint_logged_date) for open complaints (target 5 days, Lower). T10-KPI-HR-06 [HRResource] Productivity by role: SUM(completed work units) / COUNT(productive hours) by role (target 0 units_per_hour, Higher). T10-KPI-HR-07 [HRResource] QA score by employee or team: AVG(QA score) over sampled work in the period (target 95 score, Higher). T10-KPI-CLT-01 [ClientSatisfaction] Complaint aging: AVG(current_date - complaint_logged_date) for open complaints (target 72 hours, Lower). T10-KPI-CLT-02 [ClientSatisfaction] SLA breach rate: COUNT(items breaching SLA) / COUNT(items in scope) * 100 (target 5 percent, Lower). T10-KPI-CLT-03 [ClientSatisfaction] Ticket reopen rate: COUNT(tickets reopened) / COUNT(tickets closed) * 100 (target 5 percent, Lower). T10-KPI-CLT-04 [ClientSatisfaction] Client invoice timeliness: COUNT(invoices generated on or before due date) / COUNT(invoices due) * 100 (target 100 percent, Higher). T10-KPI-CLT-05 [ClientSatisfaction] Client churn risk score: Weighted composite of complaint aging, SLA breach rate, AR trend and satisfaction score (target 30 score, Lower)."
+                            },
+                            {
+                                "assetId":  "t10-alert-catalog-2026",
+                                "docKey":  "t10-alert-catalog",
+                                "title":  "Tenant-10 RCM Alert Rule Catalog (145 rules)",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "AlertCatalog",
+                                "issuer":  "Tenant-10 Compliance",
+                                "jurisdiction":  "US",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The 145 alert rules, every threshold configurable. In ECARMF these become tenant-runtime Benchmarks; carried here as the source catalog.",
+                                "contentText":  "T10-ALR-A1-01 [T10-RSK-A1] Bulk PHI export detected: Count of patient records exported by a single user in a rolling window exceeds threshold (default 250 records, Critical). T10-ALR-A1-02 [T10-RSK-A1] Access after termination: Authenticated PHI access event occurs after employee termination_date (default 0 hours, Critical). T10-ALR-A1-03 [T10-RSK-A1] Unencrypted PHI file detected: DLP scan identifies file containing PHI markers with encryption_status = false (default 1 files, High). T10-ALR-A2-01 [T10-RSK-A2] Security risk analysis outdated: Days since last completed HIPAA risk analysis exceeds threshold (default 365 days, High). T10-ALR-A2-02 [T10-RSK-A2] Access review overdue: Days since last completed user access review exceeds threshold (default 90 days, High). T10-ALR-A2-03 [T10-RSK-A2] Remediation item overdue: Open remediation item past due_date by more than threshold (default 7 days, Medium). T10-ALR-A3-01 [T10-RSK-A3] BAA missing for PHI-access party: Vendor, subcontractor or client with phi_access = true has no active BAA record (default 0 records, Critical). T10-ALR-A3-02 [T10-RSK-A3] BAA approaching expiry: Days until BAA expiry_date is at or below any configured notice interval (default 120;90;60;30;15;7 days, High). T10-ALR-A4-01 [T10-RSK-A4] Cross-client PHI access: User accesses patient records for a client not in their client_assignment list (default 0 events, High). T10-ALR-A4-02 [T10-RSK-A4] Abnormal record volume per user: User record-access count in a day exceeds N standard deviations above their 30-day baseline (default 3 stddev, Medium). T10-ALR-A4-03 [T10-RSK-A4] Dormant account still active: Active account with no login for more than threshold days (default 30 days, Medium). T10-ALR-A5-01 [T10-RSK-A5] OIG exclusion screening missed: Days since last completed exclusion screening run exceeds threshold (default 31 days, High). T10-ALR-A5-02 [T10-RSK-A5] Exclusion list match: Employee, contractor or vendor matches an OIG/SAM exclusion record (default 0 matches, Critical). T10-ALR-A6-01 [T10-RSK-A6] Abnormal billing pattern by provider: Provider high-risk code frequency exceeds N standard deviations above peer specialty baseline (default 2.5 stddev, High). T10-ALR-A6-02 [T10-RSK-A6] Unsupported documentation on submitted claim: Post-submission audit finds claim with documentation_status != complete (default 1 percent, High). T10-ALR-A7-01 [T10-RSK-A7] Retention deadline approaching: Days until record retention_expiry_date at or below notice interval (default 90 days, Medium). T10-ALR-A7-02 [T10-RSK-A7] Archive job failure: Consecutive failed document archive or upload jobs exceeds threshold (default 2 jobs, High). T10-ALR-B1-01 [T10-RSK-B1] Encounter not charge-entered within SLA: Business days between encounter_receipt_date and charge_entry_date exceeds SLA (default 2 business_days, High). T10-ALR-B1-02 [T10-RSK-B1] Charge-entry backlog by client: Count of un-entered encounters for a client exceeds threshold (default 50 encounters, High). T10-ALR-B1-03 [T10-RSK-B1] Claim not submitted within SLA: Business days between charge_entry_date and claim_submission_date exceeds SLA (default 2 business_days, High). T10-ALR-B2-01 [T10-RSK-B2] Timely filing deadline approaching: Days until payer filing_limit_date at or below any configured notice interval (default 90;60;30;15;7 days, Critical). T10-ALR-B2-02 [T10-RSK-B2] Timely filing deadline breached: Claim unsubmitted past payer filing_limit_date (default 0 claims, Critical). T10-ALR-B3-01 [T10-RSK-B3] Coder accuracy below threshold: Coder QA accuracy percentage over rolling window falls below threshold (default 95 percent, High). T10-ALR-B3-02 [T10-RSK-B3] Coder accuracy drop: Coder accuracy declines by more than threshold points versus prior window (default 5 points, High). T10-ALR-B3-03 [T10-RSK-B3] Payer-specific code denial spike: Denial rate for a CPT/payer combination exceeds threshold (default 10 percent, Medium). T10-ALR-B4-01 [T10-RSK-B4] Biller rejection rate above threshold: Biller front-end rejection rate over rolling window exceeds threshold (default 5 percent, High). T10-ALR-B4-02 [T10-RSK-B4] Repeated error category by biller: Same error_category recurs for a biller more than N times in a window (default 3 occurrences, Medium). T10-ALR-B5-01 [T10-RSK-B5] Claim billable but documentation incomplete: Claim in ready_to_bill status with documentation_status in (missing, unsigned, incomplete) (default 48 hours, High). T10-ALR-B6-01 [T10-RSK-B6] No follow-up within SLA: Days since last_followup_date on an open claim exceeds SLA (default 21 days, High). T10-ALR-B6-02 [T10-RSK-B6] High-value claim idle: Open claim with value at or above threshold and no action for N days (default 5000 USD, High). T10-ALR-B6-03 [T10-RSK-B6] Appeal window approaching: Days until appeal_deadline at or below any configured notice interval (default 30;15;7;3 days, Critical). T10-ALR-B7-01 [T10-RSK-B7] Productivity data feed stale: Hours since last productivity metric refresh exceeds threshold (default 24 hours, Medium). T10-ALR-B8-01 [T10-RSK-B8] Manual-error rate above threshold: Error rate on manually processed claims exceeds threshold (default 8 percent, Medium). T10-ALR-C1-01 [T10-RSK-C1] Eligibility failure rate spike: Eligibility (270/271) failure rate over rolling window exceeds threshold (default 15 percent, Critical). T10-ALR-C1-02 [T10-RSK-C1] Payer-specific eligibility down: Consecutive eligibility failures for a single payer exceeds threshold (default 10 transactions, High). T10-ALR-C1-03 [T10-RSK-C1] Appointments without verified eligibility: Count of scheduled visits within N days lacking verified eligibility exceeds threshold (default 25 visits, Critical). T10-ALR-C2-01 [T10-RSK-C2] Stale eligibility check: Days since eligibility_check_date at time of service exceeds threshold (default 30 days, Medium). T10-ALR-C2-02 [T10-RSK-C2] Inactive or terminated coverage detected: Eligibility response returns inactive/terminated status for a scheduled or billed visit (default 0 visits, High). T10-ALR-C3-01 [T10-RSK-C3] High deductible exposure without estimate: Visit with deductible_remaining at or above threshold and no patient estimate recorded (default 500 USD, Medium). T10-ALR-C4-01 [T10-RSK-C4] COB denial or unbilled secondary: Primary denied for COB reason, or primary paid and secondary not billed within SLA (default 7 days, Medium). T10-ALR-C5-01 [T10-RSK-C5] Authorization missing before service: Scheduled service requiring prior auth has no authorization_number within N days of DOS (default 3 days, High). T10-ALR-C5-02 [T10-RSK-C5] Authorization expired, exhausted or mismatched: Auth expired, visits_used \u003e= visits_allowed, or auth CPT/provider/location mismatches the claim (default 0 claims, High). T10-ALR-D1-01 [T10-RSK-D1] Expected ERA file not received: Business days since last ERA received from a payer exceeds threshold (default 3 business_days, Critical). T10-ALR-D1-02 [T10-RSK-D1] ERA import failure: Consecutive failed 835 import jobs exceeds threshold (default 2 jobs, Critical). T10-ALR-D1-03 [T10-RSK-D1] ERA volume drop: Payer daily ERA volume falls below threshold percentage of 30-day average (default 50 percent, High). T10-ALR-D2-01 [T10-RSK-D2] EOB unposted beyond SLA: Business days between EOB receipt_date and posting_date exceeds SLA (default 5 business_days, High). T10-ALR-D2-02 [T10-RSK-D2] High-value EOB pending: Unposted EOB with payment_amount at or above threshold (default 10000 USD, High). T10-ALR-D3-01 [T10-RSK-D3] Posted amount mismatches ERA/EOB: Absolute variance between remit amount and posted amount exceeds tolerance (default 1 USD, High). T10-ALR-D3-02 [T10-RSK-D3] Abnormal write-off or manual override: Write-off or manual override above threshold, or override count per poster above threshold (default 500 USD, High). T10-ALR-D4-01 [T10-RSK-D4] Bank-to-remit reconciliation variance: Absolute variance between bank deposits and posted remits for a period exceeds tolerance (default 100 USD, High). T10-ALR-D4-02 [T10-RSK-D4] Unapplied cash above threshold: Unapplied cash ledger balance exceeds threshold (default 25000 USD, High). T10-ALR-D5-01 [T10-RSK-D5] Denial backlog above threshold: Count of open denials for a client exceeds threshold (default 100 denials, High). T10-ALR-D5-02 [T10-RSK-D5] Denial aging beyond appeal window: Open denial with days_until_appeal_deadline at or below threshold (default 15 days, Critical). T10-ALR-D6-01 [T10-RSK-D6] Underpayment variance detected: Expected allowed amount minus paid amount exceeds tolerance (default 25 USD, High). T10-ALR-D7-01 [T10-RSK-D7] Credit balance aging: Credit balance open beyond threshold days (default 60 days, High). T10-ALR-D7-02 [T10-RSK-D7] Duplicate payment detected: Two or more payments matched to the same claim line (default 0 payments, High). T10-ALR-D8-01 [T10-RSK-D8] AR over 90 days above threshold: Percentage of total AR aged over 90 days exceeds threshold (default 15 percent, High). T10-ALR-D8-02 [T10-RSK-D8] AR trend deterioration: AR balance increases by more than threshold percent versus prior period (default 10 percent, High). T10-ALR-D8-03 [T10-RSK-D8] No-touch claim value above threshold: Aggregate value of claims with no action in N days exceeds threshold (default 50000 USD, High). T10-ALR-E1-01 [T10-RSK-E1] Credentialing application stuck: Days since application_date without payer response exceeds SLA (default 30 days, High). T10-ALR-E1-02 [T10-RSK-E1] Credentialing missing documents aging: Days a required document has been outstanding exceeds threshold (default 7 days, Medium). T10-ALR-E1-03 [T10-RSK-E1] Provider go-live at risk: Days until provider start_date at or below threshold with credentialing incomplete (default 30 days, Critical). T10-ALR-E2-01 [T10-RSK-E2] Revalidation or enrollment expiry approaching: Days until revalidation_due_date at or below any configured notice interval (default 180;120;90;60;30 days, Critical). T10-ALR-E3-01 [T10-RSK-E3] Provider status dashboard stale: Days since credentialing status last_update_date exceeds threshold (default 14 days, Low). T10-ALR-E4-01 [T10-RSK-E4] Claim provider data mismatches enrollment: Claim NPI, taxonomy, PTAN or location does not match the enrolled payer/provider record (default 0 claims, High). T10-ALR-E5-01 [T10-RSK-E5] Payer portal password expiring: Days until portal credential password_expiry at or below threshold (default 14 days, Medium). T10-ALR-E5-02 [T10-RSK-E5] Payer portal account locked or MFA failing: Portal account locked, or consecutive login failures exceeds threshold (default 3 attempts, Medium). T10-ALR-F1-01 [T10-RSK-F1] Fee schedule outdated: Days since fee schedule last_update_date exceeds threshold (default 180 days, High). T10-ALR-F1-02 [T10-RSK-F1] CPT missing from client fee plan: Billed CPT/HCPCS code has no rate in the active client fee plan (default 0 codes, Medium). T10-ALR-F2-01 [T10-RSK-F2] Payer contract renewal approaching: Days until contract expiry_date at or below any configured notice interval (default 120;90;60;30 days, High). T10-ALR-F2-02 [T10-RSK-F2] Payer rate variance after policy change: Contracted rate changes by more than threshold percent versus prior version (default 5 percent, High). T10-ALR-F3-01 [T10-RSK-F3] Manual adjustment above approval threshold: Manual adjustment amount exceeds the approval-matrix threshold without recorded approval (default 250 USD, High). T10-ALR-F3-02 [T10-RSK-F3] Unsupported adjustment reason code: Adjustment posted with a reason code not present in the approved adjustment mapping (default 0 adjustments, Medium). T10-ALR-F4-01 [T10-RSK-F4] Patient balance not statemented: Days since patient responsibility posted without a statement issued exceeds threshold (default 14 days, Medium). T10-ALR-F4-02 [T10-RSK-F4] Patient collection inactivity: Days since last collection action on an aged patient balance exceeds threshold (default 45 days, Medium). T10-ALR-G1-01 [T10-RSK-G1] EHR or PM system outage: System availability status = down, or downtime in a rolling window exceeds threshold (default 15 minutes, Critical). T10-ALR-G1-02 [T10-RSK-G1] Recovery target missed: Actual recovery time exceeds contracted RTO, or data loss exceeds RPO (default 240 minutes, Critical). T10-ALR-G2-01 [T10-RSK-G2] Interface sync failure: Consecutive failed EHR/PM synchronization jobs exceeds threshold (default 2 jobs, Critical). T10-ALR-G2-02 [T10-RSK-G2] Stale patient record in billing workflow: Hours since patient demographic record last synced exceeds threshold at time of billing (default 48 hours, High). T10-ALR-G3-01 [T10-RSK-G3] Allergy data missing or alerting disabled: Chart lacks allergy list completeness, or allergy alerting is disabled at the system level (default 0 charts, Critical). T10-ALR-G3-02 [T10-RSK-G3] Excessive allergy alert overrides: Override rate on allergy or interaction alerts exceeds threshold (default 20 percent, High). T10-ALR-G4-01 [T10-RSK-G4] Order or result routed to invalid destination: Order/result routing record has invalid address, or provider/location mismatch (default 0 orders, High). T10-ALR-G4-02 [T10-RSK-G4] Result unacknowledged beyond SLA: Hours since result delivery without provider acknowledgement exceeds SLA (default 72 hours, High). T10-ALR-G5-01 [T10-RSK-G5] Duplicate patient record detected: Two or more records match on demographic fingerprint above confidence threshold (default 90 percent, High). T10-ALR-G5-02 [T10-RSK-G5] Wrong-patient correction ticket raised: Correction ticket opened with category = wrong_patient (default 0 tickets, Critical). T10-ALR-G6-01 [T10-RSK-G6] System latency exceeds SLA: Average transaction response time over a rolling window exceeds threshold (default 3000 milliseconds, Medium). T10-ALR-G6-02 [T10-RSK-G6] User performance complaints rising: Count of performance-related complaints in a window exceeds threshold (default 5 complaints, Medium). T10-ALR-H1-01 [T10-RSK-H1] Endpoint compromise or suspicious file activity: EDR raises high-severity detection, or mass file-modification rate exceeds threshold (default 100 files_per_min, Critical). T10-ALR-H1-02 [T10-RSK-H1] Security tooling disabled: EDR, antivirus or logging agent reports disabled or non-reporting beyond threshold (default 4 hours, Critical). T10-ALR-H2-01 [T10-RSK-H2] User without MFA: Count of active accounts with mfa_enabled = false exceeds threshold (default 0 users, High). T10-ALR-H2-02 [T10-RSK-H2] Impossible travel detected: Successive logins from geographies implying travel speed above threshold (default 900 km_per_hour, High). T10-ALR-H2-03 [T10-RSK-H2] Brute-force attempt: Failed login attempts for an account in a rolling window exceeds threshold (default 10 attempts, High). T10-ALR-H3-01 [T10-RSK-H3] Redundancy missing on critical component: Critical infrastructure component has ha_status = single_node (default 0 components, High). T10-ALR-H3-02 [T10-RSK-H3] Failover test overdue: Days since last successful failover test exceeds threshold (default 180 days, Medium). T10-ALR-H4-01 [T10-RSK-H4] Backup job failure: Consecutive failed backup jobs exceeds threshold (default 1 jobs, Critical). T10-ALR-H4-02 [T10-RSK-H4] Restore test overdue: Days since last successful restore test exceeds threshold (default 90 days, Critical). T10-ALR-H4-03 [T10-RSK-H4] Immutable or offsite copy missing: Protected dataset has no immutable or offsite backup copy within RPO window (default 0 datasets, Critical). T10-ALR-H5-01 [T10-RSK-H5] Alternate site test overdue: Days since last alternate-site or remote-work continuity test exceeds threshold (default 180 days, High). T10-ALR-H5-02 [T10-RSK-H5] Remote work capacity shortfall: Percentage of critical staff lacking remote capability exceeds threshold (default 10 percent, High). T10-ALR-H6-01 [T10-RSK-H6] Subscription or certificate expiry approaching: Days until expiry_date at or below any configured notice interval (default 120;90;60;30;15;7 days, High). T10-ALR-H6-02 [T10-RSK-H6] Renewal unpaid inside final window: Days until expiry at or below final threshold with payment_status != paid (default 7 days, Critical). T10-ALR-H7-01 [T10-RSK-H7] Clearinghouse transaction failure spike: Transaction failure rate over a rolling window exceeds threshold (default 10 percent, High). T10-ALR-H7-02 [T10-RSK-H7] No acknowledgement received: Hours since last 277/999 acknowledgement for a submitted batch exceeds threshold (default 24 hours, High). T10-ALR-H8-01 [T10-RSK-H8] Unapproved deployment: Production deployment recorded without an approved change record (default 0 deployments, High). T10-ALR-H8-02 [T10-RSK-H8] Repeated hotfixes after release: Hotfix count within N days of a release exceeds threshold (default 2 hotfixes, Medium). T10-ALR-I1-01 [T10-RSK-I1] Attrition rate above threshold: Rolling 12-month attrition rate for a critical role exceeds threshold (default 15 percent, High). T10-ALR-I1-02 [T10-RSK-I1] Sustained overtime for critical resource: Weekly overtime hours for a critical-role employee exceeds threshold for N consecutive weeks (default 10 hours, High). T10-ALR-I2-01 [T10-RSK-I2] HR complaint unresolved beyond SLA: Days since complaint logged without resolution exceeds SLA (default 5 days, High). T10-ALR-I2-02 [T10-RSK-I2] Manager response time breach: Hours since HR complaint assignment without manager response exceeds threshold (default 48 hours, Medium). T10-ALR-I3-01 [T10-RSK-I3] Coder QA coverage below threshold: Percentage of a coder\u0027s claims sampled for QA in a period falls below threshold (default 5 percent, Medium). T10-ALR-I4-01 [T10-RSK-I4] Biller QA coverage below threshold: Percentage of a biller\u0027s claims sampled for QA in a period falls below threshold (default 5 percent, Medium). T10-ALR-I5-01 [T10-RSK-I5] Overdue follow-up queue per employee: Count of claims past next_action_date in an employee\u0027s worklist exceeds threshold (default 25 claims, Medium). T10-ALR-I6-01 [T10-RSK-I6] Posting lag per employee above threshold: Average business days between remit receipt and posting for an employee exceeds threshold (default 3 business_days, Medium). T10-ALR-I7-01 [T10-RSK-I7] Training overdue: Days past assigned training due_date exceeds threshold (default 14 days, Medium). T10-ALR-I7-02 [T10-RSK-I7] Work performed without required competency: Employee assigned work requiring a certification they do not hold or that has expired (default 0 assignments, High). T10-ALR-I8-01 [T10-RSK-I8] Critical process without backup owner: Process flagged critical has no backup_owner or no current SOP (default 0 processes, High). T10-ALR-J1-01 [T10-RSK-J1] Complaint overdue by severity: Hours since complaint logged without resolution exceeds the severity-specific SLA (default 72 hours, Critical). T10-ALR-J1-02 [T10-RSK-J1] Complaint without owner: Hours since complaint logged without an assigned owner exceeds threshold (default 4 hours, High). T10-ALR-J1-03 [T10-RSK-J1] Repeated complaint theme: Same complaint category recurs for a client more than N times in a rolling window (default 3 complaints, High). T10-ALR-J2-01 [T10-RSK-J2] Client invoice due: Days until invoice generation due_date at or below threshold (default 5 days, Medium). T10-ALR-J2-02 [T10-RSK-J2] Client invoice missed: Invoice generation due_date passed without invoice_status = generated (default 0 invoices, High). T10-ALR-J3-01 [T10-RSK-J3] Client report data stale: Hours since report data last_refresh exceeds threshold at time of delivery (default 24 hours, High). T10-ALR-J3-02 [T10-RSK-J3] Report reconciliation variance: Variance between report totals and source-of-truth ledger exceeds tolerance (default 0.5 percent, High). T10-ALR-J4-01 [T10-RSK-J4] SLA breach imminent: Percentage of the SLA window consumed for an in-flight item exceeds threshold (default 80 percent, High). T10-ALR-J4-02 [T10-RSK-J4] SLA breach rate above threshold: Percentage of items breaching SLA in a period exceeds threshold (default 5 percent, High). T10-ALR-J5-01 [T10-RSK-J5] Onboarding task incomplete before go-live: Days until client go_live_date at or below threshold with open onboarding checklist items (default 14 days, Medium). T10-ALR-K1-01 [T10-RSK-K1] Clearinghouse outage: Clearinghouse status = down, or downtime in a rolling window exceeds threshold (default 30 minutes, High). T10-ALR-K1-02 [T10-RSK-K1] No alternative submission route configured: Client or payer has no configured secondary clearinghouse or direct submission route (default 0 routes, Medium). T10-ALR-K2-01 [T10-RSK-K2] Vendor SLA breach: Hours since vendor ticket raised without response exceeds the contracted SLA (default 24 hours, Medium). T10-ALR-K2-02 [T10-RSK-K2] Repeated unresolved vendor incidents: Count of unresolved vendor incidents in a rolling window exceeds threshold (default 3 incidents, Medium). T10-ALR-K3-01 [T10-RSK-K3] Vendor contract expiry approaching: Days until vendor contract or subscription expiry at or below any configured notice interval (default 90;60;30;15 days, High). T10-ALR-K3-02 [T10-RSK-K3] Renewal owner unassigned: Contract inside its renewal notice window with no renewal_owner assigned (default 0 contracts, Medium). T10-ALR-K4-01 [T10-RSK-K4] Vendor security evidence missing or expired: PHI-access vendor has no SOC report, or SOC report age exceeds threshold (default 395 days, High). T10-ALR-K4-02 [T10-RSK-K4] Unresolved vendor security finding: Open vendor security finding past its remediation due_date (default 30 days, High). T10-ALR-K5-01 [T10-RSK-K5] Offshore PHI access without client approval: Offshore user with PHI access lacks a recorded client approval for that client (default 0 users, Critical). T10-ALR-K5-02 [T10-RSK-K5] Offshore contractual safeguard missing: Offshore entity lacks a current BAA, subcontractor agreement or flow-down terms (default 0 entities, Critical). T10-ALR-L1-01 [T10-RSK-L1] Risk without owner: Register entry has no assigned risk_owner (default 0 risks, High). T10-ALR-L1-02 [T10-RSK-L1] Mitigation overdue: Days past mitigation due_date exceeds threshold (default 7 days, High). T10-ALR-L2-01 [T10-RSK-L2] Risk unscored or score stale: Register entry has no severity/likelihood, or days since last_scored_date exceeds threshold (default 90 days, Medium). T10-ALR-L3-01 [T10-RSK-L3] Required audit evidence missing: Control with evidence_required = true has no linked evidence artifact for the period (default 0 controls, High). T10-ALR-L3-02 [T10-RSK-L3] Audit artifact expired: Days since evidence artifact captured exceeds its validity period (default 365 days, Medium). T10-ALR-L4-01 [T10-RSK-L4] SOP review overdue: Days since SOP last_review_date exceeds threshold (default 365 days, Medium). T10-ALR-L4-02 [T10-RSK-L4] SOP acknowledgement outstanding: Days since SOP version published without employee attestation exceeds threshold (default 30 days, Medium). T10-ALR-L5-01 [T10-RSK-L5] Critical alert unacknowledged: Hours since a Critical alert fired without acknowledgement exceeds threshold (default 4 hours, Critical). T10-ALR-L5-02 [T10-RSK-L5] Alert closure rate below threshold: Percentage of alerts closed within their escalation window falls below threshold (default 90 percent, High)."
+                            },
+                            {
+                                "assetId":  "t10-phi-field-inventory-2026",
+                                "docKey":  "t10-phi-field-inventory",
+                                "title":  "Tenant-10 PHI Field Inventory (HIPAA)",
+                                "assetType":  "ReferenceManual",
+                                "docType":  "PhiInventory",
+                                "issuer":  "Tenant-10 Privacy",
+                                "jurisdiction":  "US-Federal-HIPAA",
+                                "effectiveFrom":  "2026-01-01T00:00:00Z",
+                                "summary":  "The PHI-flagged fields in the T10 data model; these drive the masked-field / audit-logged reveal pattern (UI Phase 1 s2.4) and the RegulatedDataProfile.",
+                                "contentText":  "PhiAccessEvent.event_id, PhiAccessEvent.patient_id, Claim.claim_id, Encounter.encounter_id, Encounter.date_of_service, Encounter.allergy_list_status, InsuranceCoverage.member_id, Patient.patient_id, Patient.mrn, Patient.first_name, Patient.last_name, Patient.date_of_birth, Patient.gender, Patient.address_line1, Patient.postal_code, Patient.phone"
+                            }
+                        ]
+}
