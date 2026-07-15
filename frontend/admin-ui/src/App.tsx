@@ -30,6 +30,7 @@ import { Demos } from './components/Demos'
 import { CommandPalette } from './components/CommandPalette'
 import { Periods } from './components/Periods'
 import { Cases } from './components/Cases'
+import { PlatformRisk } from './components/PlatformRisk'
 import { PackageCatalog } from './components/PackageCatalog'
 import { Skills } from './components/Skills'
 import { SkillsLibrary } from './components/SkillsLibrary'
@@ -109,6 +110,7 @@ const NAV: { tab: string; label: string; icon: string; group: string }[] = [
   { tab: 'allocations', label: 'Capital Flows', icon: '💼', group: 'Output' },
   { tab: 'advisor', label: 'AI Advisor', icon: '🤖', group: 'Output' },
   { tab: 'agents', label: 'AI Agents', icon: '🧬', group: 'Output' },
+  { tab: 'platformrisk', label: 'Platform Risk', icon: '🚨', group: 'Platform' },
   { tab: 'health', label: 'Health Board', icon: '🩺', group: 'Platform' },
   { tab: 'enroll', label: 'Enroll Tenant', icon: '✨', group: 'Platform' },
   { tab: 'catalog', label: 'Package Library', icon: '📚', group: 'Platform' },
@@ -309,7 +311,7 @@ function App() {
   const operator = signedInWithKey && me?.isPlatformOperator === true
   const effectiveTenant = signedInWithKey ? (operator ? tenant : (me?.tenantId ?? '')) : tenant
   const effectiveUser = signedInWithKey ? (me?.identifier ?? '') : user
-  const isPlatformTab = tab === 'clients' || tab === 'billing' || tab === 'email' || tab === 'health' || tab === 'enroll' || tab === 'catalog' || tab === 'skills' || tab === 'skillslibrary' || tab === 'demos'
+  const isPlatformTab = tab === 'clients' || tab === 'billing' || tab === 'email' || tab === 'health' || tab === 'enroll' || tab === 'catalog' || tab === 'skills' || tab === 'skillslibrary' || tab === 'demos' || tab === 'platformrisk'
   const onPlatformTenant = effectiveTenant.toLowerCase() === 'platform'
 
   // Load the viewed tenant's persisted branding (api.ts sends the act-as
@@ -609,6 +611,11 @@ function App() {
             <Skills tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'skillslibrary' ? (
             <SkillsLibrary />
+          ) : tab === 'platformrisk' ? (
+            <PlatformRisk onOpenTenant={(id) => {
+              setKnownTenants((prev) => prev.includes(id) ? prev : [...prev, id])
+              setTenant(id); setTenantState(id); setTenantInput(id); setTab('risk')
+            }} />
           ) : tab === 'demos' ? (
             <Demos onOpen={(id) => {
               setKnownTenants((prev) => prev.includes(id) ? prev : [...prev, id])

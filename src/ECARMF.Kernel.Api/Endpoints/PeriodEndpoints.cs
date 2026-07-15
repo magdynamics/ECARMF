@@ -25,6 +25,15 @@ public static class PeriodEndpoints
             return Results.Ok(await analysis.AnalyzeAsync(tenantId, granularity ?? "month", count ?? 6, ct));
         });
 
+        // Platform-wide risk overview (operator): risk across every tenant.
+        app.MapGet("/api/platform/risk", async (
+            HttpContext context, IUserStore users, IPlatformRiskService risk, CancellationToken ct) =>
+        {
+            var (error, _) = await PlatformOperator.RequireAsync(context, users, ct);
+            if (error is not null) return error;
+            return Results.Ok(await risk.OverviewAsync(ct));
+        });
+
         return app;
     }
 }

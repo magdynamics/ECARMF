@@ -27,4 +27,9 @@ public interface IScoreStore
     /// before anything leaves the platform boundary.</summary>
     Task<IReadOnlyList<ScoreRecord>> GetRecentByTypeAllTenantsAsync(
         string scoreType, int limit, CancellationToken ct = default);
+
+    /// <summary>Recent risk-tagged scores across ALL tenants, newest first.
+    /// Operator-only — backs the platform risk overview.</summary>
+    Task<IReadOnlyList<ScoreRecord>> GetRecentRiskAllTenantsAsync(
+        int limit, CancellationToken ct = default);
 }

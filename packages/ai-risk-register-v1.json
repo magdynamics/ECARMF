@@ -1,0 +1,40 @@
+{
+  "packageId": "ecarmf.ai-risk-register",
+  "name": "Enterprise Risk Register",
+  "packageVersion": "1.0.0",
+  "publisher": "MAG Dynamics",
+  "description": "A universal risk register available to every tenant: each risk is scored by severity x likelihood and plotted on the risk heatmap by domain. Carries no event or rule of its own, so it installs alongside any tenant's foundation (which owns RecordReceived) without collision.",
+  "entities": [
+    {
+      "entityTypeName": "RiskAssessment",
+      "description": "A single risk in the tenant's risk register, rated by severity and likelihood.",
+      "attributes": [
+        { "name": "domain", "dataType": "string", "required": true },
+        { "name": "riskId", "dataType": "string", "required": true },
+        { "name": "severityValue", "dataType": "number", "required": true },
+        { "name": "likelihood", "dataType": "number", "required": true },
+        { "name": "title", "dataType": "string", "required": false }
+      ]
+    }
+  ],
+  "performanceFrameworks": [
+    {
+      "frameworkId": "enterprise-risk",
+      "name": "Enterprise Risk",
+      "kpis": [
+        {
+          "kpiId": "enterprise-risk-index",
+          "name": "Enterprise risk index",
+          "description": "Severity multiplied by likelihood for a tenant risk; drives the risk heatmap.",
+          "triggerRecordType": "RiskAssessment",
+          "formula": "severityValue * likelihood",
+          "riskType": "{domain}",
+          "subjectField": "riskId",
+          "subjectType": "OrganizationalUnit",
+          "metadataFields": ["severityValue", "likelihood"],
+          "direction": "lower"
+        }
+      ]
+    }
+  ]
+}
