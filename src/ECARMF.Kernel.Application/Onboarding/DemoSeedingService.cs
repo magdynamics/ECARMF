@@ -312,6 +312,9 @@ public class DemoSeedingService : IDemoSeedingService
     private static string? CaseIdFor(int seq, IReadOnlyList<string> caseIds) =>
         caseIds.Count == 0 || seq % 4 == 0 ? null : caseIds[seq % caseIds.Count];
 
+    private static readonly string[] RiskCategories =
+        ["Credit", "Market", "Operational", "Compliance", "Liquidity"];
+
     private static readonly System.Text.RegularExpressions.Regex Identifier =
         new("[A-Za-z_][A-Za-z0-9_]*", System.Text.RegularExpressions.RegexOptions.Compiled);
 
@@ -333,6 +336,16 @@ public class DemoSeedingService : IDemoSeedingService
         // Context fields the KPI carries onto its score (e.g. severity/likelihood).
         foreach (var mf in kpi.MetadataFields)
             payload[mf] = NumberFor(mf, i);
+
+        // Populate the riskType token field (e.g. {category}) with a rotating
+        // category, so risk KPIs actually land on the risk heatmap (which skips
+        // scores with no riskType) and spread across several groups.
+        if (!string.IsNullOrWhiteSpace(kpi.RiskType)
+            && kpi.RiskType.StartsWith('{') && kpi.RiskType.EndsWith('}'))
+        {
+            var field = kpi.RiskType[1..^1];
+            payload[field] = RiskCategories[i % RiskCategories.Length];
+        }
 
         // Spread scores across a handful of subjects so the boards look populated.
         if (!string.IsNullOrWhiteSpace(kpi.SubjectField))
