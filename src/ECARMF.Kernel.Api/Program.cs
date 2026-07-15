@@ -99,6 +99,7 @@ app.MapBulkImportEndpoints();
 app.MapTemplateEndpoints();
 app.MapCatalogEndpoints();
 app.MapSkillEndpoints();
+app.MapDemoEndpoints();
 app.MapHealthBoardEndpoints();
 app.MapHardeningEndpoints();
 app.MapOrgUnitEndpoints();

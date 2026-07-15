@@ -39,6 +39,7 @@ public static class DependencyInjection
         services.AddScoped<Reporting.IClientReportService, Reporting.ClientReportService>();
         services.AddScoped<Ingestion.IBulkImportService, Ingestion.BulkImportService>();
         services.AddScoped<Onboarding.IOnboardingTemplateService, Onboarding.OnboardingTemplateService>();
+        services.AddScoped<Onboarding.IDemoSeedingService, Onboarding.DemoSeedingService>();
         services.AddScoped<Operations.IPlatformHealthService, Operations.PlatformHealthService>();
         services.AddScoped<Billing.IMonthlyBillingService, Billing.MonthlyBillingService>();
         services.AddScoped<Analytics.IPeerBenchmarkService, Analytics.PeerBenchmarkService>();

@@ -26,6 +26,7 @@ import { Agents } from './components/Agents'
 import { EnrollTenant } from './components/EnrollTenant'
 import { SystemMap } from './components/SystemMap'
 import { Glossary } from './components/Glossary'
+import { Demos } from './components/Demos'
 import { PackageCatalog } from './components/PackageCatalog'
 import { Skills } from './components/Skills'
 import { SkillsLibrary } from './components/SkillsLibrary'
@@ -108,6 +109,7 @@ const NAV: { tab: string; label: string; icon: string; group: string }[] = [
   { tab: 'catalog', label: 'Package Library', icon: '📚', group: 'Platform' },
   { tab: 'skills', label: 'Skills', icon: '🧩', group: 'Platform' },
   { tab: 'skillslibrary', label: 'Skills Library', icon: '🗂️', group: 'Platform' },
+  { tab: 'demos', label: 'Demo Twins', icon: '🎬', group: 'Platform' },
   { tab: 'clients', label: 'Clients', icon: '🏢', group: 'Platform' },
   { tab: 'billing', label: 'Billing', icon: '🧾', group: 'Platform' },
   { tab: 'email', label: 'Email', icon: '✉️', group: 'Platform' },
@@ -288,7 +290,7 @@ function App() {
   const operator = signedInWithKey && me?.isPlatformOperator === true
   const effectiveTenant = signedInWithKey ? (operator ? tenant : (me?.tenantId ?? '')) : tenant
   const effectiveUser = signedInWithKey ? (me?.identifier ?? '') : user
-  const isPlatformTab = tab === 'clients' || tab === 'billing' || tab === 'email' || tab === 'health' || tab === 'enroll' || tab === 'catalog' || tab === 'skills' || tab === 'skillslibrary'
+  const isPlatformTab = tab === 'clients' || tab === 'billing' || tab === 'email' || tab === 'health' || tab === 'enroll' || tab === 'catalog' || tab === 'skills' || tab === 'skillslibrary' || tab === 'demos'
   const onPlatformTenant = effectiveTenant.toLowerCase() === 'platform'
 
   // Load the viewed tenant's persisted branding (api.ts sends the act-as
@@ -581,6 +583,11 @@ function App() {
             <Skills tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'skillslibrary' ? (
             <SkillsLibrary />
+          ) : tab === 'demos' ? (
+            <Demos onOpen={(id) => {
+              setKnownTenants((prev) => prev.includes(id) ? prev : [...prev, id])
+              setTenant(id); setTenantState(id); setTenantInput(id); setTab('home')
+            }} />
           ) : tab === 'enroll' ? (
             <EnrollTenant onProvisioned={(id) => {
               // Freshly created and valid — switch directly (the prefix-guard
