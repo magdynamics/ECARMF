@@ -141,6 +141,13 @@ public class InMemoryScoreStore : IScoreStore
                           && (scoreType is null || string.Equals(s.ScoreType, scoreType, StringComparison.OrdinalIgnoreCase)))
                 .OrderByDescending(s => s.ComputedAt).Take(limit).ToList());
 
+    public Task<IReadOnlyList<ScoreRecord>> GetRecentRiskAsync(
+        string tenantId, int limit, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<ScoreRecord>>(
+            Items.Where(s => string.Equals(s.TenantId, tenantId, StringComparison.OrdinalIgnoreCase)
+                          && !string.IsNullOrEmpty(s.RiskType))
+                .OrderByDescending(s => s.ComputedAt).Take(limit).ToList());
+
     public Task<IReadOnlyList<ScoreRecord>> GetRecentByTypeAllTenantsAsync(
         string scoreType, int limit, CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<ScoreRecord>>(

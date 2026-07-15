@@ -16,6 +16,12 @@ public interface IScoreStore
     Task<IReadOnlyList<ScoreRecord>> GetRecentAsync(
         string tenantId, int limit, string? scoreType = null, CancellationToken ct = default);
 
+    /// <summary>Most recent risk-tagged scores (RiskType set), newest first —
+    /// feeds the risk register/heatmap without being crowded out by the far
+    /// larger volume of ordinary KPI scores.</summary>
+    Task<IReadOnlyList<ScoreRecord>> GetRecentRiskAsync(
+        string tenantId, int limit, CancellationToken ct = default);
+
     /// <summary>Recent scores of one type across ALL tenants, newest first.
     /// Used only by anonymized peer benchmarking — callers must aggregate
     /// before anything leaves the platform boundary.</summary>

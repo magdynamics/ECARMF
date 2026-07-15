@@ -26,15 +26,24 @@ public static class ScoreEndpoints
         });
 
         // Recent scores across the tenant, optionally filtered by score type.
+        // riskOnly returns only risk-tagged scores (higher cap) so the risk
+        // heatmap isn't crowded out by ordinary KPI volume.
         group.MapGet("/", async (
             int? limit,
             string? scoreType,
+            bool? riskOnly,
             HttpContext context,
             IScoreStore scores,
             CancellationToken ct) =>
         {
             if (!TenantResolution.TryGetTenant(context, out var tenantId))
                 return TenantResolution.MissingTenantResult();
+
+            if (riskOnly == true)
+            {
+                var riskTake = Math.Clamp(limit ?? 1000, 1, 5000);
+                return Results.Ok(await scores.GetRecentRiskAsync(tenantId, riskTake, ct));
+            }
 
             var take = Math.Clamp(limit ?? 100, 1, 500);
             return Results.Ok(await scores.GetRecentAsync(tenantId, take, scoreType, ct));

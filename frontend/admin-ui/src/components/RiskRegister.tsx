@@ -47,7 +47,7 @@ export function RiskRegister({ tenant, user }: Props) {
   const refresh = useCallback(async () => {
     setError(null)
     try {
-      const all = await api.get<ScoreRecord[]>('/api/scores?limit=500')
+      const all = await api.get<ScoreRecord[]>('/api/scores?riskOnly=true&limit=3000')
       // The register: the latest risk-tagged score per risk subject.
       const byRisk = new Map<string, ScoreRecord>()
       for (const s of all) {

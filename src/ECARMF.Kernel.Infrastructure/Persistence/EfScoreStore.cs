@@ -62,6 +62,17 @@ public class EfScoreStore : IScoreStore
         return entries.Select(ToDomain).ToList();
     }
 
+    public async Task<IReadOnlyList<ScoreRecord>> GetRecentRiskAsync(
+        string tenantId, int limit, CancellationToken ct = default)
+    {
+        var entries = await _db.Scores.AsNoTracking()
+            .Where(s => s.TenantId == tenantId && s.RiskType != null && s.RiskType != "")
+            .OrderByDescending(s => s.ComputedAt)
+            .Take(limit)
+            .ToListAsync(ct);
+        return entries.Select(ToDomain).ToList();
+    }
+
     public async Task<IReadOnlyList<ScoreRecord>> GetRecentByTypeAllTenantsAsync(
         string scoreType, int limit, CancellationToken ct = default)
     {

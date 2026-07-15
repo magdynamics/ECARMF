@@ -1,0 +1,57 @@
+{
+  "packageId": "ecarmf.ai-dental-risk-register",
+  "name": "Dental Practice Risk Register",
+  "packageVersion": "1.0.0",
+  "publisher": "MAG Dynamics",
+  "description": "Risk register for a dental practice: each risk is scored by severity x likelihood and plotted on the risk heatmap by domain (Clinical, Financial, Compliance, Operational, Safety, Staffing). Depends on the AI Dental package, which owns the RecordReceived event.",
+  "dependencies": [
+    { "packageId": "ecarmf.ai-dental", "minimumVersion": "1.0.1" }
+  ],
+  "entities": [
+    {
+      "entityTypeName": "DentalRiskAssessment",
+      "description": "A single risk in the practice's risk register, rated by severity and likelihood.",
+      "attributes": [
+        { "name": "domain", "dataType": "string", "required": true },
+        { "name": "area", "dataType": "string", "required": false },
+        { "name": "severityValue", "dataType": "number", "required": true },
+        { "name": "likelihood", "dataType": "number", "required": true },
+        { "name": "title", "dataType": "string", "required": false }
+      ]
+    }
+  ],
+  "performanceFrameworks": [
+    {
+      "frameworkId": "dental-risk",
+      "name": "Dental Risk",
+      "kpis": [
+        {
+          "kpiId": "dental-risk-index",
+          "name": "Dental risk index",
+          "description": "Severity multiplied by likelihood for a practice risk; drives the risk heatmap.",
+          "triggerRecordType": "DentalRiskAssessment",
+          "formula": "severityValue * likelihood",
+          "riskType": "{domain}",
+          "subjectField": "area",
+          "subjectType": "OrganizationalUnit",
+          "metadataFields": ["severityValue", "likelihood"],
+          "direction": "lower"
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "ruleId": "DRR-001",
+      "name": "Critical dental risk flagged",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "DentalRiskAssessment" },
+        { "field": "severityValue", "operator": "GreaterOrEqual", "value": "4" }
+      ],
+      "outcomeOnMatch": "Flagged",
+      "reasonTemplate": "Risk in {domain} scored severity {severityValue} and likelihood {likelihood} - flagged for review."
+    }
+  ]
+}
