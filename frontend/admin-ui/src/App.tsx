@@ -1,7 +1,7 @@
 ﻿import { Component, useEffect, useState, type ReactNode } from 'react'
 import './App.css'
 import { api, getApiKey, getTenant, getUser, setApiKey, setTenant, setUser } from './api'
-import { tenantConfig } from './tenantConfig'
+import { tenantConfig, mergeConfig, type TenantConfigDto } from './tenantConfig'
 import { Advisor } from './components/Advisor'
 import { AiSettings } from './components/AiSettings'
 import { Allocations } from './components/Allocations'
@@ -23,6 +23,7 @@ import { RiskRegister } from './components/RiskRegister'
 import { ControlsExplorer } from './components/ControlsExplorer'
 import { CapabilityExplorer } from './components/CapabilityExplorer'
 import { Agents } from './components/Agents'
+import { EnrollTenant } from './components/EnrollTenant'
 import { Renewals } from './components/Renewals'
 import { Reports } from './components/Reports'
 import { StatementReview } from './components/StatementReview'
@@ -96,6 +97,7 @@ const NAV: { tab: string; label: string; icon: string; group: string }[] = [
   { tab: 'advisor', label: 'AI Advisor', icon: '🤖', group: 'Output' },
   { tab: 'agents', label: 'AI Agents', icon: '🧬', group: 'Output' },
   { tab: 'health', label: 'Health Board', icon: '🩺', group: 'Platform' },
+  { tab: 'enroll', label: 'Enroll Tenant', icon: '✨', group: 'Platform' },
   { tab: 'clients', label: 'Clients', icon: '🏢', group: 'Platform' },
   { tab: 'billing', label: 'Billing', icon: '🧾', group: 'Platform' },
   { tab: 'email', label: 'Email', icon: '✉️', group: 'Platform' },
@@ -155,6 +157,8 @@ function App() {
   // Tenant/As controls do nothing. Detect the mode so we can show a real
   // sign-in screen instead of a dead console.
   const [keyOnly, setKeyOnly] = useState(false)
+  // Server-persisted shell branding for the tenant currently being viewed.
+  const [serverCfg, setServerCfg] = useState<TenantConfigDto | null>(null)
 
   function openTab(next: string) {
     setTab(next)
@@ -274,11 +278,27 @@ function App() {
   const operator = signedInWithKey && me?.isPlatformOperator === true
   const effectiveTenant = signedInWithKey ? (operator ? tenant : (me?.tenantId ?? '')) : tenant
   const effectiveUser = signedInWithKey ? (me?.identifier ?? '') : user
-  const isPlatformTab = tab === 'clients' || tab === 'billing' || tab === 'email' || tab === 'health'
+  const isPlatformTab = tab === 'clients' || tab === 'billing' || tab === 'email' || tab === 'health' || tab === 'enroll'
   const onPlatformTenant = effectiveTenant.toLowerCase() === 'platform'
-  // Tenant-Aware Shell (§2.1): per-tenant branding/terminology/posture injected
-  // from the TenantConfig layer — one shell, no per-tenant forks.
-  const cfg = tenantConfig(effectiveTenant)
+
+  // Load the viewed tenant's persisted branding (api.ts sends the act-as
+  // tenant header, so an operator sees each client's own look). Cleared while
+  // switching so a stale brand never flashes on the next tenant.
+  useEffect(() => {
+    setServerCfg(null)
+    if (!effectiveTenant) return
+    let live = true
+    api.get<TenantConfigDto>('/api/tenant-config')
+      .then((c) => { if (live) setServerCfg(c) })
+      .catch(() => {})
+    return () => { live = false }
+  }, [effectiveTenant])
+
+  // Tenant-Aware Shell (§2.1): per-tenant branding/terminology/posture. The
+  // static tenantConfig.ts is the fallback; the server-persisted config
+  // (set via the enroll wizard / config endpoint) overlays it, so onboarding
+  // a new tenant's look needs no code change.
+  const cfg = mergeConfig(tenantConfig(effectiveTenant), serverCfg)
 
   // Operator gate: the Platform group needs the reserved operator tenant.
   const OperatorGate = () => (
@@ -539,6 +559,15 @@ function App() {
             <Advisor tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'health' ? (
             <HealthBoard tenant={effectiveTenant} user={effectiveUser} />
+          ) : tab === 'enroll' ? (
+            <EnrollTenant onProvisioned={(id) => {
+              // Freshly created and valid — switch directly (the prefix-guard
+              // in applyTenant would reject it against the startup-stale list)
+              // and register it so the switcher/autocomplete knows it.
+              setKnownTenants((prev) => prev.includes(id) ? prev : [...prev, id])
+              setTenant(id); setTenantState(id); setTenantInput(id)
+              setTab('home')
+            }} />
           ) : tab === 'clients' ? (
             <Clients tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'email' ? (

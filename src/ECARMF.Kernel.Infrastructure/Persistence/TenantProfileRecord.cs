@@ -1,4 +1,5 @@
-﻿using ECARMF.Kernel.Application.Identity;
+﻿using System.Text.Json;
+using ECARMF.Kernel.Application.Identity;
 using ECARMF.Kernel.Domain.Tenancy;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,6 +16,12 @@ public class TenantProfileRecord
     public string Status { get; set; } = TenantStatus.Active;
     public string? BillingPlanId { get; set; }
     public string SensitivityTier { get; set; } = "Standard";
+    public string? Brand { get; set; }
+    public string? Segment { get; set; }
+    public string? AccentColor { get; set; }
+    public bool HandlesPhi { get; set; }
+    /// <summary>Terminology dictionary serialised as JSON (nullable = none).</summary>
+    public string? TerminologyJson { get; set; }
     public string? Notes { get; set; }
     public string CreatedBy { get; set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; set; }
@@ -55,6 +62,11 @@ public class EfTenantDirectory : ITenantDirectory
             Status = profile.Status,
             BillingPlanId = profile.BillingPlanId,
             SensitivityTier = profile.SensitivityTier,
+            Brand = profile.Brand,
+            Segment = profile.Segment,
+            AccentColor = profile.AccentColor,
+            HandlesPhi = profile.HandlesPhi,
+            TerminologyJson = SerializeTerms(profile.Terminology),
             Notes = profile.Notes,
             CreatedBy = profile.CreatedBy,
             CreatedAt = profile.CreatedAt
@@ -72,9 +84,24 @@ public class EfTenantDirectory : ITenantDirectory
         record.Status = profile.Status;
         record.BillingPlanId = profile.BillingPlanId;
         record.SensitivityTier = profile.SensitivityTier;
+        record.Brand = profile.Brand;
+        record.Segment = profile.Segment;
+        record.AccentColor = profile.AccentColor;
+        record.HandlesPhi = profile.HandlesPhi;
+        record.TerminologyJson = SerializeTerms(profile.Terminology);
         record.Notes = profile.Notes;
         record.UpdatedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(ct);
+    }
+
+    private static string? SerializeTerms(Dictionary<string, string>? terms) =>
+        terms is null || terms.Count == 0 ? null : JsonSerializer.Serialize(terms);
+
+    private static Dictionary<string, string> DeserializeTerms(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return new();
+        try { return JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new(); }
+        catch { return new(); }
     }
 
     private static TenantProfile ToDomain(TenantProfileRecord record) => new()
@@ -88,6 +115,11 @@ public class EfTenantDirectory : ITenantDirectory
         Status = record.Status,
         BillingPlanId = record.BillingPlanId,
         SensitivityTier = record.SensitivityTier,
+        Brand = record.Brand,
+        Segment = record.Segment,
+        AccentColor = record.AccentColor,
+        HandlesPhi = record.HandlesPhi,
+        Terminology = DeserializeTerms(record.TerminologyJson),
         Notes = record.Notes,
         CreatedBy = record.CreatedBy,
         CreatedAt = record.CreatedAt,

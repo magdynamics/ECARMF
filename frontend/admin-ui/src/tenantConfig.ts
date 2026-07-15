@@ -67,10 +67,49 @@ const REGISTRY: Record<string, TenantConfig> = {
   },
 }
 
-/** Resolve the config for a tenant id, falling back to the platform default. */
+/** Resolve the STATIC config for a tenant id, falling back to the platform
+ *  default. This is now only the fallback: the server-persisted config
+ *  (fetchTenantConfig) overlays it so onboarding needs no code change. */
 export function tenantConfig(tenantId: string | null | undefined): TenantConfig {
   if (!tenantId) return DEFAULT
   return REGISTRY[tenantId.toLowerCase()] ?? { ...DEFAULT, brand: tenantId }
+}
+
+/** Server-persisted branding (GET /api/tenant-config). Any field may be
+ *  absent, in which case the static fallback shows through. */
+export interface TenantConfigDto {
+  brand?: string | null
+  segment?: string | null
+  accent?: string | null
+  posture?: 'standard' | 'elevated' | 'regulated' | null
+  phi?: boolean | null
+  terms?: Record<string, string> | null
+}
+
+/** Overlay server config onto the static fallback — persisted values win,
+ *  but a blank server field never blanks out a good fallback. */
+export function mergeConfig(base: TenantConfig, dto: TenantConfigDto | null | undefined): TenantConfig {
+  if (!dto) return base
+  return {
+    brand: dto.brand || base.brand,
+    segment: dto.segment ?? base.segment,
+    accent: dto.accent || base.accent,
+    posture: dto.posture ?? base.posture,
+    phi: dto.phi ?? base.phi,
+    terms: { ...(base.terms ?? {}), ...(dto.terms ?? {}) },
+  }
+}
+
+/** Fetch the server-persisted branding for a tenant; null if unavailable
+ *  (the caller then keeps the static fallback). */
+export async function fetchTenantConfig(
+  get: (path: string) => Promise<TenantConfigDto>,
+): Promise<TenantConfigDto | null> {
+  try {
+    return await get('/api/tenant-config')
+  } catch {
+    return null
+  }
 }
 
 /** Look up a possibly-renamed term for a tenant (falls back to the default word). */

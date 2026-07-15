@@ -37,6 +37,27 @@ public class TenantProfile
     /// obligations (cancel preserves the record instead).</summary>
     public string SensitivityTier { get; set; } = SensitivityTiers.Standard;
 
+    // --- Tenant-Aware Shell branding (ECARMF-ADR-UIUX-001 §2.1, made
+    // data-driven). Persisted here so onboarding a tenant never requires a
+    // frontend code edit; the UI's static tenantConfig.ts is only a fallback. ---
+
+    /// <summary>Display name for this tenant's workspace (defaults to Name).</summary>
+    public string? Brand { get; set; }
+
+    /// <summary>Short industry/segment label shown next to the brand.</summary>
+    public string? Segment { get; set; }
+
+    /// <summary>Accent colour (CSS hex, e.g. "#2fbf9f") applied to the shell.</summary>
+    public string? AccentColor { get; set; }
+
+    /// <summary>True when this tenant handles PHI — every PHI-badged field
+    /// defaults to masked with an audit-logged reveal (§2.4).</summary>
+    public bool HandlesPhi { get; set; }
+
+    /// <summary>Domain relabelling of generic shell terms (e.g. record→claim).
+    /// Keys are stable internal terms; values are what THIS tenant calls them.</summary>
+    public Dictionary<string, string> Terminology { get; set; } = new();
+
     public string? Notes { get; set; }
 
     public string CreatedBy { get; set; } = string.Empty;

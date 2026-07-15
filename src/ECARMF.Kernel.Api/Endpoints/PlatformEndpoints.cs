@@ -12,6 +12,16 @@ public record CreateTenantRequest(
 
 public record SetTenantStatusRequest(string Status);
 
+public record SetTenantConfigRequest(
+    string? Brand, string? Segment, string? AccentColor, bool? HandlesPhi,
+    string? SensitivityTier, Dictionary<string, string>? Terminology);
+
+/// <summary>Shell branding for a tenant, shaped to match the frontend
+/// TenantConfig (posture is derived from the SensitivityTier rank).</summary>
+public record TenantConfigResponse(
+    string Brand, string? Segment, string? Accent, string Posture, bool Phi,
+    Dictionary<string, string> Terms);
+
 public record CreateTenantUserRequest(
     string Identifier, string DisplayName, string Role,
     string? Email, string? Phone, string? JobTitle);
@@ -42,6 +52,25 @@ public static class PlatformEndpoints
     private static Task<(IResult? Error, User? Operator)> RequirePlatformOperatorAsync(
         HttpContext context, IUserStore users, CancellationToken ct) =>
         PlatformOperator.RequireAsync(context, users, ct);
+
+    /// <summary>Project a tenant profile to shell branding. Posture maps the
+    /// backend SensitivityTier onto the UI's three-level scale: the UI treats
+    /// anything at HighSensitivity+ as regulated/PHI-capable.</summary>
+    private static TenantConfigResponse ToConfig(TenantProfile p)
+    {
+        var posture = SensitivityTiers.AtLeast(p.SensitivityTier, SensitivityTiers.HighSensitivity)
+            ? "regulated"
+            : SensitivityTiers.AtLeast(p.SensitivityTier, SensitivityTiers.Elevated)
+                ? "elevated"
+                : "standard";
+        return new TenantConfigResponse(
+            string.IsNullOrWhiteSpace(p.Brand) ? p.Name : p.Brand!,
+            p.Segment,
+            p.AccentColor,
+            posture,
+            p.HandlesPhi,
+            p.Terminology ?? new());
+    }
 
     public static IEndpointRouteBuilder MapPlatformEndpoints(this IEndpointRouteBuilder app)
     {
@@ -244,6 +273,58 @@ public static class PlatformEndpoints
             return Results.Ok(profile);
         });
 
+        // Data-driven Tenant-Aware Shell (§2.1): the operator sets a tenant's
+        // branding/terminology/posture once, persisted on the profile — no
+        // frontend code edit to onboard a new look. Only provided fields change.
+        group.MapPut("/{tenantId}/config", async (
+            string tenantId, SetTenantConfigRequest request, HttpContext context,
+            IUserStore users, ITenantDirectory tenants, IAuditLog audit, CancellationToken ct) =>
+        {
+            var (error, op) = await RequirePlatformOperatorAsync(context, users, ct);
+            if (error is not null) return error;
+
+            var profile = await tenants.GetAsync(tenantId, ct);
+            if (profile is null) return Results.NotFound();
+
+            if (request.AccentColor is not null && request.AccentColor.Length > 0
+                && !Regex.IsMatch(request.AccentColor, "^#[0-9a-fA-F]{3,8}$"))
+                return Results.BadRequest(new { error = "accentColor must be a CSS hex colour, e.g. #2fbf9f." });
+            if (request.SensitivityTier is not null
+                && !SensitivityTiers.Ordered.Any(t => string.Equals(t, request.SensitivityTier, StringComparison.OrdinalIgnoreCase)))
+                return Results.BadRequest(new { error = "sensitivityTier must be one of: " + string.Join(", ", SensitivityTiers.Ordered) });
+
+            if (request.Brand is not null) profile.Brand = request.Brand.Trim() is { Length: > 0 } b ? b : null;
+            if (request.Segment is not null) profile.Segment = request.Segment.Trim() is { Length: > 0 } s ? s : null;
+            if (request.AccentColor is not null) profile.AccentColor = request.AccentColor.Trim() is { Length: > 0 } a ? a : null;
+            if (request.HandlesPhi is not null) profile.HandlesPhi = request.HandlesPhi.Value;
+            if (request.SensitivityTier is not null) profile.SensitivityTier = request.SensitivityTier;
+            if (request.Terminology is not null)
+                profile.Terminology = request.Terminology
+                    .Where(kv => !string.IsNullOrWhiteSpace(kv.Key) && !string.IsNullOrWhiteSpace(kv.Value))
+                    .ToDictionary(kv => kv.Key.Trim(), kv => kv.Value.Trim());
+
+            await tenants.UpdateAsync(profile, ct);
+
+            await audit.AppendAsync(new AuditEntry
+            {
+                TenantId = tenantId,
+                CorrelationId = profile.Id,
+                Category = AuditCategories.TenantConfigUpdated,
+                Actor = op!.Identifier,
+                Summary = $"Tenant '{tenantId}' shell config updated by the platform operator.",
+                Detail = new Dictionary<string, string>
+                {
+                    ["brand"] = profile.Brand ?? string.Empty,
+                    ["segment"] = profile.Segment ?? string.Empty,
+                    ["accentColor"] = profile.AccentColor ?? string.Empty,
+                    ["handlesPhi"] = profile.HandlesPhi.ToString(),
+                    ["sensitivityTier"] = profile.SensitivityTier
+                }
+            }, ct);
+
+            return Results.Ok(ToConfig(profile));
+        });
+
         group.MapGet("/{tenantId}/users", async (
             string tenantId, HttpContext context,
             IUserStore users, ITenantDirectory tenants, CancellationToken ct) =>
@@ -419,6 +500,21 @@ public static class PlatformEndpoints
             }, ct);
 
             return Results.Ok(new { identifier, request.Status });
+        });
+
+        // The shell reads its own tenant's branding here (works for a client
+        // and for an operator "acting as" a tenant — both resolve from context).
+        // Branding is non-sensitive; any authenticated tenant member may read it.
+        app.MapGet("/api/tenant-config", async (
+            HttpContext context, ITenantDirectory tenants, CancellationToken ct) =>
+        {
+            if (!TenantResolution.TryGetTenant(context, out var tenantId))
+                return TenantResolution.MissingTenantResult();
+
+            var profile = await tenants.GetAsync(tenantId, ct);
+            return Results.Ok(profile is null
+                ? new TenantConfigResponse(tenantId, null, null, "standard", false, new())
+                : ToConfig(profile));
         });
 
         // Who am I — resolves the authenticated identity (via access key or

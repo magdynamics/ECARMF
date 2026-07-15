@@ -389,6 +389,11 @@ public class ECARMFDbContext : DbContext
             entity.Property(t => t.ContactEmail).HasMaxLength(400);
             entity.Property(t => t.Status).HasMaxLength(50).IsRequired();
             entity.Property(t => t.BillingPlanId).HasMaxLength(100);
+            entity.Property(t => t.SensitivityTier).HasMaxLength(50);
+            entity.Property(t => t.Brand).HasMaxLength(200);
+            entity.Property(t => t.Segment).HasMaxLength(200);
+            entity.Property(t => t.AccentColor).HasMaxLength(32);
+            entity.Property(t => t.TerminologyJson).HasMaxLength(4000);
             entity.Property(t => t.Notes).HasMaxLength(4000);
             entity.Property(t => t.CreatedBy).HasMaxLength(400).IsRequired();
             entity.HasIndex(t => t.TenantId).IsUnique();

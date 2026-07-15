@@ -889,3 +889,45 @@ select {
 @media (max-width: 720px) {
   .agents-layout { grid-template-columns: 1fr; }
 }
+
+/* Enroll tenant wizard */
+.enroll-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.75rem 1rem;
+}
+.enroll-grid label, .enroll-postures .posture-opt { display: flex; flex-direction: column; gap: 0.25rem; }
+.enroll-wide { grid-column: 1 / -1; }
+.enroll-accent { display: flex; align-items: center; gap: 0.5rem; }
+.enroll-accent input[type="color"] { width: 2.5rem; height: 2rem; padding: 0; border: none; background: none; }
+.enroll-postures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.6rem;
+}
+.posture-opt {
+  text-align: left;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid #1f2a36;
+  border-radius: 8px;
+  background: #0e141b;
+  cursor: pointer;
+}
+.posture-opt:hover { background: #131c26; }
+.posture-opt.on { border-color: var(--tenant-accent, #3d8bfd); background: #12202e; }
+.enroll-steps { list-style: none; padding: 0; margin: 0.5rem 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.enroll-step { display: flex; gap: 0.6rem; align-items: flex-start; }
+.step-icon {
+  flex: 0 0 auto; width: 1.4rem; height: 1.4rem; border-radius: 999px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; font-weight: 700; background: #1a2430; color: #8aa0b6;
+}
+.step-ok .step-icon { background: #10381f; color: #6ee7b7; }
+.step-fail .step-icon { background: #3a1414; color: #ff9d9d; }
+.step-running .step-icon { background: #12202e; color: #7dd3fc; }
+.enroll-key {
+  margin-top: 1rem; padding: 0.9rem; border-radius: 8px;
+  border: 1px solid #7a5c12; background: #241a03;
+}
+.enroll-key code { display: block; margin-top: 0.4rem; font-size: 1.05rem; color: #ffcf70; word-break: break-all; }
+.enroll-actions { display: flex; gap: 0.6rem; margin-top: 1rem; flex-wrap: wrap; }
