@@ -1,0 +1,92 @@
+{
+  "packageId": "ecarmf.ai-autonomous-orchestration",
+  "name": "Autonomous Orchestration & Remediation",
+  "packageVersion": "1.0.0",
+  "publisher": "MAG Dynamics",
+  "description": "Governed autonomous action and remediation for any tenant: a proposed autonomous action must clear approval, kill-switch, and verification before it can execute, and open incidents are risk-scored onto the heatmap. The cross-platform version of TCEL T9-041, decoupled from the TCEL foundation so it layers onto any tenant (it declares no event of its own and reuses the tenant's RecordReceived).",
+  "entities": [
+    {
+      "entityTypeName": "AutonomousActionRequest",
+      "description": "A proposed autonomous action awaiting governance before execution.",
+      "attributes": [
+        { "name": "actionType", "dataType": "string", "required": true },
+        { "name": "target", "dataType": "string", "required": false },
+        { "name": "riskTier", "dataType": "string", "required": true },
+        { "name": "approved", "dataType": "boolean", "required": true },
+        { "name": "killSwitch", "dataType": "boolean", "required": false },
+        { "name": "verified", "dataType": "boolean", "required": false },
+        { "name": "requestedBy", "dataType": "string", "required": false }
+      ]
+    },
+    {
+      "entityTypeName": "RemediationIncident",
+      "description": "An operational incident being remediated; rated by severity and likelihood.",
+      "attributes": [
+        { "name": "incidentId", "dataType": "string", "required": true },
+        { "name": "domain", "dataType": "string", "required": true },
+        { "name": "severityValue", "dataType": "number", "required": true },
+        { "name": "likelihood", "dataType": "number", "required": true },
+        { "name": "status", "dataType": "string", "required": false }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "ruleId": "AO-GOV-001",
+      "name": "High-risk autonomous action requires approval",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "AutonomousActionRequest" },
+        { "field": "riskTier", "operator": "Equals", "value": "High" },
+        { "field": "approved", "operator": "Equals", "value": "false" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "High-risk autonomous action '{actionType}' has no approval - execution denied."
+    },
+    {
+      "ruleId": "AO-GOV-002",
+      "name": "Kill-switch blocks execution",
+      "triggerEvent": "RecordReceived",
+      "priority": 5,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "AutonomousActionRequest" },
+        { "field": "killSwitch", "operator": "Equals", "value": "true" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "Kill-switch is engaged - autonomous action '{actionType}' is blocked."
+    },
+    {
+      "ruleId": "AO-GOV-003",
+      "name": "Unverified action flagged for review",
+      "triggerEvent": "RecordReceived",
+      "priority": 20,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "AutonomousActionRequest" },
+        { "field": "verified", "operator": "Equals", "value": "false" }
+      ],
+      "outcomeOnMatch": "Flagged",
+      "reasonTemplate": "Autonomous action '{actionType}' executed without verification - flagged."
+    }
+  ],
+  "performanceFrameworks": [
+    {
+      "frameworkId": "orchestration-risk",
+      "name": "Orchestration Risk",
+      "kpis": [
+        {
+          "kpiId": "automation-risk-index",
+          "name": "Automation risk index",
+          "description": "Severity x likelihood of an open remediation incident; drives the risk heatmap.",
+          "triggerRecordType": "RemediationIncident",
+          "formula": "severityValue * likelihood",
+          "riskType": "{domain}",
+          "subjectField": "incidentId",
+          "subjectType": "OrganizationalUnit",
+          "metadataFields": ["severityValue", "likelihood"],
+          "direction": "lower"
+        }
+      ]
+    }
+  ]
+}

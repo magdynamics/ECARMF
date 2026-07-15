@@ -1,0 +1,106 @@
+{
+  "packageId": "ecarmf.ai-financial-continuity",
+  "name": "Financial Continuity & Liquidity",
+  "packageVersion": "1.0.0",
+  "publisher": "MAG Dynamics",
+  "description": "Cash-runway, payment-priority, and covenant monitoring for any tenant: it flags a thinning cash runway, denies a covenant breach, holds a critical payment that isn't funded, and risk-scores continuity threats onto the heatmap. The cross-platform version of TCEL T9-042, decoupled from the TCEL foundation so it layers onto any tenant (it declares no event of its own and reuses the tenant's RecordReceived).",
+  "entities": [
+    {
+      "entityTypeName": "LiquidityPosition",
+      "description": "A cash/liquidity snapshot for an account or entity.",
+      "attributes": [
+        { "name": "account", "dataType": "string", "required": true },
+        { "name": "cashOnHand", "dataType": "number", "required": false },
+        { "name": "runwayDays", "dataType": "number", "required": true }
+      ]
+    },
+    {
+      "entityTypeName": "PaymentObligation",
+      "description": "A payment the tenant owes, with its priority and funding status.",
+      "attributes": [
+        { "name": "obligationId", "dataType": "string", "required": true },
+        { "name": "amount", "dataType": "number", "required": false },
+        { "name": "priority", "dataType": "string", "required": true },
+        { "name": "fundsAvailable", "dataType": "boolean", "required": true },
+        { "name": "dueDate", "dataType": "string", "required": false }
+      ]
+    },
+    {
+      "entityTypeName": "CovenantCheck",
+      "description": "A debt covenant test and its headroom.",
+      "attributes": [
+        { "name": "covenant", "dataType": "string", "required": true },
+        { "name": "headroom", "dataType": "number", "required": true }
+      ]
+    },
+    {
+      "entityTypeName": "ContinuityRisk",
+      "description": "A financial-continuity threat, rated by severity and likelihood.",
+      "attributes": [
+        { "name": "riskId", "dataType": "string", "required": true },
+        { "name": "domain", "dataType": "string", "required": true },
+        { "name": "severityValue", "dataType": "number", "required": true },
+        { "name": "likelihood", "dataType": "number", "required": true }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "ruleId": "FC-GOV-001",
+      "name": "Cash runway critically low",
+      "triggerEvent": "RecordReceived",
+      "priority": 10,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "LiquidityPosition" },
+        { "field": "runwayDays", "operator": "LessThan", "value": "30" }
+      ],
+      "outcomeOnMatch": "Flagged",
+      "reasonTemplate": "Cash runway for '{account}' is {runwayDays} days - below the 30-day floor."
+    },
+    {
+      "ruleId": "FC-GOV-002",
+      "name": "Debt covenant breached",
+      "triggerEvent": "RecordReceived",
+      "priority": 5,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "CovenantCheck" },
+        { "field": "headroom", "operator": "LessThan", "value": "0" }
+      ],
+      "outcomeOnMatch": "Rejected",
+      "reasonTemplate": "Covenant '{covenant}' is breached (headroom {headroom})."
+    },
+    {
+      "ruleId": "FC-GOV-003",
+      "name": "Critical payment not funded",
+      "triggerEvent": "RecordReceived",
+      "priority": 15,
+      "conditions": [
+        { "field": "recordType", "operator": "Equals", "value": "PaymentObligation" },
+        { "field": "priority", "operator": "Equals", "value": "Critical" },
+        { "field": "fundsAvailable", "operator": "Equals", "value": "false" }
+      ],
+      "outcomeOnMatch": "Flagged",
+      "reasonTemplate": "Critical payment '{obligationId}' is not funded - reroute or escalate."
+    }
+  ],
+  "performanceFrameworks": [
+    {
+      "frameworkId": "continuity-risk",
+      "name": "Financial Continuity Risk",
+      "kpis": [
+        {
+          "kpiId": "continuity-risk-index",
+          "name": "Continuity risk index",
+          "description": "Severity x likelihood of a financial-continuity threat; drives the risk heatmap.",
+          "triggerRecordType": "ContinuityRisk",
+          "formula": "severityValue * likelihood",
+          "riskType": "{domain}",
+          "subjectField": "riskId",
+          "subjectType": "OrganizationalUnit",
+          "metadataFields": ["severityValue", "likelihood"],
+          "direction": "lower"
+        }
+      ]
+    }
+  ]
+}
