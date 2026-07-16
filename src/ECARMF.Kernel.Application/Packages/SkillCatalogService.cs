@@ -1,5 +1,7 @@
 using System.Text.RegularExpressions;
+using ECARMF.Kernel.Application.Operations;
 using ECARMF.Kernel.Domain.Packages;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ECARMF.Kernel.Application.Packages;
 
@@ -91,18 +93,26 @@ public class SkillCatalogService : ISkillCatalog
 {
     private const string DefaultCurrency = "USD";
 
+    private static readonly TimeSpan CacheTtl = TimeSpan.FromSeconds(45);
+
     private readonly IPackageCatalog _catalog;
     private readonly IPackageStore _packages;
     private readonly IPackageLoader _loader;
     private readonly ISkillSettingStore _settings;
+    private readonly IMemoryCache? _cache;
+    private readonly IPlatformCacheStamp? _stamp;
 
+    // Cache/stamp optional so tests construct the service bare; DI supplies both.
     public SkillCatalogService(
-        IPackageCatalog catalog, IPackageStore packages, IPackageLoader loader, ISkillSettingStore settings)
+        IPackageCatalog catalog, IPackageStore packages, IPackageLoader loader, ISkillSettingStore settings,
+        IMemoryCache? cache = null, IPlatformCacheStamp? stamp = null)
     {
         _catalog = catalog;
         _packages = packages;
         _loader = loader;
         _settings = settings;
+        _cache = cache;
+        _stamp = stamp;
     }
 
     public async Task<IReadOnlyList<SkillView>> ListForTenantAsync(string tenantId, CancellationToken ct = default)
@@ -147,6 +157,7 @@ public class SkillCatalogService : ISkillCatalog
 
             var stored = existing[0];
             var result = await _loader.ActivateAsync(tenantId, stored.Manifest.PackageId, stored.Manifest.PackageVersion, ct);
+            if (result.Success) _stamp?.Invalidate();
             return result.Success
                 ? new SkillActionResult(true, "Skill activated.")
                 : new SkillActionResult(false, string.Join("; ", result.Errors));
@@ -174,6 +185,7 @@ public class SkillCatalogService : ISkillCatalog
             return new SkillActionResult(true, "Skill is already off.");
 
         var result = await _loader.DeactivateAsync(tenantId, active.Manifest.PackageId, active.Manifest.PackageVersion, ct);
+        if (result.Success) _stamp?.Invalidate();
         return result.Success
             ? new SkillActionResult(true, "Skill deactivated.")
             : new SkillActionResult(false, string.Join("; ", result.Errors));
@@ -200,6 +212,20 @@ public class SkillCatalogService : ISkillCatalog
     }
 
     public async Task<IReadOnlyList<SkillValue>> LibraryAsync(CancellationToken ct = default)
+    {
+        if (_cache is not null)
+        {
+            var key = $"skill-library:v{_stamp?.Version ?? 0}";
+            return (await _cache.GetOrCreateAsync(key, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = CacheTtl;
+                return ComputeLibraryAsync(ct);
+            }))!;
+        }
+        return await ComputeLibraryAsync(ct);
+    }
+
+    private async Task<IReadOnlyList<SkillValue>> ComputeLibraryAsync(CancellationToken ct)
     {
         var all = await _packages.GetAllAcrossTenantsAsync(ct);
         var overrides = await _settings.GetAllAsync(ct);
@@ -245,6 +271,7 @@ public class SkillCatalogService : ISkillCatalog
         // billing never charges for them.
         var price = string.Equals(normalized, SkillPackaging.Essential, StringComparison.OrdinalIgnoreCase) ? 0m : monthlyPrice;
         await _settings.UpsertAsync(new SkillSetting(packageId, normalized, price), actor, ct);
+        _stamp?.Invalidate(); // pricing/packaging feeds the cached library
         return new SkillActionResult(true, $"Skill packaged as {normalized}{(price > 0 ? $" at {price:0} {DefaultCurrency}/mo" : "")}.");
     }
 

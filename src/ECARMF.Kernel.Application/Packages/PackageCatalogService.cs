@@ -1,8 +1,10 @@
 using System.Text.Json;
 using ECARMF.Kernel.Application.Audit;
 using ECARMF.Kernel.Application.Onboarding;
+using ECARMF.Kernel.Application.Operations;
 using ECARMF.Kernel.Domain.Audit;
 using ECARMF.Kernel.Domain.Packages;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ECARMF.Kernel.Application.Packages;
 
@@ -58,18 +60,42 @@ public interface IPackageCatalog
 /// </summary>
 public class PackageCatalogService : IPackageCatalog
 {
+    private static readonly TimeSpan CacheTtl = TimeSpan.FromSeconds(45);
+
     private readonly IPackageStore _packages;
     private readonly IPackageLoader _loader;
     private readonly IAuditLog _audit;
+    private readonly IMemoryCache? _cache;
+    private readonly IPlatformCacheStamp? _stamp;
 
-    public PackageCatalogService(IPackageStore packages, IPackageLoader loader, IAuditLog audit)
+    // Cache/stamp are optional so tests can construct the service bare;
+    // production DI supplies both and the catalog list is cached 45 s.
+    public PackageCatalogService(
+        IPackageStore packages, IPackageLoader loader, IAuditLog audit,
+        IMemoryCache? cache = null, IPlatformCacheStamp? stamp = null)
     {
         _packages = packages;
         _loader = loader;
         _audit = audit;
+        _cache = cache;
+        _stamp = stamp;
     }
 
     public async Task<IReadOnlyList<CatalogEntry>> ListAsync(CancellationToken ct = default)
+    {
+        if (_cache is not null)
+        {
+            var key = $"catalog:v{_stamp?.Version ?? 0}";
+            return (await _cache.GetOrCreateAsync(key, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = CacheTtl;
+                return ComputeListAsync(ct);
+            }))!;
+        }
+        return await ComputeListAsync(ct);
+    }
+
+    private async Task<IReadOnlyList<CatalogEntry>> ComputeListAsync(CancellationToken ct)
     {
         var all = await _packages.GetAllAcrossTenantsAsync(ct);
         return all
@@ -201,6 +227,9 @@ public class PackageCatalogService : IPackageCatalog
                 ["errors"] = string.Join(" | ", errors)
             }
         }, ct);
+
+        // The package landscape changed — cached roll-ups must recompute.
+        if (activated.Count > 0) _stamp?.Invalidate();
 
         return new CatalogInstallResult(activated, skipped, errors);
     }

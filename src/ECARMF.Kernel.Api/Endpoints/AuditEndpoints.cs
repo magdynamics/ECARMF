@@ -1,8 +1,11 @@
+using ECARMF.Kernel.Application.Operations;
 using ECARMF.Kernel.Application.Audit;
 using ECARMF.Kernel.Application.Identity;
 using ECARMF.Kernel.Domain.Identity;
 
 namespace ECARMF.Kernel.Api.Endpoints;
+
+public record RetentionRequest(int? MonthsToKeep);
 
 public static class AuditEndpoints
 {
@@ -66,6 +69,38 @@ public static class AuditEndpoints
 
             var entries = await audit.GetByTimeRangeAsync(tenantId, rangeStart, rangeEnd, ct);
             return Results.Ok(entries);
+        });
+
+        // Retention (operator): MOVE entries older than monthsToKeep into the
+        // archive table — never a delete; append-only history stays complete.
+        app.MapPost("/api/platform/audit/retention", async (
+            RetentionRequest request, HttpContext context,
+            Application.Identity.IUserStore users, IAuditRetentionService retention,
+            Application.Audit.IAuditLog audit, CancellationToken ct) =>
+        {
+            var (error, op) = await PlatformOperator.RequireAsync(context, users, ct);
+            if (error is not null) return error;
+            var months = request.MonthsToKeep ?? 24;
+            if (months < 1) return Results.BadRequest(new { error = "monthsToKeep must be at least 1." });
+
+            var result = await retention.ArchiveAsync(months, ct);
+
+            await audit.AppendAsync(new Domain.Audit.AuditEntry
+            {
+                TenantId = Application.Identity.PlatformTenant.Id,
+                CorrelationId = Guid.NewGuid(),
+                Category = "AuditArchived",
+                Actor = op!.Identifier,
+                Summary = $"Audit retention run: {result.Archived} entr(ies) older than {result.Cutoff:yyyy-MM-dd} moved to the archive.",
+                Detail = new Dictionary<string, string>
+                {
+                    ["archived"] = result.Archived.ToString(),
+                    ["cutoff"] = result.Cutoff.ToString("O"),
+                    ["monthsKept"] = months.ToString()
+                }
+            }, ct);
+
+            return Results.Ok(result);
         });
 
         return app;

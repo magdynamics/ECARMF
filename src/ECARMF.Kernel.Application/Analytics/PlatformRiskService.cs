@@ -1,6 +1,8 @@
 using ECARMF.Kernel.Application.Identity;
+using ECARMF.Kernel.Application.Operations;
 using ECARMF.Kernel.Application.Scoring;
 using ECARMF.Kernel.Domain.Scoring;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ECARMF.Kernel.Application.Analytics;
 
@@ -33,16 +35,40 @@ public interface IPlatformRiskService
 /// </summary>
 public class PlatformRiskService : IPlatformRiskService
 {
+    private static readonly TimeSpan CacheTtl = TimeSpan.FromSeconds(45);
+
     private readonly IScoreStore _scores;
     private readonly ITenantDirectory _tenants;
+    private readonly IMemoryCache? _cache;
+    private readonly IPlatformCacheStamp? _stamp;
 
-    public PlatformRiskService(IScoreStore scores, ITenantDirectory tenants)
+    // Cache/stamp optional so tests construct the service bare; DI supplies
+    // both. Scores churn constantly, so the 45 s TTL is the freshness bound.
+    public PlatformRiskService(
+        IScoreStore scores, ITenantDirectory tenants,
+        IMemoryCache? cache = null, IPlatformCacheStamp? stamp = null)
     {
         _scores = scores;
         _tenants = tenants;
+        _cache = cache;
+        _stamp = stamp;
     }
 
     public async Task<PlatformRiskOverview> OverviewAsync(CancellationToken ct = default)
+    {
+        if (_cache is not null)
+        {
+            var key = $"platform-risk:v{_stamp?.Version ?? 0}";
+            return (await _cache.GetOrCreateAsync(key, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = CacheTtl;
+                return ComputeOverviewAsync(ct);
+            }))!;
+        }
+        return await ComputeOverviewAsync(ct);
+    }
+
+    private async Task<PlatformRiskOverview> ComputeOverviewAsync(CancellationToken ct)
     {
         var allTenants = await _tenants.GetAllAsync(ct);
         var names = allTenants.ToDictionary(t => t.TenantId, t => t.Name, StringComparer.OrdinalIgnoreCase);

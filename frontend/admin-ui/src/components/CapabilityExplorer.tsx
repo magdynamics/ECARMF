@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api } from '../api'
-import type { PackageSummary } from '../types'
 
 // Unified Capability & Knowledge Explorer. Everything a tenant can DO and
 // KNOWS is spread across registries (rules, KPIs, agents, entities, events,
 // knowledge assets) and buried in package manifests. This is one searchable
 // index across all of it — "what can this tenant do?" in a single place.
+// Served by GET /api/capabilities (one request; previously this fetched
+// every active package's manifest individually).
 
 type Kind = 'Control' | 'KPI' | 'Agent' | 'Entity' | 'Event' | 'Knowledge'
 const KINDS: Kind[] = ['Control', 'KPI', 'Agent', 'Entity', 'Event', 'Knowledge']
@@ -18,15 +19,12 @@ interface Cap {
   pkg: string
 }
 
-interface FullManifest {
-  manifest: {
-    rules?: { ruleId: string; name?: string; description?: string; outcomeOnMatch?: string }[]
-    performanceFrameworks?: { frameworkId: string; kpis?: { kpiId: string; name?: string; description?: string; riskType?: string }[] }[]
-    agents?: { agentId: string; name?: string; description?: string }[]
-    entities?: { entityTypeName: string; description?: string }[]
-    events?: { eventName: string; description?: string }[]
-    knowledgeAssets?: { assetId: string; title?: string; summary?: string }[]
-  }
+interface CapabilityItem {
+  kind: string
+  id: string
+  name: string
+  description?: string | null
+  packageId: string
 }
 
 export function CapabilityExplorer({ tenant, user }: { tenant: string; user: string }) {
@@ -38,21 +36,10 @@ export function CapabilityExplorer({ tenant, user }: { tenant: string; user: str
   const refresh = useCallback(async () => {
     setError(null)
     try {
-      const pkgs = await api.get<PackageSummary[]>('/api/packages')
-      const active = pkgs.filter((p) => p.state === 'Active')
-      const out: Cap[] = []
-      for (const p of active) {
-        try {
-          const m = (await api.get<FullManifest>(`/api/packages/${p.packageId}/${p.packageVersion}`)).manifest
-          for (const r of m.rules ?? []) out.push({ kind: 'Control', id: r.ruleId, name: r.name ?? r.ruleId, desc: r.description ?? r.outcomeOnMatch ?? '', pkg: p.packageId })
-          for (const f of m.performanceFrameworks ?? []) for (const k of f.kpis ?? []) out.push({ kind: 'KPI', id: k.kpiId, name: k.name ?? k.kpiId, desc: [k.description, k.riskType && `risk: ${k.riskType}`].filter(Boolean).join(' · '), pkg: p.packageId })
-          for (const a of m.agents ?? []) out.push({ kind: 'Agent', id: a.agentId, name: a.name ?? a.agentId, desc: a.description ?? '', pkg: p.packageId })
-          for (const e of m.entities ?? []) out.push({ kind: 'Entity', id: e.entityTypeName, name: e.entityTypeName, desc: e.description ?? '', pkg: p.packageId })
-          for (const ev of m.events ?? []) out.push({ kind: 'Event', id: ev.eventName, name: ev.eventName, desc: ev.description ?? '', pkg: p.packageId })
-          for (const ka of m.knowledgeAssets ?? []) out.push({ kind: 'Knowledge', id: ka.assetId, name: ka.title ?? ka.assetId, desc: ka.summary ?? '', pkg: p.packageId })
-        } catch { /* skip unreadable package */ }
-      }
-      setCaps(out)
+      const items = await api.get<CapabilityItem[]>('/api/capabilities')
+      setCaps(items.map((i) => ({
+        kind: i.kind as Kind, id: i.id, name: i.name, desc: i.description ?? '', pkg: i.packageId,
+      })))
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load capabilities')
       setCaps([])

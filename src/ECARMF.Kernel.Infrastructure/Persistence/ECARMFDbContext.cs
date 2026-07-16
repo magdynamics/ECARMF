@@ -16,6 +16,7 @@ public class ECARMFDbContext : DbContext
     public DbSet<OutcomeRecord> TransactionOutcomes => Set<OutcomeRecord>();
 
     public DbSet<AuditRecord> AuditEntries => Set<AuditRecord>();
+    public DbSet<AuditArchiveRecord> AuditArchive => Set<AuditArchiveRecord>();
 
     public DbSet<ApprovalRecord> Approvals => Set<ApprovalRecord>();
 
@@ -595,6 +596,9 @@ public class ECARMFDbContext : DbContext
             entity.HasIndex(s => new { s.TenantId, s.SubjectType, s.SubjectId });
             entity.HasIndex(s => new { s.TenantId, s.ScoreType, s.ComputedAt });
             entity.HasIndex(s => s.CorrelationId);
+            // Serves the risk-only queries (per-tenant heatmap + the
+            // platform-wide roll-up) without scanning the full score stream.
+            entity.HasIndex(s => new { s.TenantId, s.RiskType, s.ComputedAt });
         });
 
         modelBuilder.Entity<ApprovalRecord>(entity =>
@@ -618,6 +622,17 @@ public class ECARMFDbContext : DbContext
             entity.Property(a => a.Summary).IsRequired();
             entity.Property(a => a.DetailJson).IsRequired();
             entity.HasIndex(a => new { a.TenantId, a.CorrelationId });
+            entity.HasIndex(a => new { a.TenantId, a.OccurredAt });
+        });
+
+        modelBuilder.Entity<AuditArchiveRecord>(entity =>
+        {
+            entity.ToTable("AuditArchive");
+            entity.HasKey(a => a.Id);
+            entity.Property(a => a.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(a => a.Category).HasMaxLength(100).IsRequired();
+            entity.Property(a => a.Summary).IsRequired();
+            entity.Property(a => a.DetailJson).IsRequired();
             entity.HasIndex(a => new { a.TenantId, a.OccurredAt });
         });
 

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api } from '../api'
-import type { PackageSummary } from '../types'
 
 // Global search (⌘K / Ctrl-K). One box that searches everything and adapts to
 // where you are: on the operator tenant it finds tenants and skills; inside a
@@ -33,16 +32,7 @@ const SCREENS: { label: string; tab: string; kw: string }[] = [
   { label: 'Skills', tab: 'skills', kw: 'skills activate billing' },
 ]
 
-interface FullManifest {
-  manifest: {
-    rules?: { ruleId: string; name?: string }[]
-    performanceFrameworks?: { kpis?: { kpiId: string; name?: string }[] }[]
-    agents?: { agentId: string; name?: string }[]
-    entities?: { entityTypeName: string }[]
-    events?: { eventName: string }[]
-    knowledgeAssets?: { assetId: string; title?: string }[]
-  }
-}
+interface CapabilityItem { kind: string; id: string; name: string; packageId: string }
 
 const capTab = (kind: string) =>
   kind === 'Control' ? 'controls' : kind === 'KPI' ? 'dashboard' : kind === 'Agent' ? 'agents' : 'explore'
@@ -73,20 +63,9 @@ export function CommandPalette({ tenant, isPlatform, go, onOpenTenant, onClose }
         try { const s = await api.get<{ packageId: string; name: string }[]>('/api/catalog'); if (live) setSkills(s) } catch { /* */ }
       } else {
         try {
-          const pkgs = (await api.get<PackageSummary[]>('/api/packages')).filter((p) => p.state === 'Active')
-          const out: { kind: string; id: string; name: string }[] = []
-          for (const p of pkgs) {
-            try {
-              const m = (await api.get<FullManifest>(`/api/packages/${p.packageId}/${p.packageVersion}`)).manifest
-              for (const r of m.rules ?? []) out.push({ kind: 'Control', id: r.ruleId, name: r.name ?? r.ruleId })
-              for (const f of m.performanceFrameworks ?? []) for (const k of f.kpis ?? []) out.push({ kind: 'KPI', id: k.kpiId, name: k.name ?? k.kpiId })
-              for (const a of m.agents ?? []) out.push({ kind: 'Agent', id: a.agentId, name: a.name ?? a.agentId })
-              for (const e of m.entities ?? []) out.push({ kind: 'Entity', id: e.entityTypeName, name: e.entityTypeName })
-              for (const ev of m.events ?? []) out.push({ kind: 'Event', id: ev.eventName, name: ev.eventName })
-              for (const ka of m.knowledgeAssets ?? []) out.push({ kind: 'Knowledge', id: ka.assetId, name: ka.title ?? ka.assetId })
-            } catch { /* skip */ }
-          }
-          if (live) setCaps(out)
+          // One server-side index call — previously a per-package manifest fan-out.
+          const items = await api.get<CapabilityItem[]>('/api/capabilities')
+          if (live) setCaps(items.map((i) => ({ kind: i.kind, id: i.id, name: i.name })))
         } catch { /* */ }
         try { const r = await api.get<{ name: string }[]>('/api/renewals'); if (live) setRenewals(r) } catch { /* */ }
       }
