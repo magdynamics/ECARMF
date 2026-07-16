@@ -187,3 +187,22 @@ document-pipeline edges · bulk skill pricing.
 
 *Prepared as a grounded audit: every number above was measured against the repo, the live :8080 instance,
 and the database at review time.*
+
+---
+
+## 9. Post-program re-measurement (production program executed)
+
+Phases 1–4 of `docs/WORK-ORDER-production-program.md` were executed and verified live
+(commits `6833339`, `f7c0f04`, `8559bb0`, `b3fd4f9`). Updated scorecard:
+
+| Dimension | Was | Now | Evidence |
+|---|---|---|---|
+| Automated test coverage | **C−** | **B+** | 233 → **331 tests**; all 10 previously-untested services covered; CI fixed (was dormant/Linux-broken) and gating every branch. Found+fixed a live advisor misclassification bug. |
+| Security posture | **C** | **B** | HTTPS config-ready (verified http+https side by side), rate limiting live (300/30s per IP; 10/min on credential routes — verified 300×200 then 50×429), config/secrets in a deploy-proof Production overlay. Remaining: run with a real cert + the owner lockdown. |
+| Operations readiness | **C+** | **B+** | Backup **and restore drill proven** (28 tenants recovered from a real .bak); registration scripts ready (one elevated run); health probe + event-log alerting scripted; deploys can no longer clobber config; audit archival in place. |
+| Performance/efficiency | B− | **B+** | Capability fan-out 42+ requests → **1**; operator roll-ups cached with stamp invalidation (catalog 833→278 ms); risk-score index; audit archival keeps the live table bounded. |
+| UI/UX | B− | **B** | Collapsible role-aware nav (Platform hidden for client keys), Home overview strip, toast feedback, focus-visible + keyboard operability pass. Remaining polish: light theme, tour, chart depth. |
+
+Unchanged (already strong): functional completeness A−, architecture A−, verification B+.
+**Owner-gated items remain the only blockers to full production:** AI backend, elevated
+service start + key issuance, scheduled-task registration (all in `deploy/RUNBOOK-golive-and-ai.md`).
