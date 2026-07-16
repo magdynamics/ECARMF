@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { SkeletonRows } from './SkeletonRows'
 import { api } from '../api'
 
 // Agents gallery + consult. 54 agents are declared across the packages but
@@ -96,7 +97,7 @@ export function Agents({ tenant, user }: { tenant: string; user: string }) {
       <div className="agents-layout">
         <section className="panel agents-list">
           {agents === null ? (
-            <p className="muted">Loading…</p>
+            <SkeletonRows />
           ) : list.length === 0 ? (
             <p className="muted">No agents{f ? ' match your filter' : ' — activate a package that declares agents'}.</p>
           ) : (

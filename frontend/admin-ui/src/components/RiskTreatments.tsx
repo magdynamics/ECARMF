@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { SkeletonRows } from './SkeletonRows'
 import { Icon } from './Icon'
 import { api, ApiError } from '../api'
 import type { ScoreRecord } from '../types'
@@ -148,7 +149,7 @@ export function RiskTreatments({ tenant, user }: { tenant: string; user: string 
 
       <section className="panel">
         <h3>Treatment register</h3>
-        {treatments === null ? <p className="muted">Loading…</p>
+        {treatments === null ? <SkeletonRows />
           : treatments.length === 0 ? <p className="muted">No risks under treatment yet — pick one below to start.</p>
           : (
             <table className="pd-table">

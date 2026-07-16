@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { SkeletonRows } from './SkeletonRows'
 import { Icon } from './Icon'
 import { api, ApiError } from '../api'
 
@@ -48,7 +49,7 @@ export function PlatformActions({ onOpenTenant }: { onOpenTenant: (tenantId: str
       </section>
 
       <section className="panel">
-        {data === null ? <p className="muted">Loading…</p>
+        {data === null ? <SkeletonRows />
           : items.length === 0 ? <p className="muted"><Icon name="check" size={14} /> Nothing needs attention.</p>
           : (
             <div className="act-list">

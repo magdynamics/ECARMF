@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { SkeletonRows } from './SkeletonRows'
 import { api } from '../api'
 import type { ScoreRecord } from '../types'
 import { RiskHeatmap, type RiskPoint } from './RiskHeatmap'
@@ -94,7 +95,7 @@ export function RiskRegister({ tenant, user }: Props) {
       </section>
 
       {scores === null ? (
-        <section className="panel"><p className="muted">Loading…</p></section>
+        <section className="panel"><SkeletonRows /></section>
       ) : points.length === 0 ? (
         <section className="panel">
           <h3>No risks scored yet</h3>

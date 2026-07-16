@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { SkeletonRows } from './SkeletonRows'
 import { api, ApiError } from '../api'
 import { useToast } from './Toasts'
 
@@ -82,7 +83,7 @@ export function Cases({ tenant, user }: { tenant: string; user: string }) {
 
       <section className="panel">
         <h3>Compare cases</h3>
-        {cases === null ? <p className="muted">Loading…</p>
+        {cases === null ? <SkeletonRows />
           : cases.length === 0 ? <p className="muted">No cases yet — open one below, then file records under it.</p>
           : (
             <table className="pd-table">

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { SkeletonRows } from './SkeletonRows'
 import { api } from '../api'
 import type { PackageSummary } from '../types'
 
@@ -110,7 +111,7 @@ export function ControlsExplorer({ tenant, user }: { tenant: string; user: strin
       </section>
 
       {controls === null ? (
-        <section className="panel"><p className="muted">Loading…</p></section>
+        <section className="panel"><SkeletonRows /></section>
       ) : total === 0 ? (
         <section className="panel"><h3>No active controls</h3><p className="muted">Activate a Knowledge Package with rules to populate this view.</p></section>
       ) : (

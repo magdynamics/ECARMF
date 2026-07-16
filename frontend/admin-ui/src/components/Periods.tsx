@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { SkeletonRows } from './SkeletonRows'
 import { Icon } from './Icon'
 import { Sparkline } from './charts'
 import { api, ApiError } from '../api'
@@ -85,7 +86,7 @@ export function Periods({ tenant, user }: { tenant: string; user: string }) {
             )}
           </div>
         )}
-        {data === null ? <p className="muted">Loading…</p>
+        {data === null ? <SkeletonRows />
           : data.periods.every((p) => p.records === 0) ? <p className="muted">No records in this window yet.</p>
           : (
             <table className="pd-table">

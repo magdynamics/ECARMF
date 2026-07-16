@@ -1,4 +1,5 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
+import { SkeletonRows } from './SkeletonRows'
 import { api, ApiError } from '../api'
 
 // Audit explorer — the append-only trail this tenant records, made browsable.
@@ -66,7 +67,7 @@ export function AuditLog({ tenant, user }: { tenant: string; user: string }) {
       </section>
 
       <section className="panel">
-        {entries === null ? <p className="muted">Loading…</p>
+        {entries === null ? <SkeletonRows />
           : rows.length === 0 ? <p className="muted">No audit entries in this window.</p>
           : (
             <table className="pd-table">

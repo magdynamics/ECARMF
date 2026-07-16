@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { SkeletonRows } from './SkeletonRows'
 import { api, ApiError } from '../api'
 
 // Peer benchmarking — how this tenant compares to the anonymized platform
@@ -52,7 +53,7 @@ export function PeerBenchmark({ tenant, user }: { tenant: string; user: string }
       </section>
 
       <section className="panel">
-        {data === null ? <p className="muted">Loading…</p>
+        {data === null ? <SkeletonRows />
           : !data.available ? <p className="muted">{data.reason ?? 'Not enough peers to benchmark this metric yet.'}</p>
           : (
             <>

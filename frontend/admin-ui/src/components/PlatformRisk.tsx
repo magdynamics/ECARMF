@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { SkeletonRows } from './SkeletonRows'
 import { api, ApiError } from '../api'
 import { RiskHeatmap, type RiskPoint } from './RiskHeatmap'
 
@@ -72,7 +73,7 @@ export function PlatformRisk({ onOpenTenant }: { onOpenTenant: (tenantId: string
 
       <section className="panel">
         <h3>By tenant</h3>
-        {data === null ? <p className="muted">Loading…</p>
+        {data === null ? <SkeletonRows />
           : data.tenants.length === 0 ? <p className="muted">No risk-tagged data on any tenant yet. Add a risk-register skill to start tracking.</p>
           : (
             <table className="pd-table">

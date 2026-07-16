@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { SkeletonRows } from './SkeletonRows'
 import { Icon } from './Icon'
 import { Donut, DonutLegend } from './charts'
 import { api } from '../api'
@@ -70,7 +71,7 @@ export function BoardPack({ tenant, user }: { tenant: string; user: string }) {
   useEffect(() => { void load() }, [load, user])
 
   if (error) return <section className="panel"><p className="error small">{error}</p></section>
-  if (!pack) return <section className="panel"><p className="muted">Assembling the board pack…</p></section>
+  if (!pack) return <section className="panel"><SkeletonRows rows={5} /></section>
 
   return (
     <div className="boardpack">
