@@ -1,9 +1,84 @@
+/* ─── ECARMF design tokens (Design System 2.0) ─────────────────────────────
+   One place for every visual decision. The dark palette is the product's
+   identity ("refined dark, premium"); a light theme overrides the same
+   tokens under [data-theme="light"] (W4). Components must reference tokens,
+   never raw hex — that's what makes theming and consistency possible. */
 :root {
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
-  line-height: 1.5;
+  /* Elevation — page → raised chrome → panel → inset card. Distinct steps
+     give the UI depth without heavy shadows. */
+  --bg-page: #0e1218;
+  --bg-elev1: #141a21;   /* topbar, sidebar */
+  --bg-elev2: #191f28;   /* panels */
+  --bg-card: #10151d;    /* inset cards inside panels */
+  --bg-hover: #1d2530;
+  --bg-active: #14222f;  /* selected/accented surfaces */
+
+  /* Borders — hairline dividers vs. structural borders. */
+  --border-0: #1a212b;
+  --border-1: #232c38;
+  --border-2: #303b49;
+
+  /* Text hierarchy. */
+  --text-1: #e3e9f1;
+  --text-2: #93a5b8;
+  --text-3: #64748b;
+
+  /* Brand + interaction accent. */
+  --accent: #4fc3f7;
+  --accent-2: #3d8bfd;
+  --accent-contrast: #0a1a24;
+
+  /* Semantic roles: text-on-dark + tinted backgrounds. */
+  --ok-text: #58d6a1;   --ok-bg: #0c2519;   --ok-border: #1d5c3d;
+  --warn-text: #f5c063; --warn-bg: #2a2005; --warn-border: #6e5312;
+  --bad-text: #f08a8a;  --bad-bg: #2a1215;  --bad-border: #6e2c33;
+  --info-text: #85b7eb; --info-bg: #101a2e; --info-border: #24344c;
+
+  /* Shape + rhythm. */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --shadow-pop: 0 12px 32px rgba(0, 0, 0, 0.45);
+
+  /* Type scale. */
+  --fs-caption: 0.72rem;
+  --fs-small: 0.8rem;
+  --fs-body: 0.9rem;
+  --fs-h3: 1rem;
+  --fs-h2: 1.15rem;
+  --fs-h1: 1.35rem;
+
+  font-family: 'Segoe UI Variable Text', 'Segoe UI', system-ui, Roboto, sans-serif;
+  line-height: 1.55;
   color-scheme: dark;
-  color: #d8e0e8;
-  background-color: #12161b;
+  color: var(--text-1);
+  background-color: var(--bg-page);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Light theme (W4): same tokens, flipped values. */
+:root[data-theme='light'] {
+  --bg-page: #f3f5f8;
+  --bg-elev1: #ffffff;
+  --bg-elev2: #ffffff;
+  --bg-card: #f7f9fb;
+  --bg-hover: #eef2f6;
+  --bg-active: #e7f1fb;
+  --border-0: #e6eaef;
+  --border-1: #dbe1e8;
+  --border-2: #c3ccd6;
+  --text-1: #1a2530;
+  --text-2: #55677a;
+  --text-3: #8595a6;
+  --accent: #0b7bc2;
+  --accent-2: #1d6fd8;
+  --accent-contrast: #ffffff;
+  --ok-text: #0f7a4d;   --ok-bg: #e2f6ec;   --ok-border: #9adfc0;
+  --warn-text: #8a5a00; --warn-bg: #fdf1d8; --warn-border: #ecc879;
+  --bad-text: #b3383e;  --bad-bg: #fde8e9;  --bad-border: #f0b6ba;
+  --info-text: #185fa5; --info-bg: #e6f1fb; --info-border: #b5d4f4;
+  --shadow-pop: 0 12px 32px rgba(20, 35, 50, 0.18);
+  color-scheme: light;
 }
 
 * {
@@ -15,9 +90,13 @@ body {
   min-height: 100vh;
 }
 
+h1, h2, h3 {
+  letter-spacing: -0.01em;
+}
+
 code {
   font-family: ui-monospace, Consolas, monospace;
-  background: #232a33;
+  background: var(--bg-hover);
   padding: 0.05rem 0.3rem;
   border-radius: 4px;
   font-size: 0.85em;

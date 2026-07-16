@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Icon } from './Icon'
 import { api, ApiError } from '../api'
 
 interface OrgUnit {
@@ -234,7 +235,7 @@ export function Organization({ tenant, user }: { tenant: string; user: string })
                 <strong className="small">Suggested for industry '{selectedUnit.industry}'</strong>
                 {suggestions.map((s) => (
                   <div key={s.frameworkId} className="small" style={{ padding: '0.15rem 0' }}>
-                    🎯 {s.name} <span className="muted mono">({s.packageId})</span>{' '}
+                    <Icon name="target" size={13} /> {s.name} <span className="muted mono">({s.packageId})</span>{' '}
                     {s.alreadyAttached
                       ? <span className="state state-approved">attached</span>
                       : <button className="secondary" onClick={() => attach(selectedUnit.unitId, s.packageId)}>Attach</button>}

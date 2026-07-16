@@ -28,6 +28,7 @@ import { SystemMap } from './components/SystemMap'
 import { Glossary } from './components/Glossary'
 import { Demos } from './components/Demos'
 import { CommandPalette } from './components/CommandPalette'
+import { Icon } from './components/Icon'
 import { Periods } from './components/Periods'
 import { Cases } from './components/Cases'
 import { PlatformRisk } from './components/PlatformRisk'
@@ -91,45 +92,45 @@ class ScreenBoundary extends Component<
 // is the operator console (clients & billing) — it requires the reserved
 // 'platform' tenant, and the gate below offers the switch.
 const NAV: { tab: string; label: string; icon: string; group: string }[] = [
-  { tab: 'home', label: 'Start Here', icon: '🏠', group: '' },
-  { tab: 'systemmap', label: 'System Map', icon: '🗺️', group: '' },
-  { tab: 'glossary', label: 'Dictionary', icon: '📖', group: '' },
-  { tab: 'explore', label: 'Capability Explorer', icon: '🔎', group: '' },
-  { tab: 'organization', label: 'Organization', icon: '🏛️', group: 'Setup' },
-  { tab: 'packages', label: 'Packages', icon: '📦', group: 'Setup' },
-  { tab: 'controls', label: 'Controls', icon: '🛡️', group: 'Setup' },
-  { tab: 'integrations', label: 'Integrations', icon: '🔌', group: 'Setup' },
-  { tab: 'benchmarks', label: 'Benchmarks', icon: '🎯', group: 'Setup' },
-  { tab: 'renewals', label: 'Renewals', icon: '📅', group: 'Setup' },
-  { tab: 'treasury', label: 'AI Treasury', icon: '🏦', group: 'Setup' },
-  { tab: 'ai', label: 'AI Backend', icon: '🧠', group: 'Setup' },
-  { tab: 'dataentry', label: 'Data Entry', icon: '📥', group: 'Input' },
-  { tab: 'statements', label: 'Statement Review', icon: '🧐', group: 'Input' },
-  { tab: 'activity', label: 'Record Activity', icon: '📋', group: 'Output' },
-  { tab: 'dashboard', label: 'Dashboard', icon: '📊', group: 'Output' },
-  { tab: 'risk', label: 'Risk Register', icon: '⚠️', group: 'Output' },
-  { tab: 'risktreatment', label: 'Risk Treatment', icon: '🛠️', group: 'Output' },
-  { tab: 'periods', label: 'Period Analysis', icon: '📈', group: 'Output' },
-  { tab: 'cases', label: 'Cases', icon: '🗂️', group: 'Output' },
-  { tab: 'reports', label: 'Reports', icon: '📑', group: 'Output' },
-  { tab: 'boardpack', label: 'Board Pack', icon: '📘', group: 'Output' },
-  { tab: 'peer', label: 'Peer Benchmark', icon: '📶', group: 'Output' },
-  { tab: 'audit', label: 'Audit Trail', icon: '🧾', group: 'Output' },
-  { tab: 'library', label: 'Library', icon: '🗄️', group: 'Output' },
-  { tab: 'allocations', label: 'Capital Flows', icon: '💼', group: 'Output' },
-  { tab: 'advisor', label: 'AI Advisor', icon: '🤖', group: 'Output' },
-  { tab: 'agents', label: 'AI Agents', icon: '🧬', group: 'Output' },
-  { tab: 'actions', label: 'Action Center', icon: '📥', group: 'Platform' },
-  { tab: 'platformrisk', label: 'Platform Risk', icon: '🚨', group: 'Platform' },
-  { tab: 'health', label: 'Health Board', icon: '🩺', group: 'Platform' },
-  { tab: 'enroll', label: 'Enroll Tenant', icon: '✨', group: 'Platform' },
-  { tab: 'catalog', label: 'Package Library', icon: '📚', group: 'Platform' },
-  { tab: 'skills', label: 'Skills', icon: '🧩', group: 'Platform' },
-  { tab: 'skillslibrary', label: 'Skills Library', icon: '🗂️', group: 'Platform' },
-  { tab: 'demos', label: 'Demo Twins', icon: '🎬', group: 'Platform' },
-  { tab: 'clients', label: 'Clients', icon: '🏢', group: 'Platform' },
-  { tab: 'billing', label: 'Billing', icon: '🧾', group: 'Platform' },
-  { tab: 'email', label: 'Email', icon: '✉️', group: 'Platform' },
+  { tab: 'home', label: 'Start Here', icon: 'home', group: '' },
+  { tab: 'systemmap', label: 'System Map', icon: 'map', group: '' },
+  { tab: 'glossary', label: 'Dictionary', icon: 'book', group: '' },
+  { tab: 'explore', label: 'Capability Explorer', icon: 'compass', group: '' },
+  { tab: 'organization', label: 'Organization', icon: 'building', group: 'Setup' },
+  { tab: 'packages', label: 'Packages', icon: 'package', group: 'Setup' },
+  { tab: 'controls', label: 'Controls', icon: 'shield', group: 'Setup' },
+  { tab: 'integrations', label: 'Integrations', icon: 'plug', group: 'Setup' },
+  { tab: 'benchmarks', label: 'Benchmarks', icon: 'target', group: 'Setup' },
+  { tab: 'renewals', label: 'Renewals', icon: 'calendar', group: 'Setup' },
+  { tab: 'treasury', label: 'AI Treasury', icon: 'landmark', group: 'Setup' },
+  { tab: 'ai', label: 'AI Backend', icon: 'cpu', group: 'Setup' },
+  { tab: 'dataentry', label: 'Data Entry', icon: 'inbox-in', group: 'Input' },
+  { tab: 'statements', label: 'Statement Review', icon: 'file-search', group: 'Input' },
+  { tab: 'activity', label: 'Record Activity', icon: 'list', group: 'Output' },
+  { tab: 'dashboard', label: 'Dashboard', icon: 'gauge', group: 'Output' },
+  { tab: 'risk', label: 'Risk Register', icon: 'alert-triangle', group: 'Output' },
+  { tab: 'risktreatment', label: 'Risk Treatment', icon: 'wrench', group: 'Output' },
+  { tab: 'periods', label: 'Period Analysis', icon: 'trend-up', group: 'Output' },
+  { tab: 'cases', label: 'Cases', icon: 'folders', group: 'Output' },
+  { tab: 'reports', label: 'Reports', icon: 'file-text', group: 'Output' },
+  { tab: 'boardpack', label: 'Board Pack', icon: 'book-open', group: 'Output' },
+  { tab: 'peer', label: 'Peer Benchmark', icon: 'signal', group: 'Output' },
+  { tab: 'audit', label: 'Audit Trail', icon: 'clipboard-check', group: 'Output' },
+  { tab: 'library', label: 'Library', icon: 'archive', group: 'Output' },
+  { tab: 'allocations', label: 'Capital Flows', icon: 'briefcase', group: 'Output' },
+  { tab: 'advisor', label: 'AI Advisor', icon: 'bot', group: 'Output' },
+  { tab: 'agents', label: 'AI Agents', icon: 'sparkles', group: 'Output' },
+  { tab: 'actions', label: 'Action Center', icon: 'inbox', group: 'Platform' },
+  { tab: 'platformrisk', label: 'Platform Risk', icon: 'alert-octagon', group: 'Platform' },
+  { tab: 'health', label: 'Health Board', icon: 'activity', group: 'Platform' },
+  { tab: 'enroll', label: 'Enroll Tenant', icon: 'user-plus', group: 'Platform' },
+  { tab: 'catalog', label: 'Package Library', icon: 'library', group: 'Platform' },
+  { tab: 'skills', label: 'Skills', icon: 'puzzle', group: 'Platform' },
+  { tab: 'skillslibrary', label: 'Skills Library', icon: 'grid', group: 'Platform' },
+  { tab: 'demos', label: 'Demo Twins', icon: 'play', group: 'Platform' },
+  { tab: 'clients', label: 'Clients', icon: 'users', group: 'Platform' },
+  { tab: 'billing', label: 'Billing', icon: 'credit-card', group: 'Platform' },
+  { tab: 'email', label: 'Email', icon: 'mail', group: 'Platform' },
 ]
 
 interface Me {
@@ -433,12 +434,12 @@ function App() {
     <div className="app" style={{ ['--tenant-accent' as string]: cfg.accent }}>
       <header className="topbar">
         <div className="brand">
-          <button className="menu-toggle" onClick={() => setNavOpen((o) => !o)} aria-label="Menu">☰</button>
+          <button className="menu-toggle" onClick={() => setNavOpen((o) => !o)} aria-label="Menu"><Icon name="menu" size={18} /></button>
           <h1>
             ECARMF <span className="accent">Platform Kernel</span>
           </h1>
           <button className="search-btn" onClick={() => setPaletteOpen(true)} title="Search (Ctrl-K)">
-            🔍 Search <span className="kbd">Ctrl K</span>
+            <Icon name="search" size={14} /> Search <span className="kbd">Ctrl K</span>
           </button>
         </div>
         <div className="tenant-bar">
@@ -555,7 +556,7 @@ function App() {
                   aria-expanded={!collapsedGroups.has(item.group)}
                   onClick={() => toggleGroup(item.group)}
                 >
-                  <span className="nav-chevron" aria-hidden>{collapsedGroups.has(item.group) ? '▸' : '▾'}</span>
+                  <span className="nav-chevron" aria-hidden><Icon name={collapsedGroups.has(item.group) ? 'chevron-right' : 'chevron-down'} size={12} /></span>
                   {item.group}
                 </button>
               )}
@@ -564,7 +565,7 @@ function App() {
                   className={tab === item.tab ? 'active' : ''}
                   onClick={() => openTab(item.tab)}
                 >
-                  <span aria-hidden>{item.icon}</span> {item.label}
+                  <Icon name={item.icon} /> {item.label}
                 </button>
               )}
             </span>

@@ -299,7 +299,7 @@ export function EnrollTenant({ onProvisioned }: { onProvisioned: (tenantId: stri
           review and adjust; nothing is applied until you click below or provision.
         </p>
         <button className="secondary" onClick={recommend} disabled={!name.trim() || recBusy}>
-          {recBusy ? 'Analyzing…' : rec ? 'Re-run recommendation' : '✨ Recommend skills & setup'}
+          {recBusy ? 'Analyzing…' : rec ? 'Re-run recommendation' : 'Recommend skills & setup'}
         </button>
         {recError && <p className="error small">{recError}</p>}
         {rec && (

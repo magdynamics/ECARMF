@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Icon } from './Icon'
 import { api, ApiError } from '../api'
 import type { ScoreRecord } from '../types'
 import { useToast } from './Toasts'
@@ -189,9 +190,9 @@ export function RiskTreatments({ tenant, user }: { tenant: string; user: string 
           </div>
           <div className="enroll-actions">
             <button onClick={save} disabled={busy === editing.id}>{busy === editing.id ? 'Saving…' : 'Save'}</button>
-            {!editing.linkedActionRef && <button className="secondary" onClick={remediate} disabled={busy === editing.id} title="Submit a governed autonomous remediation action for this risk">🛠️ Create remediation action</button>}
+            {!editing.linkedActionRef && <button className="secondary" onClick={remediate} disabled={busy === editing.id} title="Submit a governed autonomous remediation action for this risk"><Icon name="wrench" size={14} /> Create remediation action</button>}
             {editing.linkedActionRef && editing.status !== 'Mitigated' && editing.status !== 'Closed' && (
-              <button className="secondary" onClick={resolveRemediation} disabled={busy === editing.id} title="Approve and execute the remediation action; the orchestration skill authorizes it and the risk is mitigated">✅ Approve &amp; execute remediation</button>
+              <button className="secondary" onClick={resolveRemediation} disabled={busy === editing.id} title="Approve and execute the remediation action; the orchestration skill authorizes it and the risk is mitigated"><Icon name="check" size={14} /> Approve &amp; execute remediation</button>
             )}
             <button className="secondary" onClick={() => setEditing(null)}>Cancel</button>
           </div>
@@ -207,7 +208,7 @@ export function RiskTreatments({ tenant, user }: { tenant: string; user: string 
 
       <section className="panel">
         <h3>Risks needing treatment <span className="muted small">· {untreated.length}</span></h3>
-        {untreated.length === 0 ? <p className="muted">Every identified risk is under treatment. 🎉</p>
+        {untreated.length === 0 ? <p className="muted"><Icon name="check" size={14} /> Every identified risk is under treatment.</p>
           : (
             <table className="pd-table">
               <thead><tr><th>Risk</th><th>Domain</th><th>Inherent</th><th></th></tr></thead>

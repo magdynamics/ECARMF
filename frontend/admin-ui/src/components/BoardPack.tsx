@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Icon } from './Icon'
 import { api } from '../api'
 import type { ScoreRecord } from '../types'
 
@@ -106,7 +107,7 @@ export function BoardPack({ tenant, user }: { tenant: string; user: string }) {
               </div>
             ))}
           </div>
-          {pack.period.recs.map((r, i) => <p key={i} className="pd-rec">💡 {r}</p>)}
+          {pack.period.recs.map((r, i) => <p key={i} className="pd-rec"><Icon name="lightbulb" size={13} /> {r}</p>)}
         </section>
       )}
 

@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react'
+import { Icon } from './Icon'
 
 // Minimal toast system: success/error notifications stacked top-right,
 // auto-dismissing, screen-reader announced. Mutation screens use this for
@@ -46,7 +47,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <div className="toasts" aria-live="polite" aria-atomic="false">
         {toasts.map((t) => (
           <div key={t.id} className={`toast toast-${t.kind}`} role="status">
-            <span aria-hidden>{t.kind === 'success' ? '✓' : '⚠'}</span>
+            <span aria-hidden><Icon name={t.kind === 'success' ? 'check' : 'alert-circle'} size={15} /></span>
             <span className="toast-msg">{t.message}</span>
             <button
               className="toast-close"

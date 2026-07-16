@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Icon } from './Icon'
 import { api, ApiError } from '../api'
 
 // Period analysis — "how are we doing this period versus last?". Buckets the
@@ -62,7 +63,7 @@ export function Periods({ tenant, user }: { tenant: string; user: string }) {
             ))}
           </div>
           <div className="pd-recs">
-            {c.recommendations.map((r, i) => <div key={i} className="pd-rec">💡 {r}</div>)}
+            {c.recommendations.map((r, i) => <div key={i} className="pd-rec"><Icon name="lightbulb" size={13} /> {r}</div>)}
           </div>
         </section>
       )}

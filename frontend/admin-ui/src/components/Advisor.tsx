@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Icon } from './Icon'
 import { api, ApiError } from '../api'
 
 interface AdvisorRecommendation {
@@ -173,8 +174,8 @@ export function Advisor({ tenant, user }: { tenant: string; user: string }) {
                 {i.feedbackUseful === null ? (
                   <>
                     <span className="muted">Was this answer useful?</span>
-                    <button onClick={() => rateAnswer(i.id, true)}>👍</button>
-                    <button onClick={() => rateAnswer(i.id, false)}>👎</button>
+                    <button className="secondary" onClick={() => rateAnswer(i.id, true)} aria-label="Useful"><Icon name="thumbs-up" size={14} /></button>
+                    <button className="secondary" onClick={() => rateAnswer(i.id, false)} aria-label="Not useful"><Icon name="thumbs-down" size={14} /></button>
                   </>
                 ) : (
                   <span className="muted">Rated {i.feedbackUseful ? 'useful' : 'not useful'} by {i.feedbackBy}</span>
@@ -231,8 +232,8 @@ export function Advisor({ tenant, user }: { tenant: string; user: string }) {
             {brief.feedbackUseful === null ? (
               <>
                 <span className="muted">Was this brief useful?</span>
-                <button onClick={() => sendFeedback(brief.id, true)}>👍 Useful</button>
-                <button onClick={() => sendFeedback(brief.id, false)}>👎 Not useful</button>
+                <button className="secondary" onClick={() => sendFeedback(brief.id, true)}><Icon name="thumbs-up" size={14} /> Useful</button>
+                <button className="secondary" onClick={() => sendFeedback(brief.id, false)}><Icon name="thumbs-down" size={14} /> Not useful</button>
               </>
             ) : (
               <span className="muted">

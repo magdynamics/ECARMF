@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Icon } from './Icon'
 import { api, ApiError } from '../api'
 
 // Operator action center — the whole client base as one ranked to-do:
@@ -48,7 +49,7 @@ export function PlatformActions({ onOpenTenant }: { onOpenTenant: (tenantId: str
 
       <section className="panel">
         {data === null ? <p className="muted">Loading…</p>
-          : items.length === 0 ? <p className="muted">Nothing needs attention. 🎉</p>
+          : items.length === 0 ? <p className="muted"><Icon name="check" size={14} /> Nothing needs attention.</p>
           : (
             <div className="act-list">
               {items.map((i, idx) => {

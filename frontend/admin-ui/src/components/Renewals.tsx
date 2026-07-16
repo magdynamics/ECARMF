@@ -1,4 +1,5 @@
 import { Fragment, useCallback, useEffect, useState } from 'react'
+import { Icon } from './Icon'
 import { api, ApiError, getApiKey, getTenant, getUser } from '../api'
 
 interface Renewal {
@@ -264,7 +265,7 @@ export function Renewals({ tenant, user }: { tenant: string; user: string }) {
                   <td className="small">{r.recurrenceMonths ? `every ${r.recurrenceMonths} mo` : 'one-time'}</td>
                   <td className="small">{r.notifyRole}{r.createTask ? ' + task' : ''}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>
-                    <button className="secondary" onClick={() => toggleDocs(r)}>📎 Docs</button>{' '}
+                    <button className="secondary" onClick={() => toggleDocs(r)}><Icon name="paperclip" size={13} /> Docs</button>{' '}
                     {r.status === 'Active' && (
                       <>
                         <button className="secondary" onClick={() => startEdit(r)}>Edit</button>{' '}
@@ -286,7 +287,7 @@ export function Renewals({ tenant, user }: { tenant: string; user: string }) {
                         </p>}
                         {docs.map((d) => (
                           <div key={d.id} className="small" style={{ padding: '0.2rem 0' }}>
-                            {d.mediaType === 'image' ? '🖼️' : d.mediaType === 'pdf' ? '📄' : '📎'}{' '}
+                            <Icon name={d.mediaType === 'image' ? 'image' : d.mediaType === 'pdf' ? 'file-text' : 'paperclip'} size={13} />{' '}
                             <strong>{d.fileName}</strong>{' '}
                             <span className="muted">
                               {(d.sizeBytes / 1024).toFixed(1)} KB · {new Date(d.archivedAt).toLocaleString()} · {d.uploadedBy}
