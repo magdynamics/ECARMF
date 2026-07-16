@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api, ApiError } from '../api'
+import { useToast } from './Toasts'
 
 // Skills on a tenant's profile (operator console). A skill is a knowledge
 // package presented commercially — Core (included), Industry (bundle), or
@@ -35,7 +36,7 @@ export function Skills({ tenant }: { tenant: string; user: string }) {
   const [skills, setSkills] = useState<SkillView[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
-  const [note, setNote] = useState<string | null>(null)
+  const toast = useToast()
 
   useEffect(() => {
     api.get<{ tenantId: string }[]>('/api/platform/tenants')
@@ -61,14 +62,15 @@ export function Skills({ tenant }: { tenant: string; user: string }) {
 
   async function toggle(s: SkillView) {
     if (!target) return
-    setBusy(s.packageId); setNote(null); setError(null)
+    setBusy(s.packageId); setError(null)
     const action = s.active ? 'deactivate' : 'activate'
     try {
       const r = await api.post<{ message: string }>(`/api/platform/tenants/${target}/skills/${s.packageId}/${action}`)
-      setNote(`${s.displayName}: ${r.message}`)
+      toast.success(`${s.displayName}: ${r.message}`)
       await load(target)
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : String(e))
+      const msg = e instanceof ApiError ? e.message : String(e)
+      setError(msg); toast.error(msg)
     } finally {
       setBusy(null)
     }
@@ -102,7 +104,6 @@ export function Skills({ tenant }: { tenant: string; user: string }) {
           )}
         </div>
         {error && <p className="error small">{error}</p>}
-        {note && <p className="muted small">{note}</p>}
       </section>
 
       {!target ? (

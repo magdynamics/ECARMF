@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api, ApiError } from '../api'
 import type { ScoreRecord } from '../types'
+import { useToast } from './Toasts'
 
 // Risk treatment — turns the risk heatmap into managed risk. Each risk (from
 // its risk-tagged score) can be put under treatment: an owner, a strategy
@@ -30,6 +31,7 @@ function sevLike(s: ScoreRecord): { severity: number; likelihood: number } {
 }
 
 export function RiskTreatments({ tenant, user }: { tenant: string; user: string }) {
+  const toast = useToast()
   const [treatments, setTreatments] = useState<RiskTreatment[] | null>(null)
   const [risks, setRisks] = useState<RiskItem[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -73,6 +75,7 @@ export function RiskTreatments({ tenant, user }: { tenant: string; user: string 
         riskKey: r.riskKey, title: r.title, domain: r.domain,
         inherentSeverity: r.severity, inherentLikelihood: r.likelihood, strategy: 'Mitigate',
       })
+      toast.success(`'${r.title}' is now under treatment.`)
       await load()
     } catch (e) { setError(e instanceof ApiError ? e.message : String(e)) }
     finally { setBusy(null) }
@@ -83,6 +86,7 @@ export function RiskTreatments({ tenant, user }: { tenant: string; user: string 
     setBusy(editing.id); setError(null)
     try {
       const r = await api.post<{ treatment: RiskTreatment; actionId: string }>(`/api/risk/treatments/${editing.id}/remediate`)
+      toast.success('Remediation action submitted for approval.')
       setEditing({ ...editing, ...r.treatment })
       await load()
     } catch (e) { setError(e instanceof ApiError ? e.message : String(e)) }
@@ -94,6 +98,7 @@ export function RiskTreatments({ tenant, user }: { tenant: string; user: string 
     setBusy(editing.id); setError(null)
     try {
       const r = await api.post<{ treatment: RiskTreatment; actionId: string }>(`/api/risk/treatments/${editing.id}/resolve-remediation`)
+      toast.success(`Remediation executed — '${editing.title}' mitigated.`)
       setEditing({ ...editing, ...r.treatment })
       await load()
     } catch (e) { setError(e instanceof ApiError ? e.message : String(e)) }
@@ -110,6 +115,7 @@ export function RiskTreatments({ tenant, user }: { tenant: string; user: string 
         residualSeverity: editing.residualSeverity ?? null, residualLikelihood: editing.residualLikelihood ?? null,
         targetDate: editing.targetDate || null, linkedActionRef: editing.linkedActionRef ?? '',
       })
+      toast.success('Treatment saved.')
       setEditing(null)
       await load()
     } catch (e) { setError(e instanceof ApiError ? e.message : String(e)) }

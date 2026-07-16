@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api, ApiError } from '../api'
+import { useToast } from './Toasts'
 
 // Self-service tenant enrollment (operator console). Phase 1 of the onboarding
 // engine: profile → starter pack → branding → admin key, provisioned through
@@ -45,6 +46,7 @@ function slugify(s: string): string {
 }
 
 export function EnrollTenant({ onProvisioned }: { onProvisioned: (tenantId: string) => void }) {
+  const toast = useToast()
   const [templates, setTemplates] = useState<TemplateSummary[]>([])
 
   // Profile
@@ -207,6 +209,7 @@ export function EnrollTenant({ onProvisioned }: { onProvisioned: (tenantId: stri
 
     setBusy(false)
     setDoneTenant(tid)
+    toast.success(`Tenant '${tid}' provisioned.`)
   }
 
   function reset() {

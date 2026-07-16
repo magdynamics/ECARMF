@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api, ApiError } from '../api'
+import { useToast } from './Toasts'
 
 // Platform Package Library (operator). Packages are authored per tenant, but
 // any manifest loaded anywhere is an installable unit — so this is the union
@@ -26,6 +27,7 @@ interface CatalogEntry {
 interface InstallResult { activated: string[]; skipped: string[]; errors: string[] }
 
 export function PackageCatalog({ tenant }: { tenant: string; user: string }) {
+  const toast = useToast()
   const [entries, setEntries] = useState<CatalogEntry[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState('')
@@ -64,8 +66,11 @@ export function PackageCatalog({ tenant }: { tenant: string; user: string }) {
         packageId: selected.packageId, version: selected.packageVersion, withDependencies: withDeps,
       })
       setResult(r)
+      if (r.errors.length === 0) toast.success(`Installed into ${target}: ${r.activated.length} package(s).`)
+      else toast.error(`Install finished with ${r.errors.length} error(s).`)
     } catch (e) {
-      setInstallError(e instanceof ApiError ? e.message : String(e))
+      const msg = e instanceof ApiError ? e.message : String(e)
+      setInstallError(msg); toast.error(msg)
     } finally {
       setInstalling(false)
     }

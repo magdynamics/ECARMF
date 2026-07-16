@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api, ApiError } from '../api'
+import { useToast } from './Toasts'
 
 // Platform Skills Library (admin). The catalogue of every skill on the
 // platform, showing its packaging (Essential = bundled, or À la carte =
@@ -24,6 +25,7 @@ interface SkillValue {
 }
 
 export function SkillsLibrary() {
+  const toast = useToast()
   const [skills, setSkills] = useState<SkillValue[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState('')
@@ -55,7 +57,8 @@ export function SkillsLibrary() {
       const r = await api.put<{ message: string }>(`/api/platform/skills/${s.packageId}/packaging`, {
         packaging: draftPackaging, monthlyPrice: Number(draftPrice) || 0,
       })
-      setNote(`${s.displayName}: ${r.message}`)
+      setNote(null)
+      toast.success(`${s.displayName}: ${r.message}`)
       setEditing(null)
       await load()
     } catch (e) {
@@ -109,7 +112,14 @@ export function SkillsLibrary() {
             <div className="cap-list">
               {list.map((s) => (
                 <div key={s.packageId} className="skl-row">
-                  <div className="skl-head" onClick={() => setOpen(open === s.packageId ? null : s.packageId)}>
+                  <div
+                    className="skl-head"
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={open === s.packageId}
+                    onClick={() => setOpen(open === s.packageId ? null : s.packageId)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(open === s.packageId ? null : s.packageId) } }}
+                  >
                     <span className="skl-caret">{open === s.packageId ? '▾' : '▸'}</span>
                     <div className="cap-main">
                       <div>

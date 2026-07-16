@@ -25,6 +25,15 @@ export function Home({ tenant, user, go }: HomeProps) {
   const [benchmarkCount, setBenchmarkCount] = useState<number | null>(null)
   const [integrationCount, setIntegrationCount] = useState<number | null>(null)
   const [agentCount, setAgentCount] = useState<number | null>(null)
+  // Overview strip: today's posture at a glance, each card deep-linking to
+  // its screen. Individual fetch failures (e.g. 403 on a regulated tenant in
+  // header mode) simply hide that card.
+  const [ov, setOv] = useState<{
+    risks?: { total: number; critical: number }
+    period?: { records: number; topDelta: string; improved: boolean }
+    renewalsDue?: number
+    openCases?: number
+  }>({})
 
   const refresh = useCallback(async () => {
     try { setPackages(await api.get<PackageSummary[]>('/api/packages')) } catch { setPackages(null) }
@@ -34,6 +43,40 @@ export function Home({ tenant, user, go }: HomeProps) {
     try { setBenchmarkCount((await api.get<unknown[]>('/api/benchmarks')).length) } catch { setBenchmarkCount(null) }
     try { setIntegrationCount((await api.get<unknown[]>('/api/integrations')).length) } catch { setIntegrationCount(null) }
     try { setAgentCount((await api.get<unknown[]>('/api/agents')).length) } catch { setAgentCount(null) }
+
+    const next: typeof ov = {}
+    try {
+      const rs = await api.get<ScoreRecord[]>('/api/scores?riskOnly=true&limit=3000')
+      const seen = new Set<string>(); let critical = 0
+      for (const s of rs) {
+        const subj = s.subjectId ?? ''
+        if (!subj || seen.has(subj)) continue
+        seen.add(subj)
+        const sev = Number(s.metadata?.severityValue ?? 0)
+        const like = Number(s.metadata?.likelihood ?? 0)
+        if (sev >= 4 && like >= 4) critical++
+      }
+      if (seen.size > 0) next.risks = { total: seen.size, critical }
+    } catch { /* card hidden */ }
+    try {
+      const pa = await api.get<{ comparison: { current?: { records: number } | null; deltas: { metric: string; changePct: number; improved: boolean }[] } }>('/api/analysis/periods?granularity=month&count=2')
+      const top = pa.comparison.deltas?.slice().sort((a, b) => Math.abs(b.changePct) - Math.abs(a.changePct))[0]
+      if (pa.comparison.current && top) next.period = {
+        records: pa.comparison.current.records,
+        topDelta: `${top.metric} ${top.changePct > 0 ? '▲' : top.changePct < 0 ? '▼' : '■'} ${Math.abs(top.changePct)}%`,
+        improved: top.improved,
+      }
+    } catch { /* card hidden */ }
+    try {
+      const rn = await api.get<{ dueDate: string; status?: string }[]>('/api/renewals')
+      const soon = Date.now() + 30 * 86400000
+      next.renewalsDue = rn.filter((r) => new Date(r.dueDate).getTime() <= soon).length
+    } catch { /* card hidden */ }
+    try {
+      const cs = await api.get<{ status: string }[]>('/api/cases')
+      next.openCases = cs.filter((c) => c.status === 'Open').length
+    } catch { /* card hidden */ }
+    setOv(next)
   }, [])
 
   useEffect(() => { void refresh() }, [refresh, tenant, user])
@@ -82,6 +125,39 @@ export function Home({ tenant, user, go }: HomeProps) {
           status for tenant <strong>{tenant}</strong>.
         </p>
       </section>
+
+      {(ov.risks || ov.period || ov.renewalsDue !== undefined || ov.openCases !== undefined) && (
+        <div className="ov-strip">
+          {ov.risks && (
+            <button className={`pd-delta ov-card ${ov.risks.critical > 0 ? 'bad' : 'good'}`} onClick={() => go('risk')}>
+              <span className="muted small">Risk</span>
+              <strong>{ov.risks.total}</strong>
+              <span className="pd-change">{ov.risks.critical > 0 ? `${ov.risks.critical} critical` : 'none critical'}</span>
+            </button>
+          )}
+          {ov.period && (
+            <button className={`pd-delta ov-card ${ov.period.improved ? 'good' : 'bad'}`} onClick={() => go('periods')}>
+              <span className="muted small">This period</span>
+              <strong>{ov.period.records.toLocaleString()}</strong>
+              <span className="pd-change">{ov.period.topDelta}</span>
+            </button>
+          )}
+          {ov.renewalsDue !== undefined && (
+            <button className={`pd-delta ov-card ${ov.renewalsDue > 0 ? 'bad' : 'good'}`} onClick={() => go('renewals')}>
+              <span className="muted small">Renewals · 30d</span>
+              <strong>{ov.renewalsDue}</strong>
+              <span className="pd-change">{ov.renewalsDue > 0 ? 'due soon' : 'clear'}</span>
+            </button>
+          )}
+          {ov.openCases !== undefined && (
+            <button className="pd-delta ov-card good" onClick={() => go('cases')}>
+              <span className="muted small">Open cases</span>
+              <strong>{ov.openCases}</strong>
+              <span className="pd-change">compare →</span>
+            </button>
+          )}
+        </div>
+      )}
 
       {tenantConfig(tenant).phi && (
         <section className="panel" style={{ borderLeft: '3px solid var(--tenant-accent)' }}>

@@ -959,6 +959,45 @@ select {
 .peer-fill.you { background: var(--tenant-accent, #3d8bfd); }
 .peer-val { text-align: right; font-family: ui-monospace, monospace; font-size: 0.82rem; }
 
+/* Accessibility: a visible focus indicator on every interactive element —
+   keyboard users must always see where they are. */
+button:focus-visible, a:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--tenant-accent, #3d8bfd);
+  outline-offset: 2px;
+}
+
+/* Collapsible nav groups */
+.nav-group-toggle {
+  display: flex; align-items: center; gap: 0.35rem;
+  width: 100%; text-align: left; background: transparent; border: none;
+  cursor: pointer; padding: 0.45rem 0.75rem 0.15rem;
+}
+.nav-group-toggle:hover { color: #d8e6f5; }
+.nav-chevron { font-size: 0.7rem; color: var(--tenant-accent, #3d8bfd); width: 0.9rem; }
+
+/* Toasts */
+.toasts {
+  position: fixed; top: 0.9rem; right: 0.9rem; z-index: 2000;
+  display: flex; flex-direction: column; gap: 0.5rem; max-width: min(24rem, 90vw);
+}
+.toast {
+  display: flex; align-items: baseline; gap: 0.5rem;
+  padding: 0.6rem 0.75rem; border-radius: 10px; font-size: 0.9rem;
+  border: 1px solid; box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  animation: toast-in 160ms ease-out;
+}
+.toast-success { background: #0d2318; border-color: #1f5c3d; color: #a7f3d0; }
+.toast-error { background: #2a1215; border-color: #7a2c33; color: #fecaca; }
+.toast-msg { flex: 1; min-width: 0; }
+.toast-close { background: transparent; border: none; color: inherit; cursor: pointer; font-size: 1rem; padding: 0 0.2rem; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+/* Home overview strip */
+.ov-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0.6rem; margin-bottom: 1rem; }
+.ov-card { cursor: pointer; text-align: left; font: inherit; color: inherit; }
+.ov-card:hover { background: #131c26; }
+
 /* Board pack — print-friendly */
 .no-print { }
 @media print {

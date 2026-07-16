@@ -190,10 +190,30 @@ function App() {
   const [serverCfg, setServerCfg] = useState<TenantConfigDto | null>(null)
   // Global search (⌘K / Ctrl-K).
   const [paletteOpen, setPaletteOpen] = useState(false)
+  // Collapsible nav groups, persisted — 40 items is too many to show flat.
+  // First run collapses the operator group unless you're on the operator tenant.
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() => {
+    const stored = localStorage.getItem('ecarmf.nav.collapsed')
+    if (stored !== null) return new Set(stored.split(',').filter(Boolean))
+    return new Set(getTenant().toLowerCase() === 'platform' ? [] : ['Platform'])
+  })
+
+  function toggleGroup(group: string) {
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev)
+      next.has(group) ? next.delete(group) : next.add(group)
+      localStorage.setItem('ecarmf.nav.collapsed', [...next].join(','))
+      return next
+    })
+  }
 
   function openTab(next: string) {
     setTab(next)
     setNavOpen(false)
+    // Navigating into a collapsed group (via ⌘K, System Map, Home cards…)
+    // expands it, so the active item is never hidden from its own sidebar.
+    const group = NAV.find((n) => n.tab === next)?.group
+    if (group && collapsedGroups.has(group)) toggleGroup(group)
     // A new screen starts at its top — carrying the previous screen's
     // scroll position leaves users staring at the middle of a page.
     window.scrollTo({ top: 0 })
@@ -342,6 +362,13 @@ function App() {
   // (set via the enroll wizard / config endpoint) overlays it, so onboarding
   // a new tenant's look needs no code change.
   const cfg = mergeConfig(tenantConfig(effectiveTenant), serverCfg)
+
+  // Role-aware nav: a client key can never reach operator surfaces, so the
+  // Platform group disappears entirely from its sidebar (screens stay gated
+  // regardless). Header mode keeps the full nav — the OperatorGate handles it.
+  const visibleNav = signedInWithKey && !operator
+    ? NAV.filter((n) => n.group !== 'Platform')
+    : NAV
 
   // Operator gate: the Platform group needs the reserved operator tenant.
   const OperatorGate = () => (
@@ -520,17 +547,26 @@ function App() {
               </span>
             </div>
           )}
-          {NAV.map((item, index) => (
+          {visibleNav.map((item, index) => (
             <span key={item.tab} style={{ display: 'contents' }}>
-              {item.group && (index === 0 || NAV[index - 1].group !== item.group) && (
-                <div className="nav-group">{item.group}</div>
+              {item.group && (index === 0 || visibleNav[index - 1].group !== item.group) && (
+                <button
+                  className="nav-group nav-group-toggle"
+                  aria-expanded={!collapsedGroups.has(item.group)}
+                  onClick={() => toggleGroup(item.group)}
+                >
+                  <span className="nav-chevron" aria-hidden>{collapsedGroups.has(item.group) ? '▸' : '▾'}</span>
+                  {item.group}
+                </button>
               )}
-              <button
-                className={tab === item.tab ? 'active' : ''}
-                onClick={() => openTab(item.tab)}
-              >
-                <span>{item.icon}</span> {item.label}
-              </button>
+              {(!item.group || !collapsedGroups.has(item.group)) && (
+                <button
+                  className={tab === item.tab ? 'active' : ''}
+                  onClick={() => openTab(item.tab)}
+                >
+                  <span aria-hidden>{item.icon}</span> {item.label}
+                </button>
+              )}
             </span>
           ))}
         </aside>

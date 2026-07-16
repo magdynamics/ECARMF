@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api, ApiError } from '../api'
+import { useToast } from './Toasts'
 
 // Cases / projects — a cross-cutting grouping of the tenant's records, compared
 // side by side. A record is filed under a case (via the caseId on submission);
@@ -25,6 +26,7 @@ function slugify(s: string) {
 }
 
 export function Cases({ tenant, user }: { tenant: string; user: string }) {
+  const toast = useToast()
   const [cases, setCases] = useState<CaseMetrics[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
@@ -48,6 +50,7 @@ export function Cases({ tenant, user }: { tenant: string; user: string }) {
     setBusy('create'); setError(null)
     try {
       await api.post('/api/cases', { caseId, name: name.trim(), description: desc.trim() || null })
+      toast.success(`Case '${name.trim()}' opened.`)
       setName(''); setCaseId(''); setCaseIdTouched(false); setDesc('')
       await load()
     } catch (e) { setError(e instanceof ApiError ? e.message : String(e)) }
@@ -58,6 +61,7 @@ export function Cases({ tenant, user }: { tenant: string; user: string }) {
     setBusy(c.caseId); setError(null)
     try {
       await api.post(`/api/cases/${c.caseId}/status`, { status: c.status === 'Open' ? 'Closed' : 'Open' })
+      toast.success(`Case '${c.name}' ${c.status === 'Open' ? 'closed' : 'reopened'}.`)
       await load()
     } catch (e) { setError(e instanceof ApiError ? e.message : String(e)) }
     finally { setBusy(null) }
