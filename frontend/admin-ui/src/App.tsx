@@ -34,6 +34,8 @@ import { PlatformRisk } from './components/PlatformRisk'
 import { RiskTreatments } from './components/RiskTreatments'
 import { PlatformActions } from './components/PlatformActions'
 import { BoardPack } from './components/BoardPack'
+import { AuditLog } from './components/AuditLog'
+import { PeerBenchmark } from './components/PeerBenchmark'
 import { PackageCatalog } from './components/PackageCatalog'
 import { Skills } from './components/Skills'
 import { SkillsLibrary } from './components/SkillsLibrary'
@@ -111,6 +113,8 @@ const NAV: { tab: string; label: string; icon: string; group: string }[] = [
   { tab: 'cases', label: 'Cases', icon: '🗂️', group: 'Output' },
   { tab: 'reports', label: 'Reports', icon: '📑', group: 'Output' },
   { tab: 'boardpack', label: 'Board Pack', icon: '📘', group: 'Output' },
+  { tab: 'peer', label: 'Peer Benchmark', icon: '📶', group: 'Output' },
+  { tab: 'audit', label: 'Audit Trail', icon: '🧾', group: 'Output' },
   { tab: 'library', label: 'Library', icon: '🗄️', group: 'Output' },
   { tab: 'allocations', label: 'Capital Flows', icon: '💼', group: 'Output' },
   { tab: 'advisor', label: 'AI Advisor', icon: '🤖', group: 'Output' },
@@ -607,6 +611,10 @@ function App() {
             <Reports tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'boardpack' ? (
             <BoardPack tenant={effectiveTenant} user={effectiveUser} />
+          ) : tab === 'peer' ? (
+            <PeerBenchmark tenant={effectiveTenant} user={effectiveUser} />
+          ) : tab === 'audit' ? (
+            <AuditLog tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'library' ? (
             <Library tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'allocations' ? (
