@@ -32,6 +32,8 @@ import { Periods } from './components/Periods'
 import { Cases } from './components/Cases'
 import { PlatformRisk } from './components/PlatformRisk'
 import { RiskTreatments } from './components/RiskTreatments'
+import { PlatformActions } from './components/PlatformActions'
+import { BoardPack } from './components/BoardPack'
 import { PackageCatalog } from './components/PackageCatalog'
 import { Skills } from './components/Skills'
 import { SkillsLibrary } from './components/SkillsLibrary'
@@ -108,10 +110,12 @@ const NAV: { tab: string; label: string; icon: string; group: string }[] = [
   { tab: 'periods', label: 'Period Analysis', icon: '📈', group: 'Output' },
   { tab: 'cases', label: 'Cases', icon: '🗂️', group: 'Output' },
   { tab: 'reports', label: 'Reports', icon: '📑', group: 'Output' },
+  { tab: 'boardpack', label: 'Board Pack', icon: '📘', group: 'Output' },
   { tab: 'library', label: 'Library', icon: '🗄️', group: 'Output' },
   { tab: 'allocations', label: 'Capital Flows', icon: '💼', group: 'Output' },
   { tab: 'advisor', label: 'AI Advisor', icon: '🤖', group: 'Output' },
   { tab: 'agents', label: 'AI Agents', icon: '🧬', group: 'Output' },
+  { tab: 'actions', label: 'Action Center', icon: '📥', group: 'Platform' },
   { tab: 'platformrisk', label: 'Platform Risk', icon: '🚨', group: 'Platform' },
   { tab: 'health', label: 'Health Board', icon: '🩺', group: 'Platform' },
   { tab: 'enroll', label: 'Enroll Tenant', icon: '✨', group: 'Platform' },
@@ -313,7 +317,7 @@ function App() {
   const operator = signedInWithKey && me?.isPlatformOperator === true
   const effectiveTenant = signedInWithKey ? (operator ? tenant : (me?.tenantId ?? '')) : tenant
   const effectiveUser = signedInWithKey ? (me?.identifier ?? '') : user
-  const isPlatformTab = tab === 'clients' || tab === 'billing' || tab === 'email' || tab === 'health' || tab === 'enroll' || tab === 'catalog' || tab === 'skills' || tab === 'skillslibrary' || tab === 'demos' || tab === 'platformrisk'
+  const isPlatformTab = tab === 'clients' || tab === 'billing' || tab === 'email' || tab === 'health' || tab === 'enroll' || tab === 'catalog' || tab === 'skills' || tab === 'skillslibrary' || tab === 'demos' || tab === 'platformrisk' || tab === 'actions'
   const onPlatformTenant = effectiveTenant.toLowerCase() === 'platform'
 
   // Load the viewed tenant's persisted branding (api.ts sends the act-as
@@ -601,6 +605,8 @@ function App() {
             <Cases tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'reports' ? (
             <Reports tenant={effectiveTenant} user={effectiveUser} />
+          ) : tab === 'boardpack' ? (
+            <BoardPack tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'library' ? (
             <Library tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'allocations' ? (
@@ -615,6 +621,11 @@ function App() {
             <Skills tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'skillslibrary' ? (
             <SkillsLibrary />
+          ) : tab === 'actions' ? (
+            <PlatformActions onOpenTenant={(id, t) => {
+              setKnownTenants((prev) => prev.includes(id) ? prev : [...prev, id])
+              setTenant(id); setTenantState(id); setTenantInput(id); setTab(t)
+            }} />
           ) : tab === 'platformrisk' ? (
             <PlatformRisk onOpenTenant={(id) => {
               setKnownTenants((prev) => prev.includes(id) ? prev : [...prev, id])

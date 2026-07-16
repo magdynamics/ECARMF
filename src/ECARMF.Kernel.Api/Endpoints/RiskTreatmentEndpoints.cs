@@ -1,6 +1,7 @@
 using ECARMF.Kernel.Application.Audit;
 using ECARMF.Kernel.Application.Identity;
 using ECARMF.Kernel.Application.Risk;
+using ECARMF.Kernel.Application.Transactions;
 using ECARMF.Kernel.Domain.Audit;
 using ECARMF.Kernel.Domain.Identity;
 using ECARMF.Kernel.Domain.Risk;
@@ -107,6 +108,48 @@ public static class RiskTreatmentEndpoints
                 Detail = new Dictionary<string, string> { ["status"] = t.Status, ["strategy"] = t.Strategy }
             }, ct);
             return Results.Ok(t);
+        });
+
+        // Spawn a governed remediation action for a treatment: submits an
+        // AutonomousActionRequest (the orchestration skill governs it) and
+        // links it to the treatment, moving it into treatment.
+        group.MapPost("/{id:guid}/remediate", async (
+            Guid id, HttpContext context,
+            IUserStore users, IRiskTreatmentStore store, ITransactionIntakeService intake,
+            IAuditLog audit, CancellationToken ct) =>
+        {
+            if (!TenantResolution.TryGetTenant(context, out var tenantId))
+                return TenantResolution.MissingTenantResult();
+            var (error, user) = await AccessGuard.RequireAsync(context, users, tenantId, Permissions.RecordSubmit, ct);
+            if (error is not null) return error;
+
+            var t = await store.GetAsync(tenantId, id, ct);
+            if (t is null) return Results.NotFound();
+
+            var payload = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["recordType"] = "AutonomousActionRequest",
+                ["actionType"] = "remediate-risk",
+                ["target"] = t.Title,
+                ["riskTier"] = t.InherentSeverity >= 4 ? "High" : "Medium",
+                ["approved"] = "false",
+                ["verified"] = "false",
+                ["riskKey"] = t.RiskKey
+            };
+            var receipt = await intake.ReceiveAsync(
+                new TransactionSubmission(tenantId, "AutonomousActionRequest", user!.Identifier, payload), ct);
+
+            t.LinkedActionRef = receipt.TransactionId.ToString();
+            t.Status = RiskTreatmentStatuses.InTreatment;
+            await store.UpdateAsync(t, ct);
+            await audit.AppendAsync(new AuditEntry
+            {
+                TenantId = tenantId, CorrelationId = t.Id, Category = AuditCategories.RiskTreatmentUpdated,
+                Actor = user.Identifier, Summary = $"Remediation action spawned for risk '{t.Title}'.",
+                Detail = new Dictionary<string, string> { ["actionRef"] = t.LinkedActionRef }
+            }, ct);
+
+            return Results.Ok(new { treatment = t, actionId = receipt.TransactionId });
         });
 
         return app;

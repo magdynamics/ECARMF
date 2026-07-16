@@ -34,6 +34,15 @@ public static class PeriodEndpoints
             return Results.Ok(await risk.OverviewAsync(ct));
         });
 
+        // Operator action center: the ranked cross-tenant to-do.
+        app.MapGet("/api/platform/actions", async (
+            HttpContext context, IUserStore users, IPlatformActionService actions, CancellationToken ct) =>
+        {
+            var (error, _) = await PlatformOperator.RequireAsync(context, users, ct);
+            if (error is not null) return error;
+            return Results.Ok(await actions.ListAsync(ct));
+        });
+
         return app;
     }
 }
