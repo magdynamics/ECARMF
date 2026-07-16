@@ -10,18 +10,31 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.55rem 1.25rem;
-  background: var(--bg-elev1);
-  border-bottom: 1px solid var(--border-2);
+  padding: 0.6rem 1.25rem;
+  /* Brand gradient: a wash of the accent into the chrome, so the product
+     is recognizable at a glance in either theme. */
+  background:
+    linear-gradient(105deg,
+      color-mix(in srgb, var(--tenant-accent, var(--accent)) 16%, var(--bg-elev1)) 0%,
+      var(--bg-elev1) 42%);
+  border-bottom: 1px solid color-mix(in srgb, var(--tenant-accent, var(--accent)) 25%, var(--border-2));
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
 .topbar h1 {
-  font-size: 1.05rem;
+  font-size: 1.12rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
   margin: 0;
   white-space: nowrap;
+}
+.topbar h1 .accent {
+  background: linear-gradient(100deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .topbar .brand {
@@ -370,6 +383,7 @@
   border-radius: var(--radius-lg);
   padding: 1.15rem 1.3rem;
   margin-bottom: 1rem;
+  box-shadow: var(--panel-shadow);
 }
 .panel > h2 { margin: 0 0 0.35rem; font-size: var(--fs-h2); font-weight: 600; }
 .panel > h3 { margin: 0 0 0.35rem; font-size: var(--fs-h3); font-weight: 600; }
