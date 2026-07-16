@@ -931,6 +931,12 @@ select {
 }
 .enroll-key code { display: block; margin-top: 0.4rem; font-size: 1.05rem; color: #ffcf70; word-break: break-all; }
 .enroll-actions { display: flex; gap: 0.6rem; margin-top: 1rem; flex-wrap: wrap; }
+.rec-result { margin-top: 0.7rem; }
+.rec-skills { display: flex; flex-direction: column; gap: 0.35rem; margin: 0.6rem 0; }
+.rec-skill { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 0.4rem 0.6rem; padding: 0.4rem 0.6rem; border: 1px solid #1f2a36; border-radius: 8px; background: #0e141b; cursor: pointer; }
+.rec-skill.on { border-color: var(--tenant-accent, #3d8bfd); background: #101d29; }
+.rec-skill input { grid-row: span 2; }
+.rec-skill .muted { grid-column: 2; }
 
 /* System Map — guided journey */
 .sysmap { display: flex; flex-direction: column; align-items: stretch; }

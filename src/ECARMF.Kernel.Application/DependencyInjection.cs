@@ -40,6 +40,7 @@ public static class DependencyInjection
         services.AddScoped<Ingestion.IBulkImportService, Ingestion.BulkImportService>();
         services.AddScoped<Onboarding.IOnboardingTemplateService, Onboarding.OnboardingTemplateService>();
         services.AddScoped<Onboarding.IDemoSeedingService, Onboarding.DemoSeedingService>();
+        services.AddScoped<Onboarding.IOnboardingAdvisor, Onboarding.OnboardingAdvisorService>();
         services.AddScoped<Analytics.IPeriodAnalysisService, Analytics.PeriodAnalysisService>();
         services.AddScoped<Cases.ICaseAnalysisService, Cases.CaseAnalysisService>();
         services.AddScoped<Analytics.IPlatformRiskService, Analytics.PlatformRiskService>();

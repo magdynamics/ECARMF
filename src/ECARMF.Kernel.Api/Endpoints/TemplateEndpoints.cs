@@ -78,6 +78,19 @@ public static class TemplateEndpoints
             return Results.NoContent();
         });
 
+        // AI onboarding advisor: profile a prospective tenant and recommend the
+        // skills, posture, and branding to onboard it with.
+        app.MapPost("/api/platform/onboarding/recommend", async (
+            RecommendInput request, HttpContext context,
+            IUserStore users, IOnboardingAdvisor advisor, CancellationToken ct) =>
+        {
+            var (error, _) = await PlatformOperator.RequireAsync(context, users, ct);
+            if (error is not null) return error;
+            if (string.IsNullOrWhiteSpace(request.Name))
+                return Results.BadRequest(new { error = "name is required." });
+            return Results.Ok(await advisor.RecommendAsync(request, ct));
+        });
+
         return app;
     }
 }

@@ -19,6 +19,13 @@ interface TemplateSummary {
   renewalCount: number
 }
 
+interface RecommendedSkill { packageId: string; displayName: string; tier: string; reason: string; confidence: string }
+interface RecommendationPack {
+  detectedIndustry: string; suggestedTier: string; handlesPhi: boolean
+  suggestedSegment?: string | null; suggestedAccent?: string | null
+  skills: RecommendedSkill[]; notes: string[]; rationale: string
+}
+
 // Regulatory posture presets → backend sensitivity tier + PHI flag. Kept small
 // and explicit; the operator picks the client's context, not a raw enum.
 const POSTURES = [
@@ -57,6 +64,12 @@ export function EnrollTenant({ onProvisioned }: { onProvisioned: (tenantId: stri
   const [adminName, setAdminName] = useState('')
   const [adminRole, setAdminRole] = useState<(typeof ROLES)[number]>('ExecutiveOwner')
 
+  // AI recommendation
+  const [rec, setRec] = useState<RecommendationPack | null>(null)
+  const [recBusy, setRecBusy] = useState(false)
+  const [recError, setRecError] = useState<string | null>(null)
+  const [chosenSkills, setChosenSkills] = useState<Set<string>>(new Set())
+
   // Provisioning
   const [steps, setSteps] = useState<Step[] | null>(null)
   const [busy, setBusy] = useState(false)
@@ -85,13 +98,37 @@ export function EnrollTenant({ onProvisioned }: { onProvisioned: (tenantId: stri
     setSteps((prev) => prev ? prev.map((s, idx) => idx === i ? { ...s, status, detail } : s) : prev)
   }
 
+  async function recommend() {
+    if (!name.trim()) return
+    setRecBusy(true); setRecError(null)
+    try {
+      const r = await api.post<RecommendationPack>('/api/platform/onboarding/recommend', {
+        name: name.trim(), industry: industry.trim() || null,
+        description: notes.trim() || null, regulatoryContext: notes.trim() || null,
+      })
+      setRec(r)
+      setChosenSkills(new Set(r.skills.map((s) => s.packageId)))
+    } catch (e) {
+      setRecError(e instanceof ApiError ? e.message : String(e))
+    } finally { setRecBusy(false) }
+  }
+
+  function applySuggestions() {
+    if (!rec) return
+    setPosture(rec.handlesPhi ? 'phi' : rec.suggestedTier === 'Regulated' ? 'securities' : rec.suggestedTier === 'Elevated' ? 'elevated' : 'standard')
+    if (rec.suggestedSegment && !segment) setSegment(rec.suggestedSegment)
+    if (rec.suggestedAccent) setAccent(rec.suggestedAccent)
+  }
+
   async function provision() {
     const tid = tenantId
     const useTemplate = templateId !== ''
+    const skillsToInstall = rec ? rec.skills.filter((s) => chosenSkills.has(s.packageId)) : []
     const initial: Step[] = [
       { label: `Create tenant "${name.trim()}" (${tid})`, status: 'pending' },
       { label: useTemplate ? `Apply starter pack "${templateId}"` : 'Starter pack (none selected)', status: useTemplate ? 'pending' : 'skip' },
       { label: 'Apply branding & posture', status: 'pending' },
+      { label: skillsToInstall.length ? `Install ${skillsToInstall.length} recommended skill(s)` : 'Recommended skills (none selected)', status: skillsToInstall.length ? 'pending' : 'skip' },
       { label: `Issue admin key for ${adminId}`, status: 'pending' },
     ]
     setSteps(initial)
@@ -143,17 +180,29 @@ export function EnrollTenant({ onProvisioned }: { onProvisioned: (tenantId: stri
       set(2, 'fail', e instanceof ApiError ? e.message : String(e))
     }
 
-    // 4. Admin key — shown once.
-    set(3, 'running')
+    // 4. Recommended skills (from the AI advisor). Installed via the skill
+    // activate endpoint (catalog install with dependencies).
+    if (skillsToInstall.length) {
+      set(3, 'running')
+      let ok = 0; const errs: string[] = []
+      for (const s of skillsToInstall) {
+        try { await api.post(`/api/platform/tenants/${tid}/skills/${s.packageId}/activate`); ok++ }
+        catch (e) { errs.push(`${s.displayName}: ${e instanceof ApiError ? e.message : String(e)}`) }
+      }
+      set(3, errs.length ? 'fail' : 'ok', `${ok} activated${errs.length ? ` · ${errs.length} error(s): ${errs[0]}` : ''}`)
+    }
+
+    // 5. Admin key — shown once.
+    set(4, 'running')
     try {
       const r = await api.post<{ accessKey: string }>(`/api/platform/tenants/${tid}/users`, {
         identifier: adminId.trim(), displayName: adminName.trim() || adminId.trim(),
         role: adminRole, email: adminId.trim(),
       })
       setIssuedKey(r.accessKey)
-      set(3, 'ok')
+      set(4, 'ok')
     } catch (e) {
-      set(3, 'fail', e instanceof ApiError ? e.message : String(e))
+      set(4, 'fail', e instanceof ApiError ? e.message : String(e))
     }
 
     setBusy(false)
@@ -166,6 +215,7 @@ export function EnrollTenant({ onProvisioned }: { onProvisioned: (tenantId: stri
     setContactName(''); setContactEmail(''); setNotes(''); setPosture('standard')
     setTemplateId(''); setBrand(''); setSegment(''); setAccent('#5aa9e6')
     setAdminId(''); setAdminName(''); setAdminRole('ExecutiveOwner')
+    setRec(null); setChosenSkills(new Set()); setRecError(null)
   }
 
   // --- Result view ---
@@ -237,6 +287,39 @@ export function EnrollTenant({ onProvisioned }: { onProvisioned: (tenantId: stri
             <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anything the team should know" />
           </label>
         </div>
+      </section>
+
+      <section className="panel">
+        <h3>AI recommendation</h3>
+        <p className="muted small">
+          From the profile, recommend the skills, posture, and branding to onboard with. Advisory —
+          review and adjust; nothing is applied until you click below or provision.
+        </p>
+        <button className="secondary" onClick={recommend} disabled={!name.trim() || recBusy}>
+          {recBusy ? 'Analyzing…' : rec ? 'Re-run recommendation' : '✨ Recommend skills & setup'}
+        </button>
+        {recError && <p className="error small">{recError}</p>}
+        {rec && (
+          <div className="rec-result">
+            <p className="small"><strong>{rec.detectedIndustry}</strong> · suggests <strong>{rec.suggestedTier}</strong> posture{rec.handlesPhi ? ' · PHI' : ''}. {rec.rationale}</p>
+            {rec.notes.map((n, i) => <p key={i} className="muted small">• {n}</p>)}
+            <div className="rec-skills">
+              {rec.skills.map((s) => (
+                <label key={s.packageId} className={`rec-skill ${chosenSkills.has(s.packageId) ? 'on' : ''}`}>
+                  <input type="checkbox" checked={chosenSkills.has(s.packageId)} onChange={(e) => {
+                    const next = new Set(chosenSkills)
+                    e.target.checked ? next.add(s.packageId) : next.delete(s.packageId)
+                    setChosenSkills(next)
+                  }} />
+                  <span><strong>{s.displayName}</strong> <span className={`pkg-badge pkg-${s.tier === 'AddOn' ? 'alacarte' : 'essential'}`}>{s.tier}</span></span>
+                  <span className="muted small">{s.reason}</span>
+                </label>
+              ))}
+            </div>
+            <button className="secondary small" onClick={applySuggestions}>Apply posture &amp; branding to the form</button>
+            <span className="muted small" style={{ marginLeft: '0.5rem' }}>{chosenSkills.size} skill(s) will be installed on provision.</span>
+          </div>
+        )}
       </section>
 
       <section className="panel">
