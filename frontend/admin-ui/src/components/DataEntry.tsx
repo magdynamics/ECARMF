@@ -1,5 +1,6 @@
 ﻿import { useCallback, useEffect, useState } from 'react'
 import { api, ApiError } from '../api'
+import { Icon } from './Icon'
 
 interface Connector {
   connectorId: string
@@ -19,7 +20,7 @@ const EXAMPLES: Record<string, string> = {
 }
 
 /// The INPUT screen: everything that puts data into the pipeline lives here.
-export function DataEntry({ tenant, user }: { tenant: string; user: string }) {
+export function DataEntry({ tenant, user, go }: { tenant: string; user: string; go?: (tab: string) => void }) {
   const [recordType, setRecordType] = useState('Opportunity')
   const [payloadJson, setPayloadJson] = useState(EXAMPLES.Opportunity)
   const [connectors, setConnectors] = useState<Connector[]>([])
@@ -151,6 +152,23 @@ export function DataEntry({ tenant, user }: { tenant: string; user: string }) {
     <div>
       {message && <div className="banner banner-ok">{message}</div>}
       {error && <div className="banner banner-error">{error}</div>}
+
+      {/* Cross-link: connecting a bank/accounting system is a Setup act that
+          users historically looked for here — point them at Integrations. */}
+      <section className="panel xlink-card">
+        <div className="xlink-body">
+          <Icon name="plug" size={20} />
+          <div>
+            <strong>Looking to connect a bank or accounting system?</strong>
+            <p className="muted small" style={{ margin: 0 }}>
+              Feeds from banking, accounting, POS, billing, ERP, and CRM applications are registered
+              once under <strong>Setup → Integrations</strong> — data they push or pull arrives here
+              automatically. This screen is for manual and ad-hoc input through those connectors.
+            </p>
+          </div>
+        </div>
+        {go && <button className="secondary" onClick={() => go('integrations')}>Open Integrations <Icon name="arrow-right" size={14} /></button>}
+      </section>
 
       <section className="panel">
         <h2>Submit a record <span className="state state-staged">INPUT</span></h2>

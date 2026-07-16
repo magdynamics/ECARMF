@@ -645,7 +645,7 @@ function App() {
           ) : tab === 'ai' ? (
             <AiSettings tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'dataentry' ? (
-            <DataEntry tenant={effectiveTenant} user={effectiveUser} />
+            <DataEntry tenant={effectiveTenant} user={effectiveUser} go={setTab} />
           ) : tab === 'statements' ? (
             <StatementReview tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'activity' ? (
