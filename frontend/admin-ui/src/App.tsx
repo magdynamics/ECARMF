@@ -180,6 +180,14 @@ function App() {
   const [signedInWithKey, setSignedInWithKey] = useState(!!getApiKey())
   const [tab, setTab] = useState('home')
   const [navOpen, setNavOpen] = useState(false)
+  // Theme: dark is the product default; the choice persists per browser and
+  // flips every design token via [data-theme] on the document root.
+  const [theme, setTheme] = useState<'dark' | 'light'>(() =>
+    (localStorage.getItem('ecarmf.theme') as 'dark' | 'light' | null) ?? 'dark')
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('ecarmf.theme', theme)
+  }, [theme])
   const [knownTenants, setKnownTenants] = useState<string[]>([])
   const [tenantWarning, setTenantWarning] = useState<string | null>(null)
   // When the deployment is key-only (header identity disabled), an
@@ -440,6 +448,14 @@ function App() {
           </h1>
           <button className="search-btn" onClick={() => setPaletteOpen(true)} title="Search (Ctrl-K)">
             <Icon name="search" size={14} /> Search <span className="kbd">Ctrl K</span>
+          </button>
+          <button
+            className="search-btn theme-toggle"
+            onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
+            title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+            aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+          >
+            <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={15} />
           </button>
         </div>
         <div className="tenant-bar">
