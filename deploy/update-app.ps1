@@ -4,7 +4,12 @@
 $result = 'C:\ECARMF\install-result.txt'
 try {
     Stop-Service -Name ECARMF -Force -ErrorAction Stop
-    robocopy 'C:\ECARMF\staging' 'C:\ECARMF\app' /MIR /R:3 /W:2 | Out-Null
+    # /XF protects the machine's config overlay (connection string, security
+    # mode, certs) from being clobbered by the mirror — it is excluded from
+    # both copy and /MIR deletion. The overlay is loaded automatically because
+    # ASP.NET defaults to the Production environment when ASPNETCORE_ENVIRONMENT
+    # is unset.
+    robocopy 'C:\ECARMF\staging' 'C:\ECARMF\app' /MIR /R:3 /W:2 /XF appsettings.Production.json | Out-Null
     if ($LASTEXITCODE -ge 8) { throw "robocopy failed with code $LASTEXITCODE" }
     Start-Service -Name ECARMF
     Start-Sleep -Seconds 6

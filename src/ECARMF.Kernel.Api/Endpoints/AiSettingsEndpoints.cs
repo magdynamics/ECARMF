@@ -3,6 +3,7 @@ using ECARMF.Kernel.Application.Audit;
 using ECARMF.Kernel.Application.Identity;
 using ECARMF.Kernel.Domain.Audit;
 using ECARMF.Kernel.Domain.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ECARMF.Kernel.Api.Endpoints;
 
@@ -72,7 +73,9 @@ public static class AiSettingsEndpoints
             }, ct);
 
             return Results.Ok(status);
-        });
+        // Configuring an AI credential is auth-sensitive: throttle so a stolen
+        // operator session can't spray keys across tenants unnoticed.
+        }).RequireRateLimiting("auth-sensitive");
 
         group.MapDelete("/", async (
             HttpContext context, IUserStore users, ITenantAiSettingsStore settings, IAuditLog audit, CancellationToken ct) =>

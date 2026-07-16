@@ -1,13 +1,22 @@
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using ECARMF.Kernel.Api.Endpoints;
 using ECARMF.Kernel.Api.Hosting;
 using ECARMF.Kernel.Application;
 using ECARMF.Kernel.Application.Packages;
 using ECARMF.Kernel.Infrastructure;
 using ECARMF.Kernel.Infrastructure.Persistence;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// HTTPS is enabled purely by configuration: define Kestrel:Endpoints (Http +
+// Https with a certificate) in appsettings.Production.json — Kestrel binds
+// them natively, no code path needed. NOTE: when Kestrel:Endpoints exists it
+// REPLACES --urls, so the config must declare BOTH endpoints (see
+// deploy/RUNBOOK-golive-and-ai.md, "Enable HTTPS"). With no Kestrel section,
+// behavior is unchanged (--urls only).
 
 // Lets the app run as a Windows service (no-op when run as a console).
 builder.Host.UseWindowsService();
@@ -29,6 +38,36 @@ builder.Services.AddHostedService<ECARMF.Kernel.Api.Hosting.TreasuryThresholdHos
 builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
+// Abuse ceiling + brute-force protection. The global limiter is per-client-IP
+// and generous (UI screens burst ~40 calls); the "auth-sensitive" policy
+// guards credential issuance/rotation and AI-key configuration. It is a
+// single shared window (not per-IP) — acceptable for a single-box deployment
+// where those routes are rare, deliberate operator actions.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = (context, _) =>
+    {
+        context.HttpContext.Response.Headers.RetryAfter = "10";
+        return ValueTask.CompletedTask;
+    };
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 300,
+                Window = TimeSpan.FromSeconds(30),
+                QueueLimit = 0
+            }));
+    options.AddFixedWindowLimiter("auth-sensitive", limiter =>
+    {
+        limiter.PermitLimit = 10;
+        limiter.Window = TimeSpan.FromMinutes(1);
+        limiter.QueueLimit = 0;
+    });
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -46,6 +85,12 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+}
+else
+{
+    // Only emits the Strict-Transport-Security header on HTTPS responses, so
+    // this is inert until an HTTPS endpoint is configured.
+    app.UseHsts();
 }
 
 // The API also serves the built admin UI (frontend build lands in wwwroot),
@@ -69,6 +114,11 @@ app.UseStaticFiles(new StaticFileOptions
 // Infrastructure liveness/readiness probes, mapped BEFORE auth so a load
 // balancer or monitor can reach them without a key. They expose no tenant data.
 app.MapHealthEndpoints();
+
+// Rate limiting sits BEFORE authentication so brute-force attempts are
+// throttled without paying the key-hash lookup. Health probes are exempt
+// (the health group is marked DisableRateLimiting).
+app.UseRateLimiter();
 
 // Credential-first authentication: an access key derives tenant + identity
 // (headers are overwritten); suspended tenants are locked out platform-wide.

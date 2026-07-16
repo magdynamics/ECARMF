@@ -5,7 +5,7 @@
 
 .DESCRIPTION
   Does only the mechanical infrastructure steps. It does NOT issue access keys
-  or configure AI — those are deliberate, credential-bearing actions you do
+  or configure AI - those are deliberate, credential-bearing actions you do
   yourself (see deploy\RUNBOOK-golive-and-ai.md). With -LockDown, make sure you
   have issued an operator key first, or you will be locked out.
 
@@ -28,7 +28,9 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $AppDir     = 'C:\ECARMF\app'
-$AppSettings= Join-Path $AppDir 'appsettings.json'
+# The machine's config overlay (survives deploys via robocopy /XF); ASP.NET
+# loads it automatically because the default environment is Production.
+$AppSettings= Join-Path $AppDir 'appsettings.Production.json'
 $ServiceName= 'ECARMF'
 $Port       = 5099
 $Shortcut   = Join-Path ([Environment]::GetFolderPath('Desktop')) 'ECARMF Platform.url'
@@ -42,11 +44,23 @@ function Assert-Admin {
 }
 
 function Set-HeaderIdentity([bool]$allow) {
-  $json = Get-Content $AppSettings -Raw
-  $repl = '"AllowHeaderIdentity": ' + $allow.ToString().ToLower()
-  $json = [regex]::Replace($json, '"AllowHeaderIdentity":\s*(true|false)', $repl)
-  Set-Content -Path $AppSettings -Value $json -Encoding utf8
-  Write-Host "  set AllowHeaderIdentity=$($allow.ToString().ToLower())"
+  # Edit (or create) the Production overlay, preserving its other keys -
+  # the base appsettings.json is deploy-owned and must not be touched.
+  if (Test-Path $AppSettings) {
+    $cfg = Get-Content $AppSettings -Raw | ConvertFrom-Json
+  } else {
+    $cfg = [pscustomobject]@{}
+  }
+  if (-not $cfg.PSObject.Properties['Security']) {
+    $cfg | Add-Member -NotePropertyName Security -NotePropertyValue ([pscustomobject]@{})
+  }
+  if (-not $cfg.Security.PSObject.Properties['AllowHeaderIdentity']) {
+    $cfg.Security | Add-Member -NotePropertyName AllowHeaderIdentity -NotePropertyValue $allow
+  } else {
+    $cfg.Security.AllowHeaderIdentity = $allow
+  }
+  $cfg | ConvertTo-Json -Depth 8 | Set-Content -Path $AppSettings -Encoding utf8
+  Write-Host "  set AllowHeaderIdentity=$($allow.ToString().ToLower()) in appsettings.Production.json"
 }
 
 function Stop-TestProcess {

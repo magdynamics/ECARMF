@@ -1,5 +1,6 @@
 using System.Reflection;
 using ECARMF.Kernel.Infrastructure.Persistence;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECARMF.Kernel.Api.Endpoints;
@@ -21,12 +22,14 @@ public static class HealthEndpoints
     public static IEndpointRouteBuilder MapHealthEndpoints(this IEndpointRouteBuilder app)
     {
         // Liveness: cheap, no dependencies. If this fails the process is down.
+        // Health/auth-mode probes are exempt from rate limiting — a monitor
+        // must never be throttled into a false "down".
         app.MapGet("/health", () => Results.Ok(new
         {
             status = "healthy",
             version = Version,
             utc = DateTimeOffset.UtcNow
-        }));
+        })).DisableRateLimiting();
 
         // Auth mode: public (non-/api so the auth middleware never gates it) so
         // the UI can show a proper sign-in screen when the deployment is
@@ -34,7 +37,7 @@ public static class HealthEndpoints
         app.MapGet("/auth-mode", (IConfiguration config) => Results.Ok(new
         {
             headerIdentityAllowed = config.GetValue("Security:AllowHeaderIdentity", true)
-        }));
+        })).DisableRateLimiting();
 
         // Readiness: can we actually serve requests (is the DB reachable)?
         // A balancer should drain traffic when this returns 503.
@@ -52,7 +55,7 @@ public static class HealthEndpoints
 
             var body = new { status = dbUp ? "ready" : "not-ready", database = dbUp ? "up" : "down", utc = DateTimeOffset.UtcNow };
             return dbUp ? Results.Ok(body) : Results.Json(body, statusCode: StatusCodes.Status503ServiceUnavailable);
-        });
+        }).DisableRateLimiting();
 
         return app;
     }

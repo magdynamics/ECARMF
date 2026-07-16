@@ -95,6 +95,51 @@ or `Stop-Service ECARMF` and start the `:8080` process again.
 
 ---
 
+## Part C — Hardening (one-time setup, elevated)
+
+### C1. Config overlay (how settings survive deploys)
+Machine-specific settings live in `C:\ECARMF\app\appsettings.Production.json` — connection string,
+`Security:AllowHeaderIdentity`, and (optionally) HTTPS endpoints. ASP.NET loads it automatically
+(the default environment is Production), and every deploy mirror excludes it
+(`robocopy ... /XF appsettings.Production.json`), so deploys can never clobber it again.
+`go-live.ps1 -LockDown/-Unlock` edits this overlay, not the base file.
+
+### C2. Enable HTTPS (pure config — no code change)
+Add a `Kestrel` section to `appsettings.Production.json`. **Important:** once `Kestrel:Endpoints`
+exists it *replaces* `--urls`, so declare BOTH endpoints:
+```json
+"Kestrel": {
+  "Endpoints": {
+    "Http":  { "Url": "http://*:5099" },
+    "Https": { "Url": "https://*:5443",
+               "Certificate": { "Path": "C:\\ECARMF\\certs\\ecarmf.pfx", "Password": "<pfx password>" } }
+  }
+}
+```
+Internal/self-signed cert: `New-SelfSignedCertificate -DnsName <host> ...` + `Export-PfxCertificate`.
+Public exposure: prefer a reverse proxy (IIS ARR / Caddy) terminating a real certificate.
+Verified: with both endpoints configured, HTTP and HTTPS answer side by side; HSTS is emitted on
+HTTPS for non-localhost hosts.
+
+### C3. Backups (script verified: backup + restore drill both proven)
+```powershell
+.\deploy\register-backup-task.ps1        # elevated, once — nightly 02:00 as SYSTEM, keeps 14
+.\deploy\backup-nightly.ps1              # manual backup any time (works unelevated)
+.\deploy\backup-nightly.ps1 -VerifyRestore   # quarterly drill: restores newest .bak, checks, drops
+```
+Log: `C:\ECARMF\logs\backup.log`. Backups land in `C:\ECARMF\backups`.
+
+### C4. Health monitoring
+```powershell
+.\deploy\register-health-probe.ps1       # elevated, once — probes /health every 5 min
+```
+Failure ⇒ Application event log **Error 1001** (source `ECARMF-Monitor`) + `C:\ECARMF\logs\health.log`;
+recovery ⇒ Information 1000. Attach an email/toast to the event via Task Scheduler if desired.
+
+### C5. Rate limiting (built in — nothing to configure)
+Global: 300 requests / 30 s per client IP (429 + Retry-After beyond that). Credential routes
+(key issuance/rotation, AI-key config) additionally capped at 10/min. Health probes are exempt.
+
 ## Quick reference
 
 | Action | Command / location |

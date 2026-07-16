@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.RateLimiting;
 using ECARMF.Kernel.Application.Audit;
 using ECARMF.Kernel.Application.Identity;
 using ECARMF.Kernel.Domain.Audit;
@@ -402,7 +403,9 @@ public static class PlatformEndpoints
                 user.Email, user.Phone, user.JobTitle,
                 accessKey // shown once — never retrievable again
             });
-        });
+        // Credential issuance is a rare, deliberate operator action — throttle
+        // hard so it can't be used as a key-minting or brute-force surface.
+        }).RequireRateLimiting("auth-sensitive");
 
         // Ghost-tenant purge: deletes the residue of a tenant id that was
         // NEVER onboarded (typos like 'jj' seeded users/connectors before
@@ -470,7 +473,7 @@ public static class PlatformEndpoints
             }, ct);
 
             return Results.Ok(new { identifier, accessKey });
-        });
+        }).RequireRateLimiting("auth-sensitive");
 
         group.MapPost("/{tenantId}/users/{identifier}/status", async (
             string tenantId, string identifier, SetUserStatusRequest request, HttpContext context,
