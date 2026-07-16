@@ -2,6 +2,13 @@
 import { api, ApiError } from '../api'
 import { Icon } from './Icon'
 
+interface OrgUnit {
+  unitId: string
+  name: string
+  unitType: string
+  status: string
+}
+
 interface Connector {
   connectorId: string
   name: string
@@ -24,6 +31,8 @@ export function DataEntry({ tenant, user, go }: { tenant: string; user: string; 
   const [recordType, setRecordType] = useState('Opportunity')
   const [payloadJson, setPayloadJson] = useState(EXAMPLES.Opportunity)
   const [connectors, setConnectors] = useState<Connector[]>([])
+  const [units, setUnits] = useState<OrgUnit[]>([])
+  const [unitRef, setUnitRef] = useState('')
   const [connectorId, setConnectorId] = useState('manual-entry')
   const [rawPayload, setRawPayload] = useState('')
   const [docConnectorId, setDocConnectorId] = useState('manual-entry')
@@ -42,6 +51,11 @@ export function DataEntry({ tenant, user, go }: { tenant: string; user: string; 
     } catch {
       setConnectors([]) // connector config needs the Administrator identity
     }
+    try {
+      setUnits((await api.get<OrgUnit[]>('/api/org-units')).filter((u) => u.status !== 'Archived'))
+    } catch {
+      setUnits([])
+    }
   }, [])
 
   useEffect(() => {
@@ -56,7 +70,7 @@ export function DataEntry({ tenant, user, go }: { tenant: string; user: string; 
     try {
       const receipt = await api.post<{ transactionId: string; eventPublished: boolean; note: string | null }>(
         '/api/records',
-        { recordType, payload: JSON.parse(payloadJson) },
+        { recordType, payload: JSON.parse(payloadJson), unitRef: unitRef || null },
       )
       setMessage(
         receipt.eventPublished
@@ -75,7 +89,7 @@ export function DataEntry({ tenant, user, go }: { tenant: string; user: string; 
     try {
       const result = await api.post<{ recordIds: string[]; warnings: string[] }>(
         `/api/connectors/${connectorId}/ingest`,
-        { rawPayload },
+        { rawPayload, unitRef: unitRef || null },
       )
       setMessage(
         `Ingested ${result.recordIds.length} record(s) through '${connectorId}'.` +
@@ -91,7 +105,7 @@ export function DataEntry({ tenant, user, go }: { tenant: string; user: string; 
     setError(null)
     setDocBusy(true)
     try {
-      let body: { fileName?: string; contentBase64?: string; text?: string }
+      let body: { fileName?: string; contentBase64?: string; text?: string; unitRef?: string | null }
       if (docFile) {
         const bytes = new Uint8Array(await docFile.arrayBuffer())
         let binary = ''
@@ -100,6 +114,7 @@ export function DataEntry({ tenant, user, go }: { tenant: string; user: string; 
       } else {
         body = { fileName: 'pasted-text', text: docText }
       }
+      body.unitRef = unitRef || null
       const result = await api.post<{
         backend: string
         rawPayload: string
@@ -134,6 +149,7 @@ export function DataEntry({ tenant, user, go }: { tenant: string; user: string; 
         recordType: bulkType,
         fileName: bulkFile.name,
         contentBase64: btoa(binary),
+        unitRef: unitRef || null,
       })
       setMessage(
         `Imported ${result.imported} of ${result.totalRows} row(s) as '${bulkType}' — ` +
@@ -169,6 +185,28 @@ export function DataEntry({ tenant, user, go }: { tenant: string; user: string; 
         </div>
         {go && <button className="secondary" onClick={() => go('integrations')}>Open Integrations <Icon name="arrow-right" size={14} /></button>}
       </section>
+
+      {units.length > 0 && (
+        <section className="panel xlink-card" style={{ borderLeftColor: 'var(--warn-text)' }}>
+          <div className="xlink-body">
+            <Icon name="building" size={20} />
+            <div>
+              <strong>Data attribution — which entity does this data belong to?</strong>
+              <p className="muted small" style={{ margin: 0 }}>
+                Everything you submit below is stamped with this unit — a bank statement belongs to
+                its location; an HR guideline belongs to all units. Bulk CSVs can override per row
+                with a <code>unitRef</code> column.
+              </p>
+            </div>
+          </div>
+          <label style={{ minWidth: '16rem' }}>
+            <select value={unitRef} onChange={(e) => setUnitRef(e.target.value)}>
+              <option value="">All units (tenant-wide)</option>
+              {units.map((u) => <option key={u.unitId} value={u.unitId}>{u.name} ({u.unitType})</option>)}
+            </select>
+          </label>
+        </section>
+      )}
 
       <section className="panel">
         <h2>Submit a record <span className="state state-staged">INPUT</span></h2>

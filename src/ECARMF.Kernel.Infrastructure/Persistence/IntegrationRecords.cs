@@ -13,6 +13,10 @@ public class IntegrationRecord
     public string Name { get; set; } = string.Empty;
     public string ApplicationType { get; set; } = string.Empty;
     public string ConnectorId { get; set; } = string.Empty;
+
+    /// <summary>Unit (legal entity/location) this integration serves; null = tenant-wide.</summary>
+    public string? UnitId { get; set; }
+
     public string Mode { get; set; } = string.Empty;
     public string? PullUrl { get; set; }
     public int? PullIntervalMinutes { get; set; }
@@ -81,6 +85,7 @@ public class EfIntegrationStore : IIntegrationStore
             Name = integration.Name,
             ApplicationType = integration.ApplicationType,
             ConnectorId = integration.ConnectorId,
+            UnitId = integration.UnitId,
             Mode = integration.Mode,
             PullUrl = integration.PullUrl,
             PullIntervalMinutes = integration.PullIntervalMinutes,
@@ -98,6 +103,7 @@ public class EfIntegrationStore : IIntegrationStore
         record.Name = integration.Name;
         record.ApplicationType = integration.ApplicationType;
         record.ConnectorId = integration.ConnectorId;
+        record.UnitId = integration.UnitId;
         record.Mode = integration.Mode;
         record.PullUrl = integration.PullUrl;
         record.PullIntervalMinutes = integration.PullIntervalMinutes;
@@ -205,6 +211,7 @@ public class EfIntegrationStore : IIntegrationStore
         Name = record.Name,
         ApplicationType = record.ApplicationType,
         ConnectorId = record.ConnectorId,
+        UnitId = record.UnitId,
         Mode = record.Mode,
         PullUrl = record.PullUrl,
         PullIntervalMinutes = record.PullIntervalMinutes,

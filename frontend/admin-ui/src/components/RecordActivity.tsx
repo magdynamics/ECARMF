@@ -5,6 +5,8 @@ import type { ActivityItem } from '../types'
 const POLL_MS = 5000
 const OUTCOMES = ['Approved', 'Rejected', 'Flagged', 'Accept', 'Hold', 'Escalate', 'AuditFurther', 'AMLEscalated', 'JournalHeld', 'ControlDeficiencyLogged', 'AccreditationReviewRequired']
 
+interface OrgUnit { unitId: string; name: string; unitType: string; status: string }
+
 interface SearchResult {
   total: number
   page: number
@@ -18,10 +20,12 @@ interface SearchResult {
 export function RecordActivity({ tenant, user }: { tenant: string; user: string }) {
   const [result, setResult] = useState<SearchResult>({ total: 0, page: 1, pageSize: 25, items: [] })
   const [recordTypes, setRecordTypes] = useState<string[]>([])
+  const [units, setUnits] = useState<OrgUnit[]>([])
   const [error, setError] = useState<string | null>(null)
 
   const [recordType, setRecordType] = useState('')
   const [outcome, setOutcome] = useState('')
+  const [unitRef, setUnitRef] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
 
@@ -30,14 +34,16 @@ export function RecordActivity({ tenant, user }: { tenant: string; user: string 
       const params = new URLSearchParams({ page: String(page), pageSize: '25' })
       if (recordType) params.set('recordType', recordType)
       if (outcome) params.set('outcome', outcome)
+      if (unitRef) params.set('unitRef', unitRef)
       if (search.trim()) params.set('search', search.trim())
       setResult(await api.get<SearchResult>(`/api/records/search?${params}`))
       setRecordTypes(await api.get<string[]>('/api/records/types'))
+      try { setUnits(await api.get<OrgUnit[]>('/api/org-units')) } catch { setUnits([]) }
       setError(null)
     } catch (e) {
       setError(e instanceof ApiError ? e.message : String(e))
     }
-  }, [page, recordType, outcome, search])
+  }, [page, recordType, outcome, search, unitRef])
 
   useEffect(() => {
     void refresh()
@@ -47,7 +53,7 @@ export function RecordActivity({ tenant, user }: { tenant: string; user: string 
 
   useEffect(() => {
     setPage(1)
-  }, [recordType, outcome, search, tenant])
+  }, [recordType, outcome, search, unitRef, tenant])
 
   async function decide(recordId: string, verdict: 'Approve' | 'Reject') {
     setError(null)
@@ -80,6 +86,12 @@ export function RecordActivity({ tenant, user }: { tenant: string; user: string 
             <option value="">all types</option>
             {recordTypes.map((t) => <option key={t} value={t}>{t}</option>)}
           </select></label>
+          {units.length > 0 && (
+            <label>Entity / location<select value={unitRef} onChange={(e) => setUnitRef(e.target.value)}>
+              <option value="">all units</option>
+              {units.map((u) => <option key={u.unitId} value={u.unitId}>{u.name} (+ tenant-wide)</option>)}
+            </select></label>
+          )}
           <label>Outcome<select value={outcome} onChange={(e) => setOutcome(e.target.value)}>
             <option value="">all outcomes</option>
             {OUTCOMES.map((o) => <option key={o} value={o}>{o}</option>)}

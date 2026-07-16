@@ -129,6 +129,7 @@ public class ECARMFDbContext : DbContext
             entity.Property(i => i.Name).HasMaxLength(400).IsRequired();
             entity.Property(i => i.ApplicationType).HasMaxLength(100).IsRequired();
             entity.Property(i => i.ConnectorId).HasMaxLength(200).IsRequired();
+            entity.Property(i => i.UnitId).HasMaxLength(200);
             entity.Property(i => i.Mode).HasMaxLength(20).IsRequired();
             entity.Property(i => i.PullUrl).HasMaxLength(2000);
             entity.Property(i => i.Status).HasMaxLength(50).IsRequired();
@@ -659,8 +660,10 @@ public class ECARMFDbContext : DbContext
             entity.Property(t => t.SubmittedBy).HasMaxLength(400).IsRequired();
             entity.Property(t => t.PayloadJson).IsRequired();
             entity.Property(t => t.CaseId).HasMaxLength(120);
+            entity.Property(t => t.UnitRef).HasMaxLength(200);
             entity.HasIndex(t => new { t.TenantId, t.ReceivedAt });
             entity.HasIndex(t => new { t.TenantId, t.CaseId });
+            entity.HasIndex(t => new { t.TenantId, t.UnitRef });
         });
 
         modelBuilder.Entity<KnowledgePackageRecord>(entity =>

@@ -27,4 +27,9 @@ public class Transaction : UniversalBaseEntity
     /// <summary>Optional case/project this record belongs to (a cross-cutting
     /// grouping within the tenant). Null = not filed under any case.</summary>
     public string? CaseId { get; set; }
+
+    /// <summary>The organizational unit (legal entity / location) this record
+    /// belongs to. Null = tenant-wide (applies to all units — e.g. an HR
+    /// guideline), never "unknown": ingest doors validate the unit exists.</summary>
+    public string? UnitRef { get; set; }
 }

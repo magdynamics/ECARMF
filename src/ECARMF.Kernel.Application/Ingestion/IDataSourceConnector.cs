@@ -90,8 +90,11 @@ public static class SeedConnectors
 /// this same contract later without kernel changes.</summary>
 public interface IDataSourceConnector
 {
+    /// <param name="unitRef">Organizational unit the data belongs to; null =
+    /// tenant-wide. Stamped onto every produced record.</param>
     Task<IngestionResult> IngestAsync(
-        string tenantId, string connectorId, string rawPayload, string actorIdentifier, CancellationToken ct = default);
+        string tenantId, string connectorId, string rawPayload, string actorIdentifier,
+        string? unitRef = null, CancellationToken ct = default);
 }
 
 public sealed record IngestionResult(

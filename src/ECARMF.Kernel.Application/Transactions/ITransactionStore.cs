@@ -36,4 +36,12 @@ public sealed record TransactionQuery(
     DateTimeOffset? To = null,
     int Skip = 0,
     int Take = 50,
-    string? CaseId = null);
+    string? CaseId = null,
+    /// <summary>Filter to one organizational unit. Tenant-wide records
+    /// (UnitRef = null) are INCLUDED — a location's view contains what
+    /// applies to everyone (e.g. HR guidelines) plus its own data, unless
+    /// <see cref="UnitExclusive"/> is set.</summary>
+    string? UnitRef = null,
+    /// <summary>With UnitRef set: true = only that unit's own records,
+    /// excluding tenant-wide ones.</summary>
+    bool UnitExclusive = false);

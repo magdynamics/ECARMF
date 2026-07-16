@@ -1,5 +1,6 @@
 using System.Text;
 using ECARMF.Kernel.Application.Audit;
+using ECARMF.Kernel.Application.Identity;
 using ECARMF.Kernel.Application.Library;
 using ECARMF.Kernel.Application.Transactions;
 using ECARMF.Kernel.Domain.Audit;
@@ -21,9 +22,12 @@ public interface IBulkImportService
     /// through the standard intake — same rules, scoring, benchmarks, and
     /// audit as live data. The CSV itself is archived as evidence with the
     /// record lineage. Row failures are collected, never fatal.</summary>
+    /// <param name="unitRef">Unit every row is attributed to; a per-row
+    /// "unitRef" (or "unit") column overrides it, so one spreadsheet can
+    /// carry many locations. Null = tenant-wide.</param>
     Task<BulkImportResult> ImportCsvAsync(
         string tenantId, string recordType, string fileName, byte[] csvContent,
-        string submittedBy, CancellationToken ct = default);
+        string submittedBy, string? unitRef = null, CancellationToken ct = default);
 }
 
 /// <summary>
@@ -43,19 +47,31 @@ public class BulkImportService : IBulkImportService
     private readonly ITransactionIntakeService _intake;
     private readonly IDocumentLibrary _library;
     private readonly IAuditLog _audit;
+    private readonly IOrgUnitStore? _units;
 
     public BulkImportService(
-        ITransactionIntakeService intake, IDocumentLibrary library, IAuditLog audit)
+        ITransactionIntakeService intake, IDocumentLibrary library, IAuditLog audit,
+        IOrgUnitStore? units = null)
     {
         _intake = intake;
         _library = library;
         _audit = audit;
+        _units = units;
     }
 
     public async Task<BulkImportResult> ImportCsvAsync(
         string tenantId, string recordType, string fileName, byte[] csvContent,
-        string submittedBy, CancellationToken ct = default)
+        string submittedBy, string? unitRef = null, CancellationToken ct = default)
     {
+        if (_units is not null)
+        {
+            var unitError = await UnitScope.ValidateAsync(_units, tenantId, unitRef, ct);
+            if (unitError is not null)
+            {
+                throw new ArgumentException(unitError);
+            }
+        }
+
         var rows = ParseCsv(Encoding.UTF8.GetString(csvContent).TrimStart('﻿'));
         if (rows.Count < 2)
         {
@@ -77,6 +93,7 @@ public class BulkImportService : IBulkImportService
 
         var recordIds = new List<Guid>();
         var errors = new List<string>();
+        var validatedUnits = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         for (var i = 1; i < rows.Count; i++)
         {
             ct.ThrowIfCancellationRequested();
@@ -95,10 +112,27 @@ public class BulkImportService : IBulkImportService
                 }
             }
 
+            // Unit attribution: a per-row unitRef/unit column overrides the
+            // import-level unit (validated per distinct value, cached), so a
+            // single spreadsheet can carry many locations without ambiguity.
+            var rowUnit = payload.TryGetValue("unitRef", out var u1) && !string.IsNullOrWhiteSpace(u1) ? u1.Trim()
+                : payload.TryGetValue("unit", out var u2) && !string.IsNullOrWhiteSpace(u2) ? u2.Trim()
+                : unitRef;
+
             try
             {
+                if (rowUnit is not null && rowUnit != unitRef && _units is not null && validatedUnits.Add(rowUnit))
+                {
+                    var rowUnitError = await UnitScope.ValidateAsync(_units, tenantId, rowUnit, ct);
+                    if (rowUnitError is not null)
+                    {
+                        validatedUnits.Remove(rowUnit);
+                        throw new ArgumentException(rowUnitError);
+                    }
+                }
+
                 var receipt = await _intake.ReceiveAsync(
-                    new TransactionSubmission(tenantId, recordType, submittedBy, payload), ct);
+                    new TransactionSubmission(tenantId, recordType, submittedBy, payload, UnitRef: rowUnit), ct);
                 recordIds.Add(receipt.TransactionId);
             }
             catch (Exception ex)

@@ -37,6 +37,12 @@ public class IntegrationDefinition
     /// <summary>The connector every feed of this integration flows through.</summary>
     public string ConnectorId { get; set; } = string.Empty;
 
+    /// <summary>The organizational unit this integration serves (e.g. the
+    /// Chase feed of the Oak Lawn location). Every record it delivers is
+    /// stamped with this unit automatically — the feed cannot misfile data
+    /// into another entity. Null = a tenant-wide source (all units).</summary>
+    public string? UnitId { get; set; }
+
     /// <summary>push | pull.</summary>
     public string Mode { get; set; } = "push";
 

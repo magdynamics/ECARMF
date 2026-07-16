@@ -24,7 +24,8 @@ public class EfTransactionStore : ITransactionStore
             SubmittedBy = transaction.SubmittedBy,
             PayloadJson = JsonSerializer.Serialize(transaction.Payload),
             ReceivedAt = transaction.ReceivedAt,
-            CaseId = transaction.CaseId
+            CaseId = transaction.CaseId,
+            UnitRef = transaction.UnitRef
         });
 
         await _db.SaveChangesAsync(ct);
@@ -45,7 +46,8 @@ public class EfTransactionStore : ITransactionStore
             SubmittedBy = record.SubmittedBy,
             Payload = JsonSerializer.Deserialize<Dictionary<string, string>>(record.PayloadJson) ?? [],
             ReceivedAt = record.ReceivedAt,
-            CaseId = record.CaseId
+            CaseId = record.CaseId,
+            UnitRef = record.UnitRef
         };
     }
 
@@ -77,6 +79,14 @@ public class EfTransactionStore : ITransactionStore
         if (!string.IsNullOrWhiteSpace(query.CaseId))
         {
             transactions = transactions.Where(t => t.CaseId == query.CaseId);
+        }
+        if (!string.IsNullOrWhiteSpace(query.UnitRef))
+        {
+            // A unit's view includes tenant-wide records (UnitRef null) unless
+            // the caller asks for the unit's own data exclusively.
+            transactions = query.UnitExclusive
+                ? transactions.Where(t => t.UnitRef == query.UnitRef)
+                : transactions.Where(t => t.UnitRef == query.UnitRef || t.UnitRef == null);
         }
         if (query.From is not null)
         {
@@ -129,6 +139,7 @@ public class EfTransactionStore : ITransactionStore
         SubmittedBy = r.SubmittedBy,
         Payload = JsonSerializer.Deserialize<Dictionary<string, string>>(r.PayloadJson) ?? [],
         ReceivedAt = r.ReceivedAt,
-        CaseId = r.CaseId
+        CaseId = r.CaseId,
+        UnitRef = r.UnitRef
     };
 }

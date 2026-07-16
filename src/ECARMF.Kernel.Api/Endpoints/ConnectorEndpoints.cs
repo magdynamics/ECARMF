@@ -16,9 +16,9 @@ public static class ConnectorEndpoints
         string ProvenanceClass,
         string? SourceOwnership = null);
 
-    public record IngestRequest(string RawPayload);
+    public record IngestRequest(string RawPayload, string? UnitRef = null);
 
-    public record ExtractDocumentRequest(string? FileName, string? ContentBase64, string? Text);
+    public record ExtractDocumentRequest(string? FileName, string? ContentBase64, string? Text, string? UnitRef = null);
 
     public static IEndpointRouteBuilder MapConnectorEndpoints(this IEndpointRouteBuilder app)
     {
@@ -90,7 +90,7 @@ public static class ConnectorEndpoints
                 return Results.BadRequest(new { error = "rawPayload is required." });
 
             await connectors.EnsureSeedConnectorsAsync(tenantId, ct);
-            var result = await ingestion.IngestAsync(tenantId, connectorId, request.RawPayload, user!.Identifier, ct);
+            var result = await ingestion.IngestAsync(tenantId, connectorId, request.RawPayload, user!.Identifier, request.UnitRef, ct);
             return result.Success ? Results.Ok(result) : Results.BadRequest(result);
         });
 
@@ -138,7 +138,7 @@ public static class ConnectorEndpoints
 
             await connectors.EnsureSeedConnectorsAsync(tenantId, ct);
             var result = await extractor.ExtractAndIngestAsync(
-                tenantId, connectorId, documentName, documentText, user!.Identifier, originalContent, ct);
+                tenantId, connectorId, documentName, documentText, user!.Identifier, originalContent, request.UnitRef, ct);
             return result.Success ? Results.Ok(result) : Results.BadRequest(result);
         });
 

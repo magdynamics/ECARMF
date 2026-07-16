@@ -17,7 +17,8 @@ public static class RecordEndpoints
         string RecordType,
         string SubmittedBy,
         Dictionary<string, JsonElement>? Payload,
-        string? CaseId = null);
+        string? CaseId = null,
+        string? UnitRef = null);
 
     public record ApprovalRequestBody(
         string Approver,
@@ -33,6 +34,7 @@ public static class RecordEndpoints
             HttpContext context,
             ITransactionIntakeService intake,
             IUserStore users,
+            IOrgUnitStore units,
             CancellationToken ct) =>
         {
             if (!TenantResolution.TryGetTenant(context, out var tenantId))
@@ -45,6 +47,12 @@ public static class RecordEndpoints
             if (string.IsNullOrWhiteSpace(request.RecordType))
                 return Results.BadRequest(new { error = "recordType is required." });
 
+            // Unit-scoped data integrity: attributed data must name a real,
+            // Active unit; omitted = tenant-wide (applies to all units).
+            var unitError = await UnitScope.ValidateAsync(units, tenantId, request.UnitRef, ct);
+            if (unitError is not null)
+                return Results.BadRequest(new { error = unitError });
+
             var payload = (request.Payload ?? []).ToDictionary(
                 kv => kv.Key,
                 kv => JsonValueToString(kv.Value));
@@ -53,14 +61,18 @@ public static class RecordEndpoints
             // claim — segregation of duties depends on this being real.
             var receipt = await intake.ReceiveAsync(
                 new TransactionSubmission(tenantId, request.RecordType, user!.Identifier, payload,
-                    CaseId: string.IsNullOrWhiteSpace(request.CaseId) ? null : request.CaseId.Trim()), ct);
+                    CaseId: string.IsNullOrWhiteSpace(request.CaseId) ? null : request.CaseId.Trim(),
+                    UnitRef: string.IsNullOrWhiteSpace(request.UnitRef) ? null : request.UnitRef.Trim()), ct);
 
             return Results.Accepted($"/api/records/{receipt.TransactionId}", receipt);
         });
 
         // Recent record activity with outcomes — feeds the admin UI.
+        // ?unitRef= narrows to one unit (tenant-wide records included unless
+        // unitExclusive=true) — a location sees its own data plus what
+        // applies to everyone.
         group.MapGet("/", async (
-            int? limit,
+            int? limit, string? unitRef, bool? unitExclusive,
             HttpContext context,
             ITransactionStore records,
             IOutcomeStore outcomes,
@@ -75,7 +87,16 @@ public static class RecordEndpoints
             if (error is not null) return error;
 
             var take = Math.Clamp(limit ?? 50, 1, 200);
-            var recent = await records.GetRecentAsync(tenantId, take, ct);
+            IReadOnlyList<Transaction> recent;
+            if (!string.IsNullOrWhiteSpace(unitRef))
+            {
+                (recent, _) = await records.QueryAsync(new TransactionQuery(
+                    tenantId, Take: take, UnitRef: unitRef, UnitExclusive: unitExclusive ?? false), ct);
+            }
+            else
+            {
+                recent = await records.GetRecentAsync(tenantId, take, ct);
+            }
             var ids = recent.Select(t => t.TransactionId).ToList();
             var outcomesById = (await outcomes.GetForTransactionsAsync(tenantId, ids, ct))
                 .GroupBy(o => o.TransactionId)
@@ -87,6 +108,7 @@ public static class RecordEndpoints
                 RecordType = t.TransactionType,
                 t.SubmittedBy,
                 t.ReceivedAt,
+                t.UnitRef,
                 t.Payload,
                 Outcomes = outcomesById.TryGetValue(t.TransactionId, out var list)
                     ? list.Select(o => new
@@ -110,6 +132,7 @@ public static class RecordEndpoints
         group.MapGet("/search", async (
             string? recordType, string? outcome, string? submittedBy, string? search,
             DateTimeOffset? from, DateTimeOffset? to, int? page, int? pageSize,
+            string? unitRef, bool? unitExclusive,
             HttpContext context,
             ITransactionStore records,
             IOutcomeStore outcomes,
@@ -128,7 +151,8 @@ public static class RecordEndpoints
 
             var (items, total) = await records.QueryAsync(new TransactionQuery(
                 tenantId, recordType, outcome, submittedBy, search, from, to,
-                (currentPage - 1) * take, take), ct);
+                (currentPage - 1) * take, take,
+                UnitRef: unitRef, UnitExclusive: unitExclusive ?? false), ct);
 
             var ids = items.Select(t => t.TransactionId).ToList();
             var outcomesById = (await outcomes.GetForTransactionsAsync(tenantId, ids, ct))
@@ -146,6 +170,7 @@ public static class RecordEndpoints
                     RecordType = t.TransactionType,
                     t.SubmittedBy,
                     t.ReceivedAt,
+                    t.UnitRef,
                     t.Payload,
                     Outcomes = outcomesById.TryGetValue(t.TransactionId, out var list)
                         ? list.Select(o => new

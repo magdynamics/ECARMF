@@ -4,7 +4,7 @@ using ECARMF.Kernel.Domain.Identity;
 
 namespace ECARMF.Kernel.Api.Endpoints;
 
-public record BulkImportRequest(string RecordType, string FileName, string ContentBase64);
+public record BulkImportRequest(string RecordType, string FileName, string ContentBase64, string? UnitRef = null);
 
 /// <summary>
 /// Historical bulk import: a CSV whose header names the payload fields;
@@ -44,7 +44,8 @@ public static class BulkImportEndpoints
                 var result = await import.ImportCsvAsync(
                     tenantId, request.RecordType.Trim(),
                     string.IsNullOrWhiteSpace(request.FileName) ? "import.csv" : request.FileName,
-                    bytes, user!.Identifier, ct);
+                    bytes, user!.Identifier,
+                    string.IsNullOrWhiteSpace(request.UnitRef) ? null : request.UnitRef.Trim(), ct);
                 return Results.Ok(result);
             }
             catch (ArgumentException ex)

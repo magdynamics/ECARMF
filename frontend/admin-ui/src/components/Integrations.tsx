@@ -6,6 +6,7 @@ interface Integration {
   name: string
   applicationType: string
   connectorId: string
+  unitId: string | null
   mode: string
   pullUrl: string | null
   pullIntervalMinutes: number | null
@@ -25,6 +26,13 @@ interface FeedRun {
   error: string | null
 }
 
+interface OrgUnit {
+  unitId: string
+  name: string
+  unitType: string
+  status: string
+}
+
 interface Connector {
   connectorId: string
   name: string
@@ -38,6 +46,7 @@ export function Integrations({ tenant, user }: { tenant: string; user: string })
   const [integrations, setIntegrations] = useState<Integration[]>([])
   const [runs, setRuns] = useState<FeedRun[]>([])
   const [connectors, setConnectors] = useState<Connector[]>([])
+  const [units, setUnits] = useState<OrgUnit[]>([])
   const [appTypes, setAppTypes] = useState<string[]>([])
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -46,7 +55,7 @@ export function Integrations({ tenant, user }: { tenant: string; user: string })
 
   const [form, setForm] = useState({
     integrationId: '', name: '', applicationType: 'Accounting', connectorId: '',
-    mode: 'push', pullUrl: '', pullIntervalMinutes: '', authSecret: '',
+    unitId: '', mode: 'push', pullUrl: '', pullIntervalMinutes: '', authSecret: '',
   })
 
   const fail = (e: unknown) => setError(e instanceof ApiError ? e.message : String(e))
@@ -59,6 +68,7 @@ export function Integrations({ tenant, user }: { tenant: string; user: string })
       setAppTypes(await api.get<string[]>('/api/integrations/application-types'))
       const conns = await api.get<Connector[]>('/api/connectors')
       setConnectors(conns)
+      try { setUnits((await api.get<OrgUnit[]>('/api/org-units')).filter((u) => u.status !== 'Archived')) } catch { setUnits([]) }
       if (list.length > 0 && !feedTarget) setFeedTarget(list[0].integrationId)
       setError(null)
     } catch (e) {
@@ -79,13 +89,14 @@ export function Integrations({ tenant, user }: { tenant: string; user: string })
         name: form.name,
         applicationType: form.applicationType,
         connectorId: form.connectorId || connectors[0]?.connectorId,
+        unitId: form.unitId || null,
         mode: form.mode,
         pullUrl: form.mode === 'pull' ? form.pullUrl : null,
         pullIntervalMinutes: form.pullIntervalMinutes ? Number(form.pullIntervalMinutes) : null,
         authSecret: form.authSecret || null,
       })
       setMessage(`Integration '${form.integrationId}' configured.`)
-      setForm({ integrationId: '', name: '', applicationType: 'Accounting', connectorId: '', mode: 'push', pullUrl: '', pullIntervalMinutes: '', authSecret: '' })
+      setForm({ integrationId: '', name: '', applicationType: 'Accounting', connectorId: '', unitId: '', mode: 'push', pullUrl: '', pullIntervalMinutes: '', authSecret: '' })
       await load()
     } catch (e) {
       fail(e)
@@ -142,13 +153,14 @@ export function Integrations({ tenant, user }: { tenant: string; user: string })
 
         <table>
           <thead>
-            <tr><th>Integration</th><th>Type</th><th>Connector</th><th>Mode</th><th>Status</th><th>Last feed</th><th></th></tr>
+            <tr><th>Integration</th><th>Type</th><th>Entity / location</th><th>Connector</th><th>Mode</th><th>Status</th><th>Last feed</th><th></th></tr>
           </thead>
           <tbody>
             {integrations.map((i) => (
               <tr key={i.integrationId}>
                 <td><strong>{i.name}</strong> <span className="muted mono small">{i.integrationId}</span></td>
                 <td>{i.applicationType}</td>
+                <td>{i.unitId ? <span className="state state-staged">{i.unitId}</span> : <span className="muted small">all units</span>}</td>
                 <td className="mono small">{i.connectorId}</td>
                 <td>{i.mode}{i.pullIntervalMinutes ? ` (every ${i.pullIntervalMinutes}m)` : ''}</td>
                 <td><span className={`state state-${i.status.toLowerCase()}`}>{i.status}</span></td>
@@ -165,7 +177,7 @@ export function Integrations({ tenant, user }: { tenant: string; user: string })
                 </td>
               </tr>
             ))}
-            {integrations.length === 0 && <tr><td colSpan={7} className="muted">No integrations configured.</td></tr>}
+            {integrations.length === 0 && <tr><td colSpan={8} className="muted">No integrations configured.</td></tr>}
           </tbody>
         </table>
 
@@ -177,6 +189,12 @@ export function Integrations({ tenant, user }: { tenant: string; user: string })
           <label>Application<select value={form.applicationType}
             onChange={(e) => setForm({ ...form, applicationType: e.target.value })}>
             {appTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select></label>
+          <label>For entity / location<select value={form.unitId}
+            title="Every record this integration delivers is attributed to this unit - e.g. the Chase feed of the Oak Lawn location. Leave as all units for tenant-wide sources like an HR system."
+            onChange={(e) => setForm({ ...form, unitId: e.target.value })}>
+            <option value="">All units (tenant-wide)</option>
+            {units.map((u) => <option key={u.unitId} value={u.unitId}>{u.name} ({u.unitType})</option>)}
           </select></label>
           <label>Connector<select value={form.connectorId}
             onChange={(e) => setForm({ ...form, connectorId: e.target.value })}>

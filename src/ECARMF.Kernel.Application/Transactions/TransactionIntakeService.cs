@@ -15,7 +15,9 @@ public sealed record TransactionSubmission(
     /// that must span past periods; live intake leaves it null (= now).</summary>
     DateTimeOffset? OccurredAt = null,
     /// <summary>Optional case/project to file this record under.</summary>
-    string? CaseId = null);
+    string? CaseId = null,
+    /// <summary>The organizational unit this record belongs to; null = tenant-wide.</summary>
+    string? UnitRef = null);
 
 public sealed record TransactionReceipt(
     Guid TransactionId,
@@ -67,8 +69,23 @@ public class TransactionIntakeService : ITransactionIntakeService
             SubmittedBy = submission.SubmittedBy,
             Payload = new Dictionary<string, string>(submission.Payload),
             ReceivedAt = submission.OccurredAt ?? DateTimeOffset.UtcNow,
-            CaseId = submission.CaseId
+            CaseId = submission.CaseId,
+            UnitRef = submission.UnitRef
         };
+
+        // Unit attribution is part of the record's facts: rules, KPIs, and
+        // deviation monitors can key on unitRef like any payload field. An
+        // explicit submission wins; otherwise a template-mapped payload
+        // unitRef (e.g. a location column in the source data) is promoted to
+        // the filterable column so both paths stay in agreement.
+        if (!string.IsNullOrWhiteSpace(submission.UnitRef))
+        {
+            transaction.Payload["unitRef"] = submission.UnitRef;
+        }
+        else if (transaction.Payload.TryGetValue("unitRef", out var mappedUnit) && !string.IsNullOrWhiteSpace(mappedUnit))
+        {
+            transaction.UnitRef = mappedUnit;
+        }
 
         await _store.AppendAsync(transaction, ct);
 

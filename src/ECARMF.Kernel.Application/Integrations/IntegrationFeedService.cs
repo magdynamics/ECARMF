@@ -130,8 +130,10 @@ public class IntegrationFeedService : IIntegrationFeedService
         }
         else
         {
+            // The integration's unit binding travels with every feed: a Chase
+            // feed bound to oak-lawn can only ever produce oak-lawn records.
             var result = await _ingestion.IngestAsync(
-                integration.TenantId, integration.ConnectorId, rawPayload, actor, ct);
+                integration.TenantId, integration.ConnectorId, rawPayload, actor, integration.UnitId, ct);
             run.Success = result.Success;
             run.RecordsIngested = result.RecordIds.Count;
             run.Error = result.Errors.Count > 0 ? string.Join("; ", result.Errors) : null;

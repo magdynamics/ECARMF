@@ -32,7 +32,8 @@ public interface IDocumentExtractor
     /// original upload (when provided) is archived verbatim in the library.</summary>
     Task<DocumentExtractionResult> ExtractAndIngestAsync(
         string tenantId, string connectorId, string documentName, string documentText,
-        string actorIdentifier, byte[]? originalContent = null, CancellationToken ct = default);
+        string actorIdentifier, byte[]? originalContent = null, string? unitRef = null,
+        CancellationToken ct = default);
 }
 
 /// <summary>
@@ -73,7 +74,8 @@ public class DocumentExtractionService : IDocumentExtractor
 
     public async Task<DocumentExtractionResult> ExtractAndIngestAsync(
         string tenantId, string connectorId, string documentName, string documentText,
-        string actorIdentifier, byte[]? originalContent = null, CancellationToken ct = default)
+        string actorIdentifier, byte[]? originalContent = null, string? unitRef = null,
+        CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(documentText))
         {
@@ -140,7 +142,7 @@ public class DocumentExtractionService : IDocumentExtractor
             backend = $"llm:{llm.ModelReference}";
         }
 
-        var ingestion = await _ingestion.IngestAsync(tenantId, connectorId, rawPayload, actorIdentifier, ct);
+        var ingestion = await _ingestion.IngestAsync(tenantId, connectorId, rawPayload, actorIdentifier, unitRef, ct);
 
         // Archive the ORIGINAL upload (the PDF/email as received), separate
         // from the extracted payload the ingestion path archives — the

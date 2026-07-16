@@ -19,4 +19,7 @@ public class TransactionRecord
 
     /// <summary>Optional case/project the record is filed under.</summary>
     public string? CaseId { get; set; }
+
+    /// <summary>Organizational unit the record belongs to; null = tenant-wide.</summary>
+    public string? UnitRef { get; set; }
 }

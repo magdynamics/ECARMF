@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using ECARMF.Kernel.Application.Identity;
 using ECARMF.Kernel.Application.Library;
 using ECARMF.Kernel.Application.Registries;
 using ECARMF.Kernel.Application.Transactions;
@@ -19,22 +20,37 @@ public class ConnectorIngestionService : IDataSourceConnector
     private readonly ITenantRegistryProvider _registries;
     private readonly ITransactionIntakeService _intake;
     private readonly IDocumentLibrary? _library;
+    private readonly IOrgUnitStore? _units;
 
     public ConnectorIngestionService(
         IConnectorStore connectors,
         ITenantRegistryProvider registries,
         ITransactionIntakeService intake,
-        IDocumentLibrary? library = null)
+        IDocumentLibrary? library = null,
+        IOrgUnitStore? units = null)
     {
         _connectors = connectors;
         _registries = registries;
         _intake = intake;
         _library = library;
+        _units = units;
     }
 
     public async Task<IngestionResult> IngestAsync(
-        string tenantId, string connectorId, string rawPayload, string actorIdentifier, CancellationToken ct = default)
+        string tenantId, string connectorId, string rawPayload, string actorIdentifier,
+        string? unitRef = null, CancellationToken ct = default)
     {
+        // Unit-scoped data integrity: an attributed unit must exist and be
+        // Active — a feed can never file data into a unit that isn't real.
+        if (_units is not null)
+        {
+            var unitError = await UnitScope.ValidateAsync(_units, tenantId, unitRef, ct);
+            if (unitError is not null)
+            {
+                return new IngestionResult(false, [], [], [unitError]);
+            }
+        }
+
         var connector = await _connectors.GetAsync(tenantId, connectorId, ct);
         if (connector is null)
         {
@@ -82,8 +98,16 @@ public class ConnectorIngestionService : IDataSourceConnector
             payload["schemaTemplateId"] = connector.SchemaTemplateId;
             payload["schemaTemplateVersion"] = registered.PackageVersion;
 
+            // Unit attribution: the caller's declared unit (an integration's
+            // binding or the upload form) wins; otherwise a template-mapped
+            // unitRef in the source data stands; otherwise tenant-wide.
+            var effectiveUnit = !string.IsNullOrWhiteSpace(unitRef)
+                ? unitRef.Trim()
+                : (payload.TryGetValue("unitRef", out var mappedUnit) && !string.IsNullOrWhiteSpace(mappedUnit) ? mappedUnit : null);
+
             var receipt = await _intake.ReceiveAsync(new TransactionSubmission(
-                tenantId, registered.Declaration.TargetEntityType, actorIdentifier, payload), ct);
+                tenantId, registered.Declaration.TargetEntityType, actorIdentifier, payload,
+                UnitRef: effectiveUnit), ct);
 
             recordIds.Add(receipt.TransactionId);
             if (!receipt.EventPublished && receipt.Note is not null)

@@ -10,7 +10,8 @@ namespace ECARMF.Kernel.Api.Endpoints;
 
 public record CreateIntegrationRequest(
     string IntegrationId, string Name, string ApplicationType, string ConnectorId,
-    string Mode, string? PullUrl, int? PullIntervalMinutes, string? AuthSecret);
+    string Mode, string? PullUrl, int? PullIntervalMinutes, string? AuthSecret,
+    string? UnitId = null);
 
 public record IntegrationStatusRequest(string Status);
 
@@ -44,7 +45,7 @@ public static class IntegrationEndpoints
         group.MapPost("/", async (
             CreateIntegrationRequest request, HttpContext context,
             IUserStore users, IIntegrationStore integrations, IConnectorStore connectors,
-            IAuditLog audit, CancellationToken ct) =>
+            IOrgUnitStore units, IAuditLog audit, CancellationToken ct) =>
         {
             if (!TenantResolution.TryGetTenant(context, out var tenantId))
                 return TenantResolution.MissingTenantResult();
@@ -64,6 +65,13 @@ public static class IntegrationEndpoints
             if (await connectors.GetAsync(tenantId, request.ConnectorId, ct) is null)
                 return Results.BadRequest(new { error = $"Connector '{request.ConnectorId}' is not configured; create it first." });
 
+            // Unit binding: an integration serving one legal entity/location
+            // (Chase -> Oak Lawn) must name a real, Active unit; every feed
+            // it delivers is stamped with it. Omitted = tenant-wide source.
+            var unitError = await UnitScope.ValidateAsync(units, tenantId, request.UnitId, ct);
+            if (unitError is not null)
+                return Results.BadRequest(new { error = unitError });
+
             var integration = new IntegrationDefinition
             {
                 TenantId = tenantId,
@@ -74,6 +82,7 @@ public static class IntegrationEndpoints
                 Mode = request.Mode,
                 PullUrl = request.PullUrl,
                 PullIntervalMinutes = request.PullIntervalMinutes,
+                UnitId = string.IsNullOrWhiteSpace(request.UnitId) ? null : request.UnitId.Trim(),
                 CreatedBy = user!.Identifier
             };
             await integrations.AddAsync(integration, ct);
@@ -95,6 +104,7 @@ public static class IntegrationEndpoints
                     ["applicationType"] = integration.ApplicationType,
                     ["connectorId"] = integration.ConnectorId,
                     ["mode"] = integration.Mode,
+                    ["unitId"] = integration.UnitId ?? "(tenant-wide)",
                     ["hasAuthSecret"] = (!string.IsNullOrWhiteSpace(request.AuthSecret)).ToString()
                 }
             }, ct);
