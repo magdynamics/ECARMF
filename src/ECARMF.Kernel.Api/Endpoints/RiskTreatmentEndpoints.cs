@@ -152,6 +152,54 @@ public static class RiskTreatmentEndpoints
             return Results.Ok(new { treatment = t, actionId = receipt.TransactionId });
         });
 
+        // Approve & execute a treatment's remediation: submit the action as
+        // approved + verified (the orchestration skill now authorizes it rather
+        // than denying it), then mark the risk Mitigated with a reduced residual.
+        group.MapPost("/{id:guid}/resolve-remediation", async (
+            Guid id, HttpContext context,
+            IUserStore users, IRiskTreatmentStore store, ITransactionIntakeService intake,
+            IAuditLog audit, CancellationToken ct) =>
+        {
+            if (!TenantResolution.TryGetTenant(context, out var tenantId))
+                return TenantResolution.MissingTenantResult();
+            var (error, user) = await AccessGuard.RequireAsync(context, users, tenantId, Permissions.RecordSubmit, ct);
+            if (error is not null) return error;
+
+            var t = await store.GetAsync(tenantId, id, ct);
+            if (t is null) return Results.NotFound();
+            if (string.IsNullOrWhiteSpace(t.LinkedActionRef))
+                return Results.BadRequest(new { error = "No remediation action to resolve — spawn one first." });
+
+            var payload = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["recordType"] = "AutonomousActionRequest",
+                ["actionType"] = "remediate-risk",
+                ["target"] = t.Title,
+                ["riskTier"] = t.InherentSeverity >= 4 ? "High" : "Medium",
+                ["approved"] = "true",
+                ["verified"] = "true",
+                ["killSwitch"] = "false",
+                ["riskKey"] = t.RiskKey
+            };
+            var receipt = await intake.ReceiveAsync(
+                new TransactionSubmission(tenantId, "AutonomousActionRequest", user!.Identifier, payload), ct);
+
+            // Treatment reduces the risk: residual sits below inherent.
+            t.Status = RiskTreatmentStatuses.Mitigated;
+            t.ResidualSeverity = Math.Max(1, t.InherentSeverity - 2);
+            t.ResidualLikelihood = Math.Max(1, t.InherentLikelihood - 1);
+            await store.UpdateAsync(t, ct);
+            await audit.AppendAsync(new AuditEntry
+            {
+                TenantId = tenantId, CorrelationId = t.Id, Category = AuditCategories.RiskTreatmentUpdated,
+                Actor = user.Identifier,
+                Summary = $"Remediation approved & executed for '{t.Title}'; risk mitigated to {t.ResidualSeverity}x{t.ResidualLikelihood}.",
+                Detail = new Dictionary<string, string> { ["actionId"] = receipt.TransactionId.ToString(), ["status"] = t.Status }
+            }, ct);
+
+            return Results.Ok(new { treatment = t, actionId = receipt.TransactionId });
+        });
+
         return app;
     }
 

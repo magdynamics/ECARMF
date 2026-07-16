@@ -89,6 +89,17 @@ export function RiskTreatments({ tenant, user }: { tenant: string; user: string 
     finally { setBusy(null) }
   }
 
+  async function resolveRemediation() {
+    if (!editing) return
+    setBusy(editing.id); setError(null)
+    try {
+      const r = await api.post<{ treatment: RiskTreatment; actionId: string }>(`/api/risk/treatments/${editing.id}/resolve-remediation`)
+      setEditing({ ...editing, ...r.treatment })
+      await load()
+    } catch (e) { setError(e instanceof ApiError ? e.message : String(e)) }
+    finally { setBusy(null) }
+  }
+
   async function save() {
     if (!editing) return
     setBusy(editing.id); setError(null)
@@ -172,10 +183,19 @@ export function RiskTreatments({ tenant, user }: { tenant: string; user: string 
           </div>
           <div className="enroll-actions">
             <button onClick={save} disabled={busy === editing.id}>{busy === editing.id ? 'Saving…' : 'Save'}</button>
-            <button className="secondary" onClick={remediate} disabled={busy === editing.id} title="Submit a governed autonomous remediation action for this risk">🛠️ Create remediation action</button>
+            {!editing.linkedActionRef && <button className="secondary" onClick={remediate} disabled={busy === editing.id} title="Submit a governed autonomous remediation action for this risk">🛠️ Create remediation action</button>}
+            {editing.linkedActionRef && editing.status !== 'Mitigated' && editing.status !== 'Closed' && (
+              <button className="secondary" onClick={resolveRemediation} disabled={busy === editing.id} title="Approve and execute the remediation action; the orchestration skill authorizes it and the risk is mitigated">✅ Approve &amp; execute remediation</button>
+            )}
             <button className="secondary" onClick={() => setEditing(null)}>Cancel</button>
           </div>
-          {editing.linkedActionRef && <p className="muted small">Linked remediation action: <span className="mono">{editing.linkedActionRef.slice(0, 8)}</span> · status {editing.status}</p>}
+          {editing.linkedActionRef && (
+            <p className="muted small">
+              Linked remediation action: <span className="mono">{editing.linkedActionRef.slice(0, 8)}</span> · status {editing.status}
+              {editing.residualSeverity != null && editing.residualLikelihood != null &&
+                ` · residual ${editing.residualSeverity}×${editing.residualLikelihood} (from ${editing.inherentSeverity}×${editing.inherentLikelihood})`}
+            </p>
+          )}
         </section>
       )}
 
