@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Icon } from './Icon'
+import { Donut, DonutLegend } from './charts'
 import { api } from '../api'
 import type { ScoreRecord } from '../types'
 
@@ -88,8 +89,13 @@ export function BoardPack({ tenant, user }: { tenant: string; user: string }) {
         <p className="small">
           <strong>{pack.risks}</strong> tracked risks · <strong className="error-text">{pack.critical}</strong> in the critical zone ·{' '}
           <strong>{pack.treated}</strong> under treatment
-          {Object.keys(pack.byStatus).length > 0 && <span className="muted"> ({Object.entries(pack.byStatus).map(([s, n]) => `${n} ${s}`).join(', ')})</span>}
         </p>
+        {Object.keys(pack.byStatus).length > 0 && (
+          <div className="chart-row">
+            <Donut data={Object.entries(pack.byStatus).map(([label, value]) => ({ label, value }))} size={96} thickness={11} />
+            <DonutLegend data={Object.entries(pack.byStatus).map(([label, value]) => ({ label, value }))} />
+          </div>
+        )}
         {pack.topDomains.length > 0 && (
           <p className="muted small">Top domains: {pack.topDomains.map(([d, n]) => `${d} (${n})`).join(' · ')}</p>
         )}

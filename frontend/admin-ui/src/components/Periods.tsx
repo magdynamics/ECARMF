@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Icon } from './Icon'
+import { Sparkline } from './charts'
 import { api, ApiError } from '../api'
 
 // Period analysis — "how are we doing this period versus last?". Buckets the
@@ -70,6 +71,20 @@ export function Periods({ tenant, user }: { tenant: string; user: string }) {
 
       <section className="panel">
         <h3>Periods</h3>
+        {data !== null && data.periods.length >= 2 && !data.periods.every((p) => p.records === 0) && (
+          <div className="chart-row" style={{ marginBottom: '0.6rem' }}>
+            <div>
+              <div className="muted small">Records trend</div>
+              <Sparkline values={data.periods.map((p) => p.records)} width={220} height={44} />
+            </div>
+            {data.periods.some((p) => p.avgScore > 0) && (
+              <div>
+                <div className="muted small">Avg risk trend</div>
+                <Sparkline values={data.periods.map((p) => p.avgScore)} width={220} height={44} stroke="var(--warn-text)" />
+              </div>
+            )}
+          </div>
+        )}
         {data === null ? <p className="muted">Loading…</p>
           : data.periods.every((p) => p.records === 0) ? <p className="muted">No records in this window yet.</p>
           : (

@@ -3,6 +3,7 @@ import { api } from '../api'
 import type { ActivityItem, PackageSummary, ScoreRecord } from '../types'
 import { tenantConfig } from '../tenantConfig'
 import { MaskedField } from './MaskedField'
+import { Sparkline } from './charts'
 
 interface HomeProps {
   tenant: string
@@ -30,7 +31,7 @@ export function Home({ tenant, user, go }: HomeProps) {
   // header mode) simply hide that card.
   const [ov, setOv] = useState<{
     risks?: { total: number; critical: number }
-    period?: { records: number; topDelta: string; improved: boolean }
+    period?: { records: number; topDelta: string; improved: boolean; trend?: number[] }
     renewalsDue?: number
     openCases?: number
   }>({})
@@ -59,12 +60,13 @@ export function Home({ tenant, user, go }: HomeProps) {
       if (seen.size > 0) next.risks = { total: seen.size, critical }
     } catch { /* card hidden */ }
     try {
-      const pa = await api.get<{ comparison: { current?: { records: number } | null; deltas: { metric: string; changePct: number; improved: boolean }[] } }>('/api/analysis/periods?granularity=month&count=2')
+      const pa = await api.get<{ periods: { records: number }[]; comparison: { current?: { records: number } | null; deltas: { metric: string; changePct: number; improved: boolean }[] } }>('/api/analysis/periods?granularity=month&count=6')
       const top = pa.comparison.deltas?.slice().sort((a, b) => Math.abs(b.changePct) - Math.abs(a.changePct))[0]
       if (pa.comparison.current && top) next.period = {
         records: pa.comparison.current.records,
         topDelta: `${top.metric} ${top.changePct > 0 ? '▲' : top.changePct < 0 ? '▼' : '■'} ${Math.abs(top.changePct)}%`,
         improved: top.improved,
+        trend: pa.periods?.map((p) => p.records),
       }
     } catch { /* card hidden */ }
     try {
@@ -140,6 +142,9 @@ export function Home({ tenant, user, go }: HomeProps) {
               <span className="muted small">This period</span>
               <strong>{ov.period.records.toLocaleString()}</strong>
               <span className="pd-change">{ov.period.topDelta}</span>
+              {ov.period.trend && ov.period.trend.length >= 2 && (
+                <span className="ov-spark"><Sparkline values={ov.period.trend} width={110} height={26} stroke={ov.period.improved ? 'var(--ok-text)' : 'var(--bad-text)'} /></span>
+              )}
             </button>
           )}
           {ov.renewalsDue !== undefined && (

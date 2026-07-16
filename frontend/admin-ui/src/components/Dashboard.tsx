@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api, ApiError } from '../api'
+import { Donut, DonutLegend, MeterBar } from './charts'
 import type { ActivityItem, AuditEntryDto, ScoreRecord } from '../types'
 
 const POLL_MS = 5000
@@ -194,33 +195,33 @@ export function Dashboard({ tenant, user }: { tenant: string; user: string }) {
             ))}
           </div>
         )
-      case 'outcomeBreakdown':
-        return (
-          <table>
-            <tbody>
-              {kpis.outcomeCounts.map(([outcome, count]) => (
-                <tr key={outcome}>
-                  <td><span className={`state state-${outcome.toLowerCase()}`}>{outcome}</span></td>
-                  <td>{count}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      case 'outcomeBreakdown': {
+        const donutData = kpis.outcomeCounts.map(([label, value]) => ({ label, value }))
+        return donutData.length === 0 ? (
+          <p className="muted small">No outcomes yet.</p>
+        ) : (
+          <div className="chart-row">
+            <Donut data={donutData} />
+            <DonutLegend data={donutData} />
+          </div>
         )
-      case 'scoreAverages':
+      }
+      case 'scoreAverages': {
+        const maxAvg = Math.max(1e-9, ...kpis.averages.map((r) => r.avg))
         return (
           <table>
             <tbody>
               {kpis.averages.map((row) => (
                 <tr key={row.type}>
                   <td><code>{row.type}</code></td>
-                  <td>{row.avg.toFixed(3)}</td>
+                  <td><MeterBar value={row.avg} max={maxAvg} />{row.avg.toFixed(3)}</td>
                   <td className="muted">{row.n} samples</td>
                 </tr>
               ))}
             </tbody>
           </table>
         )
+      }
       case 'okrAttainment':
         return kpis.okrAttainment.length === 0 ? (
           <p className="muted small">No OKR scores yet — ingest operational records.</p>
@@ -230,7 +231,10 @@ export function Dashboard({ tenant, user }: { tenant: string; user: string }) {
               {kpis.okrAttainment.map((s) => (
                 <tr key={s.subjectId}>
                   <td><code>{s.subjectId}</code></td>
-                  <td>{(s.value * 100).toFixed(0)}%</td>
+                  <td>
+                    <MeterBar value={s.value} max={1} color={s.value >= 0.8 ? 'var(--ok-text)' : s.value >= 0.5 ? 'var(--warn-text)' : 'var(--bad-text)'} />
+                    {(s.value * 100).toFixed(0)}%
+                  </td>
                 </tr>
               ))}
             </tbody>
