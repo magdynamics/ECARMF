@@ -1,3 +1,6 @@
+using System.Text.Json;
+using ECARMF.Kernel.Application.Advisor;
+using ECARMF.Kernel.Application.Identity;
 using ECARMF.Kernel.Application.Packages;
 
 namespace ECARMF.Kernel.Application.Onboarding;
@@ -16,7 +19,8 @@ public sealed record RecommendationPack(
     string? SuggestedAccent,
     IReadOnlyList<RecommendedSkill> Skills,
     IReadOnlyList<string> Notes,
-    string Rationale);
+    string Rationale,
+    string Advisor = "deterministic");
 
 public interface IOnboardingAdvisor
 {
@@ -55,10 +59,39 @@ public class OnboardingAdvisorService : IOnboardingAdvisor
     ];
 
     private readonly IPackageCatalog _catalog;
+    private readonly ILanguageModelProvider? _llmProvider;
 
-    public OnboardingAdvisorService(IPackageCatalog catalog) => _catalog = catalog;
+    // The language-model layer (Onboarding Phase 2) is optional: without it —
+    // or without a platform AI credential — the deterministic profile stands
+    // alone, exactly as in Phase 1.
+    public OnboardingAdvisorService(IPackageCatalog catalog, ILanguageModelProvider? llmProvider = null)
+    {
+        _catalog = catalog;
+        _llmProvider = llmProvider;
+    }
 
     public async Task<RecommendationPack> RecommendAsync(RecommendInput input, CancellationToken ct = default)
+    {
+        var pack = await RecommendDeterministicAsync(input, ct);
+
+        // Phase 2: when the PLATFORM tenant has an AI backend, let the model
+        // refine the deterministic result — novel industries, better rationale,
+        // extra catalog picks. Strictly advisory and strictly validated: the
+        // model chooses only from the real catalog, and any failure returns
+        // the deterministic pack unchanged (enrollment never depends on AI).
+        if (_llmProvider is not null)
+        {
+            var llm = await _llmProvider.GetForTenantAsync(PlatformTenant.Id, ct);
+            if (llm.IsConfigured)
+            {
+                pack = await RefineWithModelAsync(input, pack, llm, ct);
+            }
+        }
+
+        return pack;
+    }
+
+    private async Task<RecommendationPack> RecommendDeterministicAsync(RecommendInput input, CancellationToken ct)
     {
         // Industry detection reads the business profile only. RegulatoryContext
         // deliberately stays OUT of this text: it shapes posture/PHI below, and
@@ -116,5 +149,111 @@ public class OnboardingAdvisorService : IOnboardingAdvisor
 
         return new RecommendationPack(
             industry.Name, tier, phi, input.Industry, industry.Accent, skills, notes, rationale);
+    }
+
+    // ── Phase 2: language-model refinement ─────────────────────────────────
+
+    private sealed record ModelSkillPick(string? PackageId, string? Reason);
+
+    private sealed record ModelRefinement(
+        string? DetectedIndustry, string? SuggestedTier, bool? HandlesPhi,
+        List<ModelSkillPick>? AddSkills, List<string>? Notes, string? Rationale);
+
+    private static readonly JsonSerializerOptions ModelJson = new() { PropertyNameCaseInsensitive = true };
+
+    private static readonly string[] ValidTiers = ["Standard", "Elevated", "Regulated"];
+
+    private async Task<RecommendationPack> RefineWithModelAsync(
+        RecommendInput input, RecommendationPack pack, ILanguageModelClient llm, CancellationToken ct)
+    {
+        try
+        {
+            var catalog = await _catalog.ListAsync(ct);
+            var catalogLines = string.Join("\n", catalog.Take(200).Select(e => $"- {e.PackageId}: {e.Name}"));
+
+            var system =
+                "You are the tenant-onboarding profiler inside the ECARMF platform kernel. You refine a " +
+                "deterministic recommendation for onboarding a new client tenant. Rules that override " +
+                "everything else: (1) you advise only — an operator reviews before anything is provisioned; " +
+                "(2) recommend skills ONLY from the provided catalog, by exact packageId; (3) never invent " +
+                "regulations or requirements; (4) posture may only be raised for a concrete regulatory reason " +
+                "you state. Respond with ONLY a JSON object (no markdown, no prose) with keys: " +
+                "detectedIndustry (string), suggestedTier (Standard|Elevated|Regulated), handlesPhi (bool), " +
+                "addSkills (array of {packageId, reason}, max 4, may be empty), notes (array of strings, max 3), " +
+                "rationale (string, 2-3 sentences for the operator).";
+
+            var user =
+                $"Prospective tenant profile:\n" +
+                $"- Name: {input.Name}\n- Industry (self-described): {input.Industry}\n" +
+                $"- Size: {input.SizeBand}\n- Description: {input.Description}\n" +
+                $"- Regulatory context: {input.RegulatoryContext}\n\n" +
+                $"Deterministic recommendation to refine:\n{JsonSerializer.Serialize(pack, ModelJson)}\n\n" +
+                $"Available skill catalog (packageId: name):\n{catalogLines}";
+
+            var raw = await llm.CompleteAsync(system, user, ct);
+            var refined = ParseRefinement(raw);
+            if (refined is null)
+            {
+                return pack with { Notes = [.. pack.Notes, "AI refinement returned an unusable answer — showing the deterministic profile."] };
+            }
+
+            // Merge, trusting nothing blindly: tier must be a known value, PHI
+            // can only be turned ON by the model (never silently off), and
+            // added skills must exist in the real catalog.
+            var tier = ValidTiers.FirstOrDefault(t => t.Equals(refined.SuggestedTier, StringComparison.OrdinalIgnoreCase)) ?? pack.SuggestedTier;
+            var phi = pack.HandlesPhi || refined.HandlesPhi == true;
+            if (phi) tier = "Regulated";
+
+            var skills = new List<RecommendedSkill>(pack.Skills);
+            var have = new HashSet<string>(skills.Select(s => s.PackageId), StringComparer.OrdinalIgnoreCase);
+            foreach (var pick in (refined.AddSkills ?? []).Take(4))
+            {
+                if (string.IsNullOrWhiteSpace(pick.PackageId)) continue;
+                var entry = catalog.FirstOrDefault(e => string.Equals(e.PackageId, pick.PackageId, StringComparison.OrdinalIgnoreCase));
+                if (entry is null || !have.Add(entry.PackageId)) continue; // hallucinated or duplicate — dropped
+                var (skTier, _) = SkillCatalogService.Classify(entry.PackageId, entry.Name);
+                skills.Add(new RecommendedSkill(entry.PackageId, entry.Name, skTier,
+                    string.IsNullOrWhiteSpace(pick.Reason) ? "Suggested by the AI profiler." : pick.Reason!.Trim(), "Medium"));
+            }
+
+            var notes = new List<string>(pack.Notes);
+            foreach (var n in (refined.Notes ?? []).Take(3))
+            {
+                if (!string.IsNullOrWhiteSpace(n)) notes.Add(n.Trim());
+            }
+
+            return pack with
+            {
+                DetectedIndustry = string.IsNullOrWhiteSpace(refined.DetectedIndustry) ? pack.DetectedIndustry : refined.DetectedIndustry.Trim(),
+                SuggestedTier = tier,
+                HandlesPhi = phi,
+                Skills = skills,
+                Notes = notes,
+                Rationale = string.IsNullOrWhiteSpace(refined.Rationale) ? pack.Rationale : refined.Rationale.Trim(),
+                Advisor = $"ai:{llm.ModelReference}",
+            };
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // The AI layer must never block onboarding.
+            return pack with { Notes = [.. pack.Notes, $"AI refinement unavailable ({ex.Message}) — showing the deterministic profile."] };
+        }
+    }
+
+    private static ModelRefinement? ParseRefinement(string raw)
+    {
+        var text = raw.Trim();
+        // Models often wrap JSON in code fences or preamble despite instructions.
+        var start = text.IndexOf('{');
+        var end = text.LastIndexOf('}');
+        if (start < 0 || end <= start) return null;
+        try
+        {
+            return JsonSerializer.Deserialize<ModelRefinement>(text[start..(end + 1)], ModelJson);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
     }
 }

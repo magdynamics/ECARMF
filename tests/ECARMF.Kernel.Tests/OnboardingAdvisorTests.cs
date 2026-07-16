@@ -105,4 +105,105 @@ public class OnboardingAdvisorTests
         Assert.False(pack.HandlesPhi);
         Assert.Contains(pack.Skills, s => s.PackageId == "ecarmf.ai-tcel-trading");
     }
+
+    // ── Phase 2: language-model refinement ──────────────────────────────────
+
+    private static (OnboardingAdvisorService Advisor, FakeLanguageModelClient Llm) BuildWithAi()
+    {
+        var catalog = new StubPackageCatalog();
+        catalog.Entries.AddRange(
+        [
+            StubPackageCatalog.Entry("ecarmf.ai-restaurant", "AI Restaurant"),
+            StubPackageCatalog.Entry("ecarmf.ai-financial-analyst", "AI Financial Analyst"),
+            StubPackageCatalog.Entry("ecarmf.ai-risk-register", "Enterprise Risk Register"),
+            StubPackageCatalog.Entry("ecarmf.ai-autonomous-orchestration", "Autonomous Orchestration & Remediation"),
+            StubPackageCatalog.Entry("ecarmf.ai-financial-continuity", "Financial Continuity & Liquidity"),
+        ]);
+        var llm = new FakeLanguageModelClient { IsConfigured = true };
+        return (new OnboardingAdvisorService(catalog, new FakeLanguageModelProvider(llm)), llm);
+    }
+
+    [Fact]
+    public async Task Ai_refinement_merges_validated_fields_and_marks_the_advisor()
+    {
+        var (advisor, llm) = BuildWithAi();
+        llm.Response = """
+            {"detectedIndustry":"Ghost-kitchen restaurant group","suggestedTier":"Elevated","handlesPhi":false,
+             "addSkills":[{"packageId":"ecarmf.ai-financial-analyst","reason":"Multi-location P&L extraction."}],
+             "notes":["Consider per-location units."],"rationale":"Delivery-first restaurant group; elevated for multi-entity cash handling."}
+            """;
+
+        var pack = await advisor.RecommendAsync(new RecommendInput(
+            "Cloud Bites", "Restaurant", null, "delivery-only ghost kitchens", null));
+
+        Assert.Equal("ai:fake-model", pack.Advisor);
+        Assert.Equal("Ghost-kitchen restaurant group", pack.DetectedIndustry);
+        Assert.Equal("Elevated", pack.SuggestedTier);
+        Assert.Contains(pack.Skills, s => s.PackageId == "ecarmf.ai-financial-analyst");
+        Assert.Contains(pack.Notes, n => n.Contains("per-location"));
+        Assert.Contains("Delivery-first", pack.Rationale);
+        // Deterministic picks survive the merge.
+        Assert.Contains(pack.Skills, s => s.PackageId == "ecarmf.ai-restaurant");
+        Assert.Contains(pack.Skills, s => s.PackageId == "ecarmf.ai-risk-register");
+    }
+
+    [Fact]
+    public async Task Ai_cannot_add_hallucinated_skills_or_invalid_tiers_or_unset_phi()
+    {
+        var (advisor, llm) = BuildWithAi();
+        llm.Response = """
+            {"detectedIndustry":"Dental","suggestedTier":"Ultra","handlesPhi":false,
+             "addSkills":[{"packageId":"ecarmf.made-up-skill","reason":"x"}],"notes":[],"rationale":"r"}
+            """;
+
+        // Deterministic layer says PHI + Regulated (dental); the model tries to
+        // lower both and to add a skill that doesn't exist.
+        var pack = await advisor.RecommendAsync(new RecommendInput(
+            "Bright Smile", "Dental practice", null, null, null));
+
+        Assert.True(pack.HandlesPhi);                       // PHI can never be switched off by the model
+        Assert.Equal("Regulated", pack.SuggestedTier);      // invalid tier ignored, PHI keeps it Regulated
+        Assert.DoesNotContain(pack.Skills, s => s.PackageId == "ecarmf.made-up-skill");
+    }
+
+    [Fact]
+    public async Task Ai_garbage_falls_back_to_the_deterministic_pack_with_a_note()
+    {
+        var (advisor, llm) = BuildWithAi();
+        llm.Response = "Sorry, I cannot produce JSON today.";
+
+        var pack = await advisor.RecommendAsync(new RecommendInput(
+            "Green Fork", "Restaurant", null, null, null));
+
+        Assert.Equal("deterministic", pack.Advisor);
+        Assert.Equal("Restaurant / food service", pack.DetectedIndustry);
+        Assert.Contains(pack.Notes, n => n.Contains("unusable", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task Ai_backend_failure_never_blocks_the_recommendation()
+    {
+        var (advisor, llm) = BuildWithAi();
+        llm.Throws = new HttpRequestException("backend down");
+
+        var pack = await advisor.RecommendAsync(new RecommendInput(
+            "Green Fork", "Restaurant", null, null, null));
+
+        Assert.Equal("deterministic", pack.Advisor);
+        Assert.Contains(pack.Notes, n => n.Contains("unavailable", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task Unconfigured_ai_leaves_the_deterministic_pack_untouched()
+    {
+        var catalog = new StubPackageCatalog();
+        catalog.Entries.Add(StubPackageCatalog.Entry("ecarmf.ai-risk-register", "Enterprise Risk Register"));
+        var llm = new FakeLanguageModelClient { IsConfigured = false };
+        var advisor = new OnboardingAdvisorService(catalog, new FakeLanguageModelProvider(llm));
+
+        var pack = await advisor.RecommendAsync(new RecommendInput("Co", "Restaurant", null, null, null));
+
+        Assert.Equal("deterministic", pack.Advisor);
+        Assert.Null(llm.LastUserPrompt); // never called
+    }
 }

@@ -22,6 +22,7 @@ interface TemplateSummary {
 
 interface RecommendedSkill { packageId: string; displayName: string; tier: string; reason: string; confidence: string }
 interface RecommendationPack {
+  advisor?: string
   detectedIndustry: string; suggestedTier: string; handlesPhi: boolean
   suggestedSegment?: string | null; suggestedAccent?: string | null
   skills: RecommendedSkill[]; notes: string[]; rationale: string
@@ -304,6 +305,11 @@ export function EnrollTenant({ onProvisioned }: { onProvisioned: (tenantId: stri
         {recError && <p className="error small">{recError}</p>}
         {rec && (
           <div className="rec-result">
+            <p className="small">
+              <span className={`pkg-badge ${rec.advisor?.startsWith('ai:') ? 'pkg-essential' : 'pkg-alacarte'}`} title={rec.advisor}>
+                {rec.advisor?.startsWith('ai:') ? `AI-refined · ${rec.advisor.slice(3)}` : 'Deterministic profile'}
+              </span>
+            </p>
             <p className="small"><strong>{rec.detectedIndustry}</strong> · suggests <strong>{rec.suggestedTier}</strong> posture{rec.handlesPhi ? ' · PHI' : ''}. {rec.rationale}</p>
             {rec.notes.map((n, i) => <p key={i} className="muted small">• {n}</p>)}
             <div className="rec-skills">
