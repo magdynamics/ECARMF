@@ -14,4 +14,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- Lets the test suite exercise internal helpers (e.g. the demo-seeding
+         record generators) without making them part of the public surface. -->
+    <InternalsVisibleTo Include="ECARMF.Kernel.Tests" />
+  </ItemGroup>
+
 </Project>

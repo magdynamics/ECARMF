@@ -304,12 +304,12 @@ public class DemoSeedingService : IDemoSeedingService
 
     /// <summary>A received-timestamp spread across ~4 months so demo records
     /// populate several periods for period-over-period comparison.</summary>
-    private static DateTimeOffset Spread(int seq) =>
+    internal static DateTimeOffset Spread(int seq) =>
         DateTimeOffset.UtcNow.AddDays(-((seq * 17) % 118)).AddHours(-(seq % 24));
 
     /// <summary>File about three-quarters of demo records under a rotating case
     /// so cases have records to compare; the rest stay uncased.</summary>
-    private static string? CaseIdFor(int seq, IReadOnlyList<string> caseIds) =>
+    internal static string? CaseIdFor(int seq, IReadOnlyList<string> caseIds) =>
         caseIds.Count == 0 || seq % 4 == 0 ? null : caseIds[seq % caseIds.Count];
 
     private static readonly string[] RiskCategories =
@@ -322,7 +322,7 @@ public class DemoSeedingService : IDemoSeedingService
     /// trigger, every field its formula references is a number, and severity/
     /// likelihood-style fields spread 1..5 so the risk heatmap fills across
     /// cells. Index i varies the values so scores form a real distribution.</summary>
-    private static Dictionary<string, string> BuildKpiRecord(KPIDefinition kpi, int i)
+    internal static Dictionary<string, string> BuildKpiRecord(KPIDefinition kpi, int i)
     {
         var payload = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -354,7 +354,7 @@ public class DemoSeedingService : IDemoSeedingService
         return payload;
     }
 
-    private static string NumberFor(string field, int i)
+    internal static string NumberFor(string field, int i)
     {
         var f = field.ToLowerInvariant();
         // Severity/likelihood-style fields ride the 1..5 scale for the heatmap.
@@ -366,7 +366,7 @@ public class DemoSeedingService : IDemoSeedingService
 
     /// <summary>A plausible demo record for an entity, one value per attribute
     /// by data type. Populates activity even when no rule targets the type.</summary>
-    private static Dictionary<string, string> BuildEntityRecord(EntityDeclaration entity)
+    internal static Dictionary<string, string> BuildEntityRecord(EntityDeclaration entity)
     {
         var payload = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -384,7 +384,7 @@ public class DemoSeedingService : IDemoSeedingService
         return payload;
     }
 
-    private static (string RecordType, Dictionary<string, string> Payload) BuildRecord(RuleDeclaration rule)
+    internal static (string RecordType, Dictionary<string, string> Payload) BuildRecord(RuleDeclaration rule)
     {
         var payload = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         string? recordType = null;
@@ -403,7 +403,7 @@ public class DemoSeedingService : IDemoSeedingService
 
     /// <summary>A field value that satisfies a single condition, so a record
     /// built from all of a rule's conditions triggers it.</summary>
-    private static string SatisfyingValue(RuleCondition c)
+    internal static string SatisfyingValue(RuleCondition c)
     {
         var isNum = decimal.TryParse(c.Value, out var d);
         return c.Operator switch

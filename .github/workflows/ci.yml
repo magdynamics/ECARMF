@@ -1,15 +1,18 @@
 name: CI
 
+# Gate: every push and PR must compile the backend, pass the full test suite,
+# and typecheck + build the frontend. The kernel job runs on Windows because
+# the test project targets net8.0-windows (WinRT OCR dependency) — it does not
+# build on Linux.
 on:
   push:
-    branches: [main]
+    branches: ['**']
   pull_request:
-    branches: [main]
 
 jobs:
   kernel:
     name: Platform Kernel (build + tests)
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -17,7 +20,7 @@ jobs:
           dotnet-version: 8.0.x
       - run: dotnet restore ECARMF.sln
       - run: dotnet build ECARMF.sln --no-restore --configuration Release
-      - run: dotnet test ECARMF.sln --no-build --configuration Release
+      - run: dotnet test ECARMF.sln --no-build --configuration Release --nologo
 
   admin-ui:
     name: Admin UI (typecheck + build)
@@ -33,4 +36,5 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/admin-ui/package-lock.json
       - run: npm ci --no-fund --no-audit
+      - run: npx tsc --noEmit
       - run: npm run build

@@ -96,6 +96,7 @@ public class InMemoryTransactionStore : ITransactionStore
             .Where(t => string.Equals(t.TenantId, query.TenantId, StringComparison.OrdinalIgnoreCase))
             .Where(t => query.RecordType is null || string.Equals(t.TransactionType, query.RecordType, StringComparison.OrdinalIgnoreCase))
             .Where(t => query.SubmittedBy is null || string.Equals(t.SubmittedBy, query.SubmittedBy, StringComparison.OrdinalIgnoreCase))
+            .Where(t => query.CaseId is null || string.Equals(t.CaseId, query.CaseId, StringComparison.OrdinalIgnoreCase))
             .Where(t => query.From is null || t.ReceivedAt >= query.From)
             .Where(t => query.To is null || t.ReceivedAt <= query.To)
             .Where(t => string.IsNullOrWhiteSpace(query.Text)
@@ -105,8 +106,11 @@ public class InMemoryTransactionStore : ITransactionStore
             .OrderByDescending(t => t.ReceivedAt)
             .ToList();
 
+        // Mirror the EF store's page-size clamp (1..200) so consumers that
+        // must page (period/case analysis) are tested against real behavior.
+        var take = Math.Clamp(query.Take, 1, 200);
         return Task.FromResult<(IReadOnlyList<Transaction>, int)>(
-            (filtered.Skip(query.Skip).Take(query.Take).ToList(), filtered.Count));
+            (filtered.Skip(Math.Max(0, query.Skip)).Take(take).ToList(), filtered.Count));
     }
 
     public Task<IReadOnlyList<string>> GetRecordTypesAsync(string tenantId, CancellationToken ct = default) =>

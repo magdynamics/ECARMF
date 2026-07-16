@@ -60,7 +60,11 @@ public class OnboardingAdvisorService : IOnboardingAdvisor
 
     public async Task<RecommendationPack> RecommendAsync(RecommendInput input, CancellationToken ct = default)
     {
-        var text = $"{input.Industry} {input.Description} {input.Name} {input.RegulatoryContext}".ToLowerInvariant();
+        // Industry detection reads the business profile only. RegulatoryContext
+        // deliberately stays OUT of this text: it shapes posture/PHI below, and
+        // letting it in misfiles industries (e.g. a restaurant whose note says
+        // "handles patient data" is not a medical-billing business).
+        var text = $"{input.Industry} {input.Description} {input.Name}".ToLowerInvariant();
         var match = Industries.FirstOrDefault(i => i.Keywords.Any(k => text.Contains(k)));
         var confident = match is not null;
         var industry = match ?? new Industry("General business", [], [], "Standard", false, "#5aa9e6");

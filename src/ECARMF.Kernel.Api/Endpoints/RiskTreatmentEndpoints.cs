@@ -126,18 +126,9 @@ public static class RiskTreatmentEndpoints
             var t = await store.GetAsync(tenantId, id, ct);
             if (t is null) return Results.NotFound();
 
-            var payload = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["recordType"] = "AutonomousActionRequest",
-                ["actionType"] = "remediate-risk",
-                ["target"] = t.Title,
-                ["riskTier"] = t.InherentSeverity >= 4 ? "High" : "Medium",
-                ["approved"] = "false",
-                ["verified"] = "false",
-                ["riskKey"] = t.RiskKey
-            };
+            var payload = RiskRemediation.SpawnActionPayload(t);
             var receipt = await intake.ReceiveAsync(
-                new TransactionSubmission(tenantId, "AutonomousActionRequest", user!.Identifier, payload), ct);
+                new TransactionSubmission(tenantId, RiskRemediation.ActionRecordType, user!.Identifier, payload), ct);
 
             t.LinkedActionRef = receipt.TransactionId.ToString();
             t.Status = RiskTreatmentStatuses.InTreatment;
@@ -170,24 +161,11 @@ public static class RiskTreatmentEndpoints
             if (string.IsNullOrWhiteSpace(t.LinkedActionRef))
                 return Results.BadRequest(new { error = "No remediation action to resolve — spawn one first." });
 
-            var payload = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["recordType"] = "AutonomousActionRequest",
-                ["actionType"] = "remediate-risk",
-                ["target"] = t.Title,
-                ["riskTier"] = t.InherentSeverity >= 4 ? "High" : "Medium",
-                ["approved"] = "true",
-                ["verified"] = "true",
-                ["killSwitch"] = "false",
-                ["riskKey"] = t.RiskKey
-            };
+            var payload = RiskRemediation.ResolveActionPayload(t);
             var receipt = await intake.ReceiveAsync(
-                new TransactionSubmission(tenantId, "AutonomousActionRequest", user!.Identifier, payload), ct);
+                new TransactionSubmission(tenantId, RiskRemediation.ActionRecordType, user!.Identifier, payload), ct);
 
-            // Treatment reduces the risk: residual sits below inherent.
-            t.Status = RiskTreatmentStatuses.Mitigated;
-            t.ResidualSeverity = Math.Max(1, t.InherentSeverity - 2);
-            t.ResidualLikelihood = Math.Max(1, t.InherentLikelihood - 1);
+            RiskRemediation.ApplyMitigation(t);
             await store.UpdateAsync(t, ct);
             await audit.AppendAsync(new AuditEntry
             {
