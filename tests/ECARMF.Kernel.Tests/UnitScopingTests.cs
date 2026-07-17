@@ -250,6 +250,108 @@ public class UnitScopingTests
         Assert.Equal("oak-lawn", _records.Items.Single().UnitRef);
     }
 
+    // ---- output side: scores and alerts inherit the unit ----
+
+    private readonly InMemoryOutcomeStore _outcomes = new();
+    private readonly InMemoryScoreStore _scores = new();
+
+    private async Task ActivatePackagesAsync(params string[] files)
+    {
+        var loader = new PackageLoader(_packageStore, _registries, _audit);
+        foreach (var file in files)
+        {
+            var manifest = LoadManifest(file);
+            Assert.True((await loader.LoadAsync(Tenant, manifest)).Success);
+            Assert.True((await loader.ActivateAsync(Tenant, manifest.PackageId, manifest.PackageVersion)).Success);
+        }
+    }
+
+    private async Task SubmitAndProcessAsync(Dictionary<string, string> payload, string? unitRef)
+    {
+        var receipt = await Intake().ReceiveAsync(new TransactionSubmission(
+            Tenant, "withdrawal", "treasurer@universal", payload, UnitRef: unitRef));
+        Assert.True(receipt.EventPublished);
+
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        await using var enumerator = _bus.ReadAllAsync(timeout.Token).GetAsyncEnumerator(timeout.Token);
+        Assert.True(await enumerator.MoveNextAsync());
+
+        var processor = new ECARMF.Kernel.Application.Processing.EventProcessor(
+            _registries, _outcomes, _scores, _bus, _audit,
+            new ECARMF.Kernel.Application.Performance.PerformanceEvaluationService(_registries, _scores, _audit));
+        await processor.ProcessAsync(enumerator.Current);
+    }
+
+    [Fact]
+    public async Task Scores_computed_from_a_units_record_carry_that_unit()
+    {
+        SeedUnits();
+        // treasury-controls declares RecordReceived; the AML rule emits an
+        // AMLRisk score from the payload on that same event.
+        await ActivatePackagesAsync("treasury-controls-v1.json", "compliance-aml-kyc-v1.json");
+
+        await SubmitAndProcessAsync(new Dictionary<string, string>
+        {
+            ["ventureId"] = "V-001",
+            ["amount"] = "500",
+            ["amlRiskRating"] = "0.42",
+            ["counterpartyId"] = "CP-9",
+        }, unitRef: "oak-lawn");
+
+        var score = _scores.Items.Single(s => s.ScoreType == "AMLRisk");
+        Assert.Equal("oak-lawn", score.UnitRef); // the output knows whose it is
+    }
+
+    [Fact]
+    public async Task Scores_from_tenant_wide_records_are_tenant_wide()
+    {
+        SeedUnits();
+        await ActivatePackagesAsync("treasury-controls-v1.json", "compliance-aml-kyc-v1.json");
+
+        await SubmitAndProcessAsync(new Dictionary<string, string>
+        {
+            ["ventureId"] = "V-001",
+            ["amount"] = "500",
+            ["amlRiskRating"] = "0.10",
+            ["counterpartyId"] = "CP-1",
+        }, unitRef: null);
+
+        Assert.Null(_scores.Items.Single(s => s.ScoreType == "AMLRisk").UnitRef);
+    }
+
+    [Fact]
+    public async Task Benchmark_breach_alerts_carry_the_scores_unit()
+    {
+        var benchmarks = new InMemoryBenchmarkStore();
+        benchmarks.Items.Add(new ECARMF.Kernel.Domain.Analytics.Benchmark
+        {
+            TenantId = Tenant,
+            Name = "AML cap",
+            Kind = "score",
+            MetricType = "AMLRisk",
+            ExpectationOperator = ECARMF.Kernel.Domain.Packages.ConditionOperator.LessOrEqual,
+            ExpectedValue = 0.3m,
+            Severity = "Warning",
+            Enabled = true,
+        });
+        var deviations = new InMemoryDeviationStore();
+        var monitor = new ECARMF.Kernel.Application.Analytics.BenchmarkMonitorService(
+            benchmarks, deviations, new InMemoryNotificationStore(), new InMemoryTaskStore(), _audit);
+
+        await monitor.CheckScoreAsync(new ECARMF.Kernel.Domain.Scoring.ScoreRecord
+        {
+            TenantId = Tenant,
+            SubjectType = "Counterparty",
+            SubjectId = "CP-9",
+            ScoreType = "AMLRisk",
+            Value = 0.9m,
+            UnitRef = "elgin",
+        });
+
+        var alert = deviations.Items.Single();
+        Assert.Equal("elgin", alert.UnitRef); // the alarm names the location
+    }
+
     // ---- the validator itself ----
 
     [Fact]

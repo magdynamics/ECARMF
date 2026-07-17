@@ -28,7 +28,10 @@ public sealed record PeriodAnalysis(
 
 public interface IPeriodAnalysisService
 {
-    Task<PeriodAnalysis> AnalyzeAsync(string tenantId, string granularity, int count, CancellationToken ct = default);
+    /// <param name="unitRef">Narrows the analysis to one organizational unit
+    /// (its own records plus tenant-wide ones); null = the whole tenant.</param>
+    Task<PeriodAnalysis> AnalyzeAsync(
+        string tenantId, string granularity, int count, string? unitRef = null, CancellationToken ct = default);
 }
 
 /// <summary>
@@ -51,7 +54,8 @@ public class PeriodAnalysisService : IPeriodAnalysisService
         _scores = scores;
     }
 
-    public async Task<PeriodAnalysis> AnalyzeAsync(string tenantId, string granularity, int count, CancellationToken ct = default)
+    public async Task<PeriodAnalysis> AnalyzeAsync(
+        string tenantId, string granularity, int count, string? unitRef = null, CancellationToken ct = default)
     {
         var gran = string.Equals(granularity, "quarter", StringComparison.OrdinalIgnoreCase) ? "quarter" : "month";
         count = Math.Clamp(count, 2, 12);
@@ -67,7 +71,8 @@ public class PeriodAnalysisService : IPeriodAnalysisService
         for (var skip = 0; skip < 20000; skip += 200)
         {
             var (batch, _) = await _records.QueryAsync(
-                new TransactionQuery(tenantId, null, null, null, null, windowStart, DateTimeOffset.UtcNow, skip, 200), ct);
+                new TransactionQuery(tenantId, null, null, null, null, windowStart, DateTimeOffset.UtcNow, skip, 200,
+                    UnitRef: unitRef), ct);
             records.AddRange(batch);
             if (batch.Count < 200) break;
         }

@@ -28,6 +28,7 @@ public class EfScoreStore : IScoreStore
             PackageVersion = score.PackageVersion,
             Provenance = score.Provenance,
             RiskType = score.RiskType,
+            UnitRef = score.UnitRef,
             CorrelationId = score.CorrelationId,
             ComputedAt = score.ComputedAt,
             MetadataJson = System.Text.Json.JsonSerializer.Serialize(score.Metadata)
@@ -108,6 +109,7 @@ public class EfScoreStore : IScoreStore
         PackageVersion = entry.PackageVersion,
         Provenance = entry.Provenance,
         RiskType = entry.RiskType,
+        UnitRef = entry.UnitRef,
         CorrelationId = entry.CorrelationId,
         ComputedAt = entry.ComputedAt,
         Metadata = string.IsNullOrWhiteSpace(entry.MetadataJson) ? [] : System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(entry.MetadataJson) ?? []

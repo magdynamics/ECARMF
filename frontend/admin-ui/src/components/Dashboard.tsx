@@ -5,6 +5,8 @@ import type { ActivityItem, AuditEntryDto, ScoreRecord } from '../types'
 
 const POLL_MS = 5000
 
+interface OrgUnit { unitId: string; name: string; unitType: string; status: string }
+
 interface Widget {
   id: string
   type: string
@@ -80,13 +82,16 @@ export function Dashboard({ tenant, user }: { tenant: string; user: string }) {
   const [tasks, setTasks] = useState<TaskDto[]>([])
   const [error, setError] = useState<string | null>(null)
   const [newType, setNewType] = useState('kpiTiles')
+  const [units, setUnits] = useState<OrgUnit[]>([])
+  const [unitRef, setUnitRef] = useState('')
 
   const refresh = useCallback(async () => {
     try {
+      const unitQ = unitRef ? `&unitRef=${encodeURIComponent(unitRef)}` : ''
       const [dashboards, s, r, a, d, b, t] = await Promise.all([
         api.get<DashboardConfig[]>('/api/dashboards'),
-        api.get<ScoreRecord[]>('/api/scores?limit=500'),
-        api.get<ActivityItem[]>('/api/records?limit=200'),
+        api.get<ScoreRecord[]>(`/api/scores?limit=500${unitQ}`),
+        api.get<ActivityItem[]>(`/api/records?limit=200${unitQ}`),
         api.get<AuditEntryDto[]>('/api/audit'),
         api.get<DeviationAlert[]>('/api/deviations?limit=25'),
         api.get<BenchmarkDto[]>('/api/benchmarks').catch(() => [] as BenchmarkDto[]),
@@ -96,16 +101,17 @@ export function Dashboard({ tenant, user }: { tenant: string; user: string }) {
       setScores(s)
       setRecords(r)
       setAudit(a)
-      setDeviations(d)
+      setDeviations(unitRef ? d.filter((x: DeviationAlert & { unitRef?: string | null }) => !('unitRef' in x) || x.unitRef === unitRef || x.unitRef == null) : d)
       setBenchmarks(b)
       setTasks(t)
       // integrations list needs configure permission; degrade silently.
       setIntegrations(await api.get<IntegrationDto[]>('/api/integrations').catch(() => [] as IntegrationDto[]))
+      try { setUnits((await api.get<OrgUnit[]>('/api/org-units')).filter((u) => u.status !== 'Archived')) } catch { setUnits([]) }
       setError(null)
     } catch (e) {
       setError(e instanceof ApiError ? e.message : String(e))
     }
-  }, [])
+  }, [unitRef])
 
   useEffect(() => {
     void refresh()
@@ -357,6 +363,16 @@ export function Dashboard({ tenant, user }: { tenant: string; user: string }) {
           layout is saved for this tenant instantly — no package rebuild involved.
         </p>
         <div className="form-row">
+          {units.length > 0 && (
+            <label>
+              Entity / location
+              <select value={unitRef} onChange={(e) => setUnitRef(e.target.value)}
+                title="Narrow every widget to one unit. A unit's view includes tenant-wide figures (they apply to all units).">
+                <option value="">All units</option>
+                {units.map((u) => <option key={u.unitId} value={u.unitId}>{u.name} (+ tenant-wide)</option>)}
+              </select>
+            </label>
+          )}
           <label>
             Widget type
             <select value={newType} onChange={(e) => setNewType(e.target.value)}>
@@ -367,6 +383,12 @@ export function Dashboard({ tenant, user }: { tenant: string; user: string }) {
           </label>
           <button onClick={addWidget} disabled={!config}>Add widget</button>
         </div>
+        {unitRef && (
+          <p className="muted small">
+            Scoped to <strong>{units.find((u) => u.unitId === unitRef)?.name ?? unitRef}</strong> —
+            showing that unit's records and scores plus tenant-wide ones.
+          </p>
+        )}
       </section>
 
       {config?.widgets.map((widget) => (

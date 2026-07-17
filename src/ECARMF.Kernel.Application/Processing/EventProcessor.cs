@@ -283,6 +283,11 @@ public class EventProcessor : IEventProcessor
                     string.Equals(kv.Key, "recordType", StringComparison.OrdinalIgnoreCase)).Value ?? "Record";
             }
 
+            // Unit inheritance: a score computed from a unit's record IS that
+            // unit's score; records without a unit produce tenant-wide scores.
+            var unitRef = kernelEvent.Payload.FirstOrDefault(kv =>
+                string.Equals(kv.Key, "unitRef", StringComparison.OrdinalIgnoreCase)).Value;
+
             yield return new ScoreRecord
             {
                 TenantId = kernelEvent.TenantId,
@@ -293,6 +298,7 @@ public class EventProcessor : IEventProcessor
                 RuleId = rule.Declaration.RuleId,
                 PackageId = rule.PackageId,
                 PackageVersion = rule.PackageVersion,
+                UnitRef = string.IsNullOrWhiteSpace(unitRef) ? null : unitRef,
                 CorrelationId = kernelEvent.CorrelationId,
                 ComputedAt = DateTimeOffset.UtcNow
             };

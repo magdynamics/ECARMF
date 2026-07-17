@@ -31,6 +31,10 @@ public class DeviationAlert
     /// <summary>Info | Warning | Critical. Critical escalates to a human role.</summary>
     public string Severity { get; set; } = "Info";
 
+    /// <summary>The organizational unit the deviating metric belongs to,
+    /// inherited from the score/record that triggered it. Null = tenant-wide.</summary>
+    public string? UnitRef { get; set; }
+
     public Guid CorrelationId { get; set; }
 
     public DateTimeOffset DetectedAt { get; set; } = DateTimeOffset.UtcNow;

@@ -41,14 +41,20 @@ function toPoint(s: ScoreRecord): RiskPoint {
   }
 }
 
+interface OrgUnit { unitId: string; name: string; unitType: string; status: string }
+
 export function RiskRegister({ tenant, user }: Props) {
   const [scores, setScores] = useState<ScoreRecord[] | null>(null)
+  const [units, setUnits] = useState<OrgUnit[]>([])
+  const [unitRef, setUnitRef] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
     setError(null)
     try {
-      const all = await api.get<ScoreRecord[]>('/api/scores?riskOnly=true&limit=3000')
+      const unitQ = unitRef ? `&unitRef=${encodeURIComponent(unitRef)}` : ''
+      const all = await api.get<ScoreRecord[]>(`/api/scores?riskOnly=true&limit=3000${unitQ}`)
+      try { setUnits((await api.get<OrgUnit[]>('/api/org-units')).filter((u) => u.status !== 'Archived')) } catch { setUnits([]) }
       // The register: the latest risk-tagged score per risk subject.
       const byRisk = new Map<string, ScoreRecord>()
       for (const s of all) {
@@ -62,7 +68,7 @@ export function RiskRegister({ tenant, user }: Props) {
       setError(e instanceof Error ? e.message : 'Failed to load scores')
       setScores([])
     }
-  }, [])
+  }, [unitRef])
 
   useEffect(() => { void refresh() }, [refresh, tenant, user])
 
@@ -85,6 +91,16 @@ export function RiskRegister({ tenant, user }: Props) {
           cell position and its shape marker carry the severity so the map is readable without
           relying on colour. Click a cell to list the risks in it.
         </p>
+        {units.length > 0 && (
+          <div className="form-row">
+            <label>Entity / location
+              <select value={unitRef} onChange={(e) => setUnitRef(e.target.value)}>
+                <option value="">All units</option>
+                {units.map((u) => <option key={u.unitId} value={u.unitId}>{u.name} (+ tenant-wide)</option>)}
+              </select>
+            </label>
+          </div>
+        )}
         {points.length > 0 && (
           <p className="small">
             <strong>{points.length}</strong> risk(s) across <strong>{domains.length}</strong> domain(s)

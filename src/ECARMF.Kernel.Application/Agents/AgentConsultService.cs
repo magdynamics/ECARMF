@@ -77,7 +77,12 @@ public class AgentConsultService : IAgentConsultService
         "decide, approve, execute, or claim to have taken an action; (2) ground every statement in the " +
         "provided tenant context or your persona's domain knowledge, and say plainly when the context " +
         "does not contain the answer; (3) never invent numbers, records, or regulations; (4) recommend " +
-        "consulting a qualified professional for decisions with legal or tax consequences. Your persona:\n\n";
+        "consulting a qualified professional for decisions with legal or tax consequences; (5) the tenant " +
+        "may have multiple organizational units (legal entities / locations) — context items carry a " +
+        "unitRef naming the unit they belong to, and items without one are tenant-wide (they apply to " +
+        "every unit). When you answer, be explicit about scope: say whether a finding applies to one " +
+        "named unit or to the whole tenant, and never present one unit's numbers as the whole tenant's. " +
+        "Your persona:\n\n";
 
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -282,16 +287,25 @@ public class AgentConsultService : IAgentConsultService
             if (source.Equals("scores", StringComparison.OrdinalIgnoreCase))
             {
                 var recent = await _scores.GetRecentAsync(tenantId, 300, null, ct);
-                var averages = recent.GroupBy(s => s.ScoreType)
-                    .Select(g => new { scoreType = g.Key, average = Math.Round(g.Average(s => s.Value), 4), count = g.Count() })
-                    .OrderBy(a => a.scoreType);
-                Append(context, "scoreAverages", averages);
+                // Grouped by unit as well as type: a multi-entity tenant's
+                // agent must see that Oak Lawn's average is not Elgin's —
+                // unit "(tenant-wide)" covers scores that apply to all units.
+                var averages = recent.GroupBy(s => new { s.ScoreType, s.UnitRef })
+                    .Select(g => new
+                    {
+                        scoreType = g.Key.ScoreType,
+                        unit = g.Key.UnitRef ?? "(tenant-wide)",
+                        average = Math.Round(g.Average(s => s.Value), 4),
+                        count = g.Count()
+                    })
+                    .OrderBy(a => a.scoreType).ThenBy(a => a.unit);
+                Append(context, "scoreAverages (per organizational unit)", averages);
             }
             else if (source.Equals("deviations", StringComparison.OrdinalIgnoreCase))
             {
                 var alerts = (await _deviations.GetRecentAsync(tenantId, 50, ct))
                     .Where(d => d.ResolvedAt is null)
-                    .Select(d => new { d.EntityReference, d.MetricType, d.Severity, d.ActualValue, d.ExpectedValue, d.ExpectedValueSource });
+                    .Select(d => new { d.EntityReference, d.MetricType, d.Severity, d.ActualValue, d.ExpectedValue, d.ExpectedValueSource, unit = d.UnitRef ?? "(tenant-wide)" });
                 Append(context, "openDeviations", alerts);
             }
             else if (source.Equals("benchmarks", StringComparison.OrdinalIgnoreCase))

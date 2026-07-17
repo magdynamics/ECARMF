@@ -43,6 +43,11 @@ public class ScoreRecord
     /// never a per-tenant RiskRecord entity. Null = not a risk score.</summary>
     public string? RiskType { get; set; }
 
+    /// <summary>The organizational unit this score is about, inherited from
+    /// the record that produced it. Null = a tenant-wide score (computed
+    /// from tenant-wide data or an aggregate across units).</summary>
+    public string? UnitRef { get; set; }
+
     /// <summary>Ties the score into its flywheel cycle in the audit log.</summary>
     public Guid CorrelationId { get; set; }
 

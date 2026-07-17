@@ -525,6 +525,7 @@ public class ECARMFDbContext : DbContext
             entity.Property(d => d.VarianceMagnitude).HasPrecision(18, 6);
             entity.Property(d => d.ThresholdBreached).HasPrecision(18, 6);
             entity.Property(d => d.AcknowledgedBy).HasMaxLength(400);
+            entity.Property(d => d.UnitRef).HasMaxLength(200);
             entity.HasIndex(d => new { d.TenantId, d.DetectedAt });
         });
 
@@ -594,6 +595,7 @@ public class ECARMFDbContext : DbContext
             entity.Property(s => s.RuleId).HasMaxLength(200);
             entity.Property(s => s.PackageId).HasMaxLength(200);
             entity.Property(s => s.PackageVersion).HasMaxLength(50);
+            entity.Property(s => s.UnitRef).HasMaxLength(200);
             entity.HasIndex(s => new { s.TenantId, s.SubjectType, s.SubjectId });
             entity.HasIndex(s => new { s.TenantId, s.ScoreType, s.ComputedAt });
             entity.HasIndex(s => s.CorrelationId);

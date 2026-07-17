@@ -118,6 +118,7 @@ public class DeviationMonitoringService : IDeviationMonitor
             VarianceMagnitude = Math.Round(variance, 4),
             ThresholdBreached = DefaultThreshold,
             Severity = severity,
+            UnitRef = kpiActual.UnitRef, // a unit's KPI deviating is that unit's alert
             CorrelationId = correlationId
         };
 
@@ -163,6 +164,7 @@ public class DeviationMonitoringService : IDeviationMonitor
                 VarianceMagnitude = -1,
                 ThresholdBreached = 0,
                 Severity = "Warning",
+                UnitRef = stale.UnitRef,
                 CorrelationId = stale.CorrelationId
             };
 

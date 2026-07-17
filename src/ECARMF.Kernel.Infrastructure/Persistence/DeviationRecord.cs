@@ -16,6 +16,7 @@ public class DeviationRecord
     public decimal VarianceMagnitude { get; set; }
     public decimal ThresholdBreached { get; set; }
     public string Severity { get; set; } = string.Empty;
+    public string? UnitRef { get; set; }
     public Guid CorrelationId { get; set; }
     public DateTimeOffset DetectedAt { get; set; }
     public string? AcknowledgedBy { get; set; }
@@ -36,6 +37,7 @@ public class EfDeviationStore : IDeviationStore
             MetricType = a.MetricType, ActualValue = a.ActualValue, ExpectedValue = a.ExpectedValue,
             ExpectedValueSource = a.ExpectedValueSource, VarianceMagnitude = a.VarianceMagnitude,
             ThresholdBreached = a.ThresholdBreached, Severity = a.Severity,
+            UnitRef = a.UnitRef,
             CorrelationId = a.CorrelationId, DetectedAt = a.DetectedAt,
             AcknowledgedBy = a.AcknowledgedBy, ResolvedAt = a.ResolvedAt
         });
@@ -70,6 +72,7 @@ public class EfDeviationStore : IDeviationStore
         MetricType = r.MetricType, ActualValue = r.ActualValue, ExpectedValue = r.ExpectedValue,
         ExpectedValueSource = r.ExpectedValueSource, VarianceMagnitude = r.VarianceMagnitude,
         ThresholdBreached = r.ThresholdBreached, Severity = r.Severity,
+        UnitRef = r.UnitRef,
         CorrelationId = r.CorrelationId, DetectedAt = r.DetectedAt,
         AcknowledgedBy = r.AcknowledgedBy, ResolvedAt = r.ResolvedAt
     };

@@ -185,7 +185,7 @@ public class ExecutiveAdvisorService : IExecutiveAdvisor
 
     // ---- snapshot -------------------------------------------------------
 
-    internal sealed record ScoreAverage(string ScoreType, decimal Average, int Count);
+    internal sealed record ScoreAverage(string ScoreType, decimal Average, int Count, string Unit = "(tenant-wide)");
 
     internal sealed record DeviationSummary(string EntityReference, string MetricType, string Severity, decimal VarianceMagnitude);
 
@@ -209,9 +209,10 @@ public class ExecutiveAdvisorService : IExecutiveAdvisor
 
         var averages = recentScores
             .Where(s => s.ScoreType != "ModelAccuracy")
-            .GroupBy(s => s.ScoreType)
-            .Select(g => new ScoreAverage(g.Key, Math.Round(g.Average(s => s.Value), 4), g.Count()))
-            .OrderBy(a => a.ScoreType)
+            .GroupBy(s => new { s.ScoreType, s.UnitRef })
+            .Select(g => new ScoreAverage(g.Key.ScoreType, Math.Round(g.Average(s => s.Value), 4), g.Count(),
+                g.Key.UnitRef ?? "(tenant-wide)"))
+            .OrderBy(a => a.ScoreType).ThenBy(a => a.Unit)
             .ToList();
 
         var openDeviations = deviations
@@ -328,7 +329,8 @@ public class ExecutiveAdvisorService : IExecutiveAdvisor
 
         if (snapshot.ScoreAverages.Count > 0)
         {
-            var top = string.Join(", ", snapshot.ScoreAverages.Take(5).Select(a => $"{a.ScoreType} avg {a.Average}"));
+            var top = string.Join(", ", snapshot.ScoreAverages.Take(5).Select(a =>
+                a.Unit == "(tenant-wide)" ? $"{a.ScoreType} avg {a.Average}" : $"{a.ScoreType} avg {a.Average} [{a.Unit}]"));
             summaryParts.Add($"Score activity: {top}.");
         }
 
@@ -367,7 +369,10 @@ public class ExecutiveAdvisorService : IExecutiveAdvisor
         const string systemPrompt =
             "You are the Executive Advisor agent of the ECARMF platform kernel — an enterprise " +
             "governance, risk, and capital-intelligence system. You receive a JSON snapshot of one " +
-            "tenant's operational state: score averages by type, open deviation alerts, pending " +
+            "tenant's operational state: score averages by type and organizational unit (a 'unit' field of " +
+            "'(tenant-wide)' means the figure applies to the whole tenant; a named unit means that legal " +
+            "entity/location only - be explicit about which scope every statement covers and never present " +
+            "one unit's numbers as the whole tenant's), open deviation alerts, pending " +
             "capital allocation recommendations, open workflow tasks, and the platform's measured " +
             "accuracy of prior AI predictions. Produce a concise executive brief for the tenant's " +
             "owner. You advise only; you never decide or execute. Ground every recommendation in the " +

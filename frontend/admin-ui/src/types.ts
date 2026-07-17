@@ -92,6 +92,7 @@ export interface OutcomeInfo {
 }
 
 export interface ActivityItem {
+  unitRef?: string | null
   recordId: string
   recordType: string
   submittedBy: string
@@ -101,6 +102,7 @@ export interface ActivityItem {
 }
 
 export interface ScoreRecord {
+  unitRef?: string | null
   id: string
   subjectType: string
   subjectId: string

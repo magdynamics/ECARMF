@@ -25,6 +25,9 @@ public class ScoreEntry
 
     public string? RiskType { get; set; }
 
+    /// <summary>Organizational unit the score is about; null = tenant-wide.</summary>
+    public string? UnitRef { get; set; }
+
     public Guid CorrelationId { get; set; }
 
     public DateTimeOffset ComputedAt { get; set; }

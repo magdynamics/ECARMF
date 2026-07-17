@@ -13,7 +13,7 @@ public static class PeriodEndpoints
     public static IEndpointRouteBuilder MapPeriodEndpoints(this IEndpointRouteBuilder app)
     {
         app.MapGet("/api/analysis/periods", async (
-            string? granularity, int? count, HttpContext context,
+            string? granularity, int? count, string? unitRef, HttpContext context,
             IUserStore users, IPeriodAnalysisService analysis, CancellationToken ct) =>
         {
             if (!TenantResolution.TryGetTenant(context, out var tenantId))
@@ -22,7 +22,7 @@ public static class PeriodEndpoints
             var (error, _) = await AccessGuard.RequireAsync(context, users, tenantId, Permissions.RecordRead, ct);
             if (error is not null) return error;
 
-            return Results.Ok(await analysis.AnalyzeAsync(tenantId, granularity ?? "month", count ?? 6, ct));
+            return Results.Ok(await analysis.AnalyzeAsync(tenantId, granularity ?? "month", count ?? 6, unitRef, ct));
         });
 
         // Platform-wide risk overview (operator): risk across every tenant.

@@ -74,7 +74,7 @@ public class BenchmarkMonitorService : IBenchmarkMonitor
             if (!Holds(benchmark, score.Value))
             {
                 await RaiseAsync(benchmark, score.Value,
-                    $"{score.SubjectType}:{score.SubjectId}", score.CorrelationId, ct);
+                    $"{score.SubjectType}:{score.SubjectId}", score.CorrelationId, score.UnitRef, ct);
             }
         }
     }
@@ -98,7 +98,10 @@ public class BenchmarkMonitorService : IBenchmarkMonitor
 
             if (!Holds(benchmark, value))
             {
-                await RaiseAsync(benchmark, value, $"{recordType}", correlationId, ct);
+                var unitRef = payload.FirstOrDefault(kv =>
+                    string.Equals(kv.Key, "unitRef", StringComparison.OrdinalIgnoreCase)).Value;
+                await RaiseAsync(benchmark, value, $"{recordType}", correlationId,
+                    string.IsNullOrWhiteSpace(unitRef) ? null : unitRef, ct);
             }
         }
     }
@@ -116,7 +119,8 @@ public class BenchmarkMonitorService : IBenchmarkMonitor
     };
 
     private async Task RaiseAsync(
-        Benchmark benchmark, decimal observed, string entityReference, Guid correlationId, CancellationToken ct)
+        Benchmark benchmark, decimal observed, string entityReference, Guid correlationId,
+        string? unitRef, CancellationToken ct)
     {
         var expected = benchmark.ExpectedValue;
         var variance = expected != 0 ? (observed - expected) / Math.Abs(expected) : observed;
@@ -135,6 +139,7 @@ public class BenchmarkMonitorService : IBenchmarkMonitor
             VarianceMagnitude = Math.Round(variance, 6),
             ThresholdBreached = expected,
             Severity = benchmark.Severity,
+            UnitRef = unitRef,
             CorrelationId = correlationId
         }, ct);
 

@@ -16,17 +16,23 @@ interface PeriodDelta { metric: string; current: number; previous: number; chang
 interface PeriodComparison { current: PeriodMetrics | null; previous: PeriodMetrics | null; deltas: PeriodDelta[]; recommendations: string[] }
 interface PeriodAnalysis { granularity: string; periods: PeriodMetrics[]; comparison: PeriodComparison }
 
+interface OrgUnit { unitId: string; name: string; unitType: string; status: string }
+
 export function Periods({ tenant, user }: { tenant: string; user: string }) {
   const [gran, setGran] = useState<'month' | 'quarter'>('month')
+  const [units, setUnits] = useState<OrgUnit[]>([])
+  const [unitRef, setUnitRef] = useState('')
   const [data, setData] = useState<PeriodAnalysis | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setError(null); setData(null)
     try {
-      setData(await api.get<PeriodAnalysis>(`/api/analysis/periods?granularity=${gran}&count=6`))
+      const unitQ = unitRef ? `&unitRef=${encodeURIComponent(unitRef)}` : ''
+      setData(await api.get<PeriodAnalysis>(`/api/analysis/periods?granularity=${gran}&count=6${unitQ}`))
+      try { setUnits((await api.get<OrgUnit[]>('/api/org-units')).filter((u) => u.status !== 'Archived')) } catch { setUnits([]) }
     } catch (e) { setError(e instanceof ApiError ? e.message : String(e)) }
-  }, [gran])
+  }, [gran, unitRef])
   useEffect(() => { void load() }, [load, tenant, user])
 
   const maxRecords = Math.max(1, ...(data?.periods ?? []).map((p) => p.records))
@@ -40,12 +46,22 @@ export function Periods({ tenant, user }: { tenant: string; user: string }) {
           How this tenant is doing this {gran} versus last — records, control outcomes, and average
           risk score per period, with recommendations from the change.
         </p>
-        <label>Granularity
-          <select value={gran} onChange={(e) => setGran(e.target.value as 'month' | 'quarter')}>
-            <option value="month">Monthly</option>
-            <option value="quarter">Quarterly</option>
-          </select>
-        </label>
+        <div className="form-row">
+          <label>Granularity
+            <select value={gran} onChange={(e) => setGran(e.target.value as 'month' | 'quarter')}>
+              <option value="month">Monthly</option>
+              <option value="quarter">Quarterly</option>
+            </select>
+          </label>
+          {units.length > 0 && (
+            <label>Entity / location
+              <select value={unitRef} onChange={(e) => setUnitRef(e.target.value)}>
+                <option value="">All units</option>
+                {units.map((u) => <option key={u.unitId} value={u.unitId}>{u.name} (+ tenant-wide)</option>)}
+              </select>
+            </label>
+          )}
+        </div>
         {error && <p className="error small">{error}</p>}
       </section>
 
