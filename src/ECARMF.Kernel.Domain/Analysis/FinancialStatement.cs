@@ -23,6 +23,11 @@ public class FinancialStatement
     /// <summary>Whose statement (org unit slug, client code — open).</summary>
     public string SubjectEntity { get; set; } = string.Empty;
 
+    /// <summary>Validated organizational unit the statement belongs to;
+    /// null = tenant-wide. Unlike SubjectEntity (free text), this is a real
+    /// unit and flows onto the released record and its ratio scores.</summary>
+    public string? UnitRef { get; set; }
+
     /// <summary>Statement period label (e.g. "FY2025", "2026-Q2").</summary>
     public string Period { get; set; } = string.Empty;
 

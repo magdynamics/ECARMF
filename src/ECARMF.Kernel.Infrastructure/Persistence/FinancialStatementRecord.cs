@@ -11,6 +11,7 @@ public class FinancialStatementRecord
     public string TenantId { get; set; } = string.Empty;
     public string StatementType { get; set; } = string.Empty;
     public string SubjectEntity { get; set; } = string.Empty;
+    public string? UnitRef { get; set; }
     public string Period { get; set; } = string.Empty;
     public string ExtractionMethod { get; set; } = string.Empty;
     public string TemplateId { get; set; } = string.Empty;
@@ -73,7 +74,7 @@ public class EfFinancialStatementStore : IFinancialStatementStore
     private static FinancialStatementRecord ToRecord(FinancialStatement s) => new()
     {
         Id = s.Id, TenantId = s.TenantId, StatementType = s.StatementType,
-        SubjectEntity = s.SubjectEntity, Period = s.Period,
+        SubjectEntity = s.SubjectEntity, UnitRef = s.UnitRef, Period = s.Period,
         ExtractionMethod = s.ExtractionMethod, TemplateId = s.TemplateId,
         SourceDocumentId = s.SourceDocumentId, ReviewThreshold = s.ReviewThreshold,
         Status = s.Status, LineItemsJson = JsonSerializer.Serialize(s.LineItems),
@@ -85,7 +86,7 @@ public class EfFinancialStatementStore : IFinancialStatementStore
     private static FinancialStatement ToDomain(FinancialStatementRecord r) => new()
     {
         Id = r.Id, TenantId = r.TenantId, StatementType = r.StatementType,
-        SubjectEntity = r.SubjectEntity, Period = r.Period,
+        SubjectEntity = r.SubjectEntity, UnitRef = r.UnitRef, Period = r.Period,
         ExtractionMethod = r.ExtractionMethod, TemplateId = r.TemplateId,
         SourceDocumentId = r.SourceDocumentId, ReviewThreshold = r.ReviewThreshold,
         Status = r.Status,

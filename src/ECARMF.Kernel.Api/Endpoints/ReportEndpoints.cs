@@ -27,7 +27,7 @@ public static class ReportEndpoints
             var (error, _) = await AccessGuard.RequireAsync(context, users, tenantId, Permissions.RecordRead, ct);
             if (error is not null) return error;
 
-            var docs = await library.SearchAsync(tenantId, "client-report", null, null, null, 100, ct);
+            var docs = await library.SearchAsync(tenantId, "client-report", null, null, null, 100, null, ct);
             return Results.Ok(docs
                 .Where(d => d.SourceCategory == "client-report")
                 .OrderByDescending(d => d.ArchivedAt)

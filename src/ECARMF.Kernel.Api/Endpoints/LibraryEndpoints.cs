@@ -15,6 +15,7 @@ public static class LibraryEndpoints
 
         group.MapGet("/", async (
             string? query, string? sourceId, DateTimeOffset? from, DateTimeOffset? to, int? limit,
+            string? unitRef,
             HttpContext context, IUserStore users, IDocumentLibrary library, CancellationToken ct) =>
         {
             if (!TenantResolution.TryGetTenant(context, out var tenantId))
@@ -23,7 +24,7 @@ public static class LibraryEndpoints
             if (error is not null) return error;
 
             return Results.Ok(await library.SearchAsync(
-                tenantId, query, sourceId, from, to, Math.Clamp(limit ?? 50, 1, 500), ct));
+                tenantId, query, sourceId, from, to, Math.Clamp(limit ?? 50, 1, 500), unitRef, ct));
         });
 
         group.MapGet("/{id:guid}", async (

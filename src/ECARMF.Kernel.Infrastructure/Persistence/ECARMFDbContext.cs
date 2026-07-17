@@ -111,6 +111,7 @@ public class ECARMFDbContext : DbContext
             entity.Property(d => d.SourceId).HasMaxLength(200).IsRequired();
             entity.Property(d => d.SourceCategory).HasMaxLength(100).IsRequired();
             entity.Property(d => d.UploadedBy).HasMaxLength(400).IsRequired();
+            entity.Property(d => d.UnitRef).HasMaxLength(200);
             entity.Property(d => d.ExtractionBackend).HasMaxLength(200);
             entity.Property(d => d.SchemaTemplateId).HasMaxLength(200);
             entity.Property(d => d.RecordIdsJson).IsRequired();
@@ -208,6 +209,7 @@ public class ECARMFDbContext : DbContext
             entity.Property(s => s.TenantId).HasMaxLength(100).IsRequired();
             entity.Property(s => s.StatementType).HasMaxLength(100).IsRequired();
             entity.Property(s => s.SubjectEntity).HasMaxLength(200).IsRequired();
+            entity.Property(s => s.UnitRef).HasMaxLength(200);
             entity.Property(s => s.Period).HasMaxLength(100).IsRequired();
             entity.Property(s => s.ExtractionMethod).HasMaxLength(50).IsRequired();
             entity.Property(s => s.TemplateId).HasMaxLength(200).IsRequired();

@@ -17,6 +17,7 @@ public class SourceDocumentRecord
     public string SourceId { get; set; } = string.Empty;
     public string SourceCategory { get; set; } = string.Empty;
     public string UploadedBy { get; set; } = string.Empty;
+    public string? UnitRef { get; set; }
     public DateTimeOffset ArchivedAt { get; set; }
     public string? ExtractionBackend { get; set; }
     public string? SchemaTemplateId { get; set; }
@@ -48,6 +49,7 @@ public class EfDocumentLibrary : IDocumentLibrary
             SourceId = document.SourceId,
             SourceCategory = document.SourceCategory,
             UploadedBy = document.UploadedBy,
+            UnitRef = document.UnitRef,
             ArchivedAt = document.ArchivedAt,
             ExtractionBackend = document.ExtractionBackend,
             SchemaTemplateId = document.SchemaTemplateId,
@@ -61,9 +63,16 @@ public class EfDocumentLibrary : IDocumentLibrary
 
     public async Task<IReadOnlyList<SourceDocument>> SearchAsync(
         string tenantId, string? query, string? sourceId,
-        DateTimeOffset? from, DateTimeOffset? to, int limit, CancellationToken ct = default)
+        DateTimeOffset? from, DateTimeOffset? to, int limit,
+        string? unitRef = null, CancellationToken ct = default)
     {
         var documents = _db.SourceDocuments.AsNoTracking().Where(d => d.TenantId == tenantId);
+
+        if (!string.IsNullOrWhiteSpace(unitRef))
+        {
+            // A unit's evidence plus what applies to every unit.
+            documents = documents.Where(d => d.UnitRef == unitRef || d.UnitRef == null);
+        }
 
         if (!string.IsNullOrWhiteSpace(sourceId))
         {
@@ -122,6 +131,7 @@ public class EfDocumentLibrary : IDocumentLibrary
         SourceId = record.SourceId,
         SourceCategory = record.SourceCategory,
         UploadedBy = record.UploadedBy,
+        UnitRef = record.UnitRef,
         ArchivedAt = record.ArchivedAt,
         ExtractionBackend = record.ExtractionBackend,
         SchemaTemplateId = record.SchemaTemplateId,

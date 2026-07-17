@@ -31,6 +31,9 @@ public class SourceDocument
 
     public string UploadedBy { get; set; } = string.Empty;
 
+    /// <summary>Organizational unit this evidence belongs to; null = tenant-wide.</summary>
+    public string? UnitRef { get; set; }
+
     public DateTimeOffset ArchivedAt { get; set; } = DateTimeOffset.UtcNow;
 
     /// <summary>How fields were extracted, when an extraction stage ran

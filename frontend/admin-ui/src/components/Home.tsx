@@ -26,6 +26,8 @@ export function Home({ tenant, user, go }: HomeProps) {
   const [benchmarkCount, setBenchmarkCount] = useState<number | null>(null)
   const [integrationCount, setIntegrationCount] = useState<number | null>(null)
   const [agentCount, setAgentCount] = useState<number | null>(null)
+  const [units, setUnits] = useState<{ unitId: string; name: string; status: string }[]>([])
+  const [unitRef, setUnitRef] = useState('')
   // Overview strip: today's posture at a glance, each card deep-linking to
   // its screen. Individual fetch failures (e.g. 403 on a regulated tenant in
   // header mode) simply hide that card.
@@ -44,10 +46,11 @@ export function Home({ tenant, user, go }: HomeProps) {
     try { setBenchmarkCount((await api.get<unknown[]>('/api/benchmarks')).length) } catch { setBenchmarkCount(null) }
     try { setIntegrationCount((await api.get<unknown[]>('/api/integrations')).length) } catch { setIntegrationCount(null) }
     try { setAgentCount((await api.get<unknown[]>('/api/agents')).length) } catch { setAgentCount(null) }
+    try { setUnits((await api.get<{ unitId: string; name: string; status: string }[]>('/api/org-units')).filter((u) => u.status !== 'Archived')) } catch { setUnits([]) }
 
     const next: typeof ov = {}
     try {
-      const rs = await api.get<ScoreRecord[]>('/api/scores?riskOnly=true&limit=3000')
+      const rs = await api.get<ScoreRecord[]>(`/api/scores?riskOnly=true&limit=3000${unitRef ? `&unitRef=${encodeURIComponent(unitRef)}` : ''}`)
       const seen = new Set<string>(); let critical = 0
       for (const s of rs) {
         const subj = s.subjectId ?? ''
@@ -60,7 +63,7 @@ export function Home({ tenant, user, go }: HomeProps) {
       if (seen.size > 0) next.risks = { total: seen.size, critical }
     } catch { /* card hidden */ }
     try {
-      const pa = await api.get<{ periods: { records: number }[]; comparison: { current?: { records: number } | null; deltas: { metric: string; changePct: number; improved: boolean }[] } }>('/api/analysis/periods?granularity=month&count=6')
+      const pa = await api.get<{ periods: { records: number }[]; comparison: { current?: { records: number } | null; deltas: { metric: string; changePct: number; improved: boolean }[] } }>(`/api/analysis/periods?granularity=month&count=6${unitRef ? `&unitRef=${encodeURIComponent(unitRef)}` : ''}`)
       const top = pa.comparison.deltas?.slice().sort((a, b) => Math.abs(b.changePct) - Math.abs(a.changePct))[0]
       if (pa.comparison.current && top) next.period = {
         records: pa.comparison.current.records,
@@ -79,7 +82,7 @@ export function Home({ tenant, user, go }: HomeProps) {
       next.openCases = cs.filter((c) => c.status === 'Open').length
     } catch { /* card hidden */ }
     setOv(next)
-  }, [])
+  }, [unitRef])
 
   useEffect(() => { void refresh() }, [refresh, tenant, user])
 
@@ -128,6 +131,16 @@ export function Home({ tenant, user, go }: HomeProps) {
         </p>
       </section>
 
+      {units.length > 0 && (ov.risks || ov.period) && (
+        <div className="form-row" style={{ marginBottom: '0.4rem' }}>
+          <label className="small">Viewing
+            <select value={unitRef} onChange={(e) => setUnitRef(e.target.value)}>
+              <option value="">All units</option>
+              {units.map((u) => <option key={u.unitId} value={u.unitId}>{u.name} (+ tenant-wide)</option>)}
+            </select>
+          </label>
+        </div>
+      )}
       {(ov.risks || ov.period || ov.renewalsDue !== undefined || ov.openCases !== undefined) && (
         <div className="ov-strip">
           {ov.risks && (

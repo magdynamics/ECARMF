@@ -350,7 +350,7 @@ public static class RenewalEndpoints
             var (error, _) = await AccessGuard.RequireAsync(context, users, tenantId, Permissions.RecordRead, ct);
             if (error is not null) return error;
 
-            return Results.Ok(await library.SearchAsync(tenantId, null, $"renewal:{id}", null, null, 100, ct));
+            return Results.Ok(await library.SearchAsync(tenantId, null, $"renewal:{id}", null, null, 100, null, ct));
         });
 
         group.MapDelete("/{id:guid}", async (

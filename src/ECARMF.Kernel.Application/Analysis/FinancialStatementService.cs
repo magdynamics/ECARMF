@@ -32,10 +32,13 @@ public interface IFinancialStatementService
     /// provenance. If any field falls below the template's threshold the
     /// statement is gated PendingReview; otherwise it auto-approves and
     /// releases into the analysis pipeline.</summary>
+    /// <param name="unitRef">Validated organizational unit the statement
+    /// belongs to; null = tenant-wide. Flows onto the released record and
+    /// its ratio scores.</param>
     Task<ExtractionOutcome> ExtractAsync(
         string tenantId, string templateId, string documentKind, string documentName,
         string documentText, string subjectEntity, string period, string actor,
-        Guid? sourceDocumentId = null, CancellationToken ct = default);
+        Guid? sourceDocumentId = null, string? unitRef = null, CancellationToken ct = default);
 
     /// <summary>The human decision on a gated statement. Corrections become
     /// HumanEntered at confidence 1.0. Approval releases the statement into
@@ -94,7 +97,7 @@ public class FinancialStatementService : IFinancialStatementService
     public async Task<ExtractionOutcome> ExtractAsync(
         string tenantId, string templateId, string documentKind, string documentName,
         string documentText, string subjectEntity, string period, string actor,
-        Guid? sourceDocumentId = null, CancellationToken ct = default)
+        Guid? sourceDocumentId = null, string? unitRef = null, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(documentText))
             return new ExtractionOutcome(false, null, "The document contains no text.");
@@ -147,6 +150,7 @@ public class FinancialStatementService : IFinancialStatementService
             TenantId = tenantId,
             StatementType = string.IsNullOrWhiteSpace(parsed.StatementType) ? template.TargetType : parsed.StatementType,
             SubjectEntity = subjectEntity,
+            UnitRef = string.IsNullOrWhiteSpace(unitRef) ? null : unitRef.Trim(),
             Period = period,
             ExtractionMethod = ExtractionMethods.AIExtraction,
             TemplateId = templateId,
@@ -302,8 +306,11 @@ public class FinancialStatementService : IFinancialStatementService
             payload[item.Label] = item.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
         }
 
+        // The released record inherits the statement's unit, so the ratio
+        // scores it produces are that unit's scores.
         await _intake.ReceiveAsync(new TransactionSubmission(
-            statement.TenantId, AnalyzedRecordType, actor, payload), ct);
+            statement.TenantId, AnalyzedRecordType, actor, payload,
+            UnitRef: statement.UnitRef), ct);
         statement.AnalyzedAt = DateTimeOffset.UtcNow;
     }
 

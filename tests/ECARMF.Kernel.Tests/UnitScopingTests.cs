@@ -352,6 +352,33 @@ public class UnitScopingTests
         Assert.Equal("elgin", alert.UnitRef); // the alarm names the location
     }
 
+    [Fact]
+    public async Task Archived_evidence_carries_the_unit_and_search_inherits_tenant_wide()
+    {
+        SeedUnits();
+        var service = new ConnectorIngestionService(_connectors, _registries, Intake(), _library, _units);
+        var loader = new PackageLoader(_packageStore, _registries, _audit);
+        var manifest = LoadManifest("connector-reference-templates-v1.json");
+        Assert.True((await loader.LoadAsync(Tenant, manifest)).Success);
+        Assert.True((await loader.ActivateAsync(Tenant, manifest.PackageId, manifest.PackageVersion)).Success);
+        await _connectors.EnsureSeedConnectorsAsync(Tenant);
+
+        await service.IngestAsync(Tenant, SeedConnectors.ManualEntry,
+            """{ "opportunityType": "RealEstateAcquisition", "title": "Oak doc", "estimatedValue": 1 }""",
+            "o", unitRef: "oak-lawn");
+        await service.IngestAsync(Tenant, SeedConnectors.ManualEntry,
+            """{ "opportunityType": "RealEstateAcquisition", "title": "HR doc", "estimatedValue": 1 }""",
+            "o"); // tenant-wide
+
+        Assert.Contains(_library.Items, i => i.Document.UnitRef == "oak-lawn");
+        Assert.Contains(_library.Items, i => i.Document.UnitRef == null);
+
+        var oakView = await _library.SearchAsync(Tenant, null, null, null, null, 50, "oak-lawn");
+        Assert.Equal(2, oakView.Count); // own evidence + tenant-wide evidence
+        var elginView = await _library.SearchAsync(Tenant, null, null, null, null, 50, "elgin");
+        Assert.Single(elginView); // only the tenant-wide document
+    }
+
     // ---- the validator itself ----
 
     [Fact]

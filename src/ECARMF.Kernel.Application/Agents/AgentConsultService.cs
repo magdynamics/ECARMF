@@ -330,8 +330,8 @@ public class AgentConsultService : IAgentConsultService
             }
             else if (source.Equals("library", StringComparison.OrdinalIgnoreCase))
             {
-                var documents = (await _library.SearchAsync(tenantId, null, null, null, null, 25, ct))
-                    .Select(d => new { d.FileName, d.SourceId, d.SourceCategory, d.ArchivedAt, records = d.RecordIds.Count });
+                var documents = (await _library.SearchAsync(tenantId, null, null, null, null, 25, null, ct))
+                    .Select(d => new { d.FileName, d.SourceId, d.SourceCategory, d.ArchivedAt, records = d.RecordIds.Count, unit = d.UnitRef ?? "(tenant-wide)" });
                 Append(context, "recentLibraryDocuments", documents);
             }
             else if (source.Equals("references", StringComparison.OrdinalIgnoreCase))

@@ -73,7 +73,7 @@ public class ConnectorIngestionService : IDataSourceConnector
         if (!mapping.Success)
         {
             await ArchiveAsync(tenantId, connector, registered.Declaration.SourceFormat,
-                registered.Declaration.TemplateId, rawPayload, actorIdentifier, [], mapping.Errors, ct);
+                registered.Declaration.TemplateId, rawPayload, actorIdentifier, [], mapping.Errors, unitRef, ct);
             return new IngestionResult(false, [], [], mapping.Errors);
         }
 
@@ -117,7 +117,7 @@ public class ConnectorIngestionService : IDataSourceConnector
         }
 
         await ArchiveAsync(tenantId, connector, registered.Declaration.SourceFormat,
-            registered.Declaration.TemplateId, rawPayload, actorIdentifier, recordIds, [], ct);
+            registered.Declaration.TemplateId, rawPayload, actorIdentifier, recordIds, [], unitRef, ct);
 
         return new IngestionResult(true, recordIds, warnings, []);
     }
@@ -128,7 +128,7 @@ public class ConnectorIngestionService : IDataSourceConnector
     private async Task ArchiveAsync(
         string tenantId, ConnectorDefinition connector, string sourceFormat, string templateId,
         string rawPayload, string actor, IReadOnlyList<Guid> recordIds, IReadOnlyList<string> errors,
-        CancellationToken ct)
+        string? unitRef, CancellationToken ct)
     {
         if (_library is null)
         {
@@ -155,6 +155,7 @@ public class ConnectorIngestionService : IDataSourceConnector
             SourceId = connector.ConnectorId,
             SourceCategory = connector.DomainTag,
             UploadedBy = actor,
+            UnitRef = string.IsNullOrWhiteSpace(unitRef) ? null : unitRef.Trim(),
             SchemaTemplateId = templateId,
             RecordIds = [.. recordIds],
             Metadata = metadata

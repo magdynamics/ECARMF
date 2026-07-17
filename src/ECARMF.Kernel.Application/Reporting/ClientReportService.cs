@@ -196,7 +196,7 @@ public class ClientReportService : IClientReportService
             }
 
             var existing = await _library.SearchAsync(
-                tenant.TenantId, null, $"report:{periodKey}", null, null, 1, ct);
+                tenant.TenantId, null, $"report:{periodKey}", null, null, 1, null, ct);
             if (existing.Count > 0)
             {
                 continue;

@@ -18,8 +18,12 @@ interface Pack {
   renewals: { name: string; category: string; days: number }[]
 }
 
+interface OrgUnit { unitId: string; name: string; unitType: string; status: string }
+
 export function BoardPack({ tenant, user }: { tenant: string; user: string }) {
   const [pack, setPack] = useState<Pack | null>(null)
+  const [units, setUnits] = useState<OrgUnit[]>([])
+  const [unitRef, setUnitRef] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
@@ -27,9 +31,9 @@ export function BoardPack({ tenant, user }: { tenant: string; user: string }) {
     try {
       const [cfg, risk, treatments, periods, cases, renewals] = await Promise.all([
         api.get<{ brand: string; segment?: string | null; posture: string }>('/api/tenant-config').catch(() => ({ brand: tenant, segment: null as string | null, posture: 'standard' })),
-        api.get<ScoreRecord[]>('/api/scores?riskOnly=true&limit=3000').catch(() => []),
+        api.get<ScoreRecord[]>(`/api/scores?riskOnly=true&limit=3000${unitRef ? `&unitRef=${encodeURIComponent(unitRef)}` : ''}`).catch(() => []),
         api.get<{ status: string }[]>('/api/risk/treatments').catch(() => []),
-        api.get<{ comparison: { current?: { label: string } | null; previous?: { label: string } | null; deltas: { metric: string; current: number; changePct: number; improved: boolean }[]; recommendations: string[] } }>('/api/analysis/periods?granularity=month&count=6').catch(() => null),
+        api.get<{ comparison: { current?: { label: string } | null; previous?: { label: string } | null; deltas: { metric: string; current: number; changePct: number; improved: boolean }[]; recommendations: string[] } }>(`/api/analysis/periods?granularity=month&count=6${unitRef ? `&unitRef=${encodeURIComponent(unitRef)}` : ''}`).catch(() => null),
         api.get<{ name: string; records: number; rejected: number }[]>('/api/cases').catch(() => []),
         api.get<{ name: string; category: string; dueDate: string }[]>('/api/renewals').catch(() => []),
       ])
@@ -67,7 +71,8 @@ export function BoardPack({ tenant, user }: { tenant: string; user: string }) {
           .filter((r) => r.days <= 90).sort((a, b) => a.days - b.days).slice(0, 6),
       })
     } catch (e) { setError(e instanceof Error ? e.message : String(e)) }
-  }, [tenant])
+    try { setUnits((await api.get<OrgUnit[]>('/api/org-units')).filter((u) => u.status !== 'Archived')) } catch { setUnits([]) }
+  }, [tenant, unitRef])
   useEffect(() => { void load() }, [load, user])
 
   if (error) return <section className="panel"><p className="error small">{error}</p></section>
@@ -78,10 +83,21 @@ export function BoardPack({ tenant, user }: { tenant: string; user: string }) {
       <section className="panel">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '0.5rem' }}>
           <div>
-            <h2>{pack.brand} — Board Pack</h2>
-            <p className="muted small">{pack.segment ?? tenant} · {pack.posture} posture · generated {new Date().toLocaleDateString()}</p>
+            <h2>{pack.brand} — Board Pack{unitRef ? ` · ${units.find((u) => u.unitId === unitRef)?.name ?? unitRef}` : ''}</h2>
+            <p className="muted small">
+              {pack.segment ?? tenant} · {pack.posture} posture · generated {new Date().toLocaleDateString()}
+              {unitRef ? ' · scoped to one entity (tenant-wide figures included)' : ''}
+            </p>
           </div>
-          <button className="secondary no-print" onClick={() => window.print()}>Print / export PDF</button>
+          <div className="no-print" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            {units.length > 0 && (
+              <select value={unitRef} onChange={(e) => setUnitRef(e.target.value)}>
+                <option value="">Whole tenant</option>
+                {units.map((u) => <option key={u.unitId} value={u.unitId}>{u.name}</option>)}
+              </select>
+            )}
+            <button className="secondary" onClick={() => window.print()}>Print / export PDF</button>
+          </div>
         </div>
       </section>
 

@@ -222,4 +222,18 @@ public class FinancialAnalystTests
         Assert.Equal(1.25m, Math.Round(actuals.Single(s => s.SubjectId == "statement-dscr@client-a").Value, 2));
         Assert.Null(actuals.Single(s => s.SubjectId == "gross-margin@client-a").RiskType); // margins inform, not risk-tagged
     }
+
+    [Fact]
+    public async Task Statement_unit_flows_onto_the_released_record()
+    {
+        _llm.Response = ModelJson(("revenue", 500000m, 0.97m), ("cogs", 210000m, 0.93m));
+
+        var outcome = await _service.ExtractAsync(
+            Tenant, "financial-statement-printed-v1", "Printed", "scan.pdf",
+            "doc text", "client-a", "FY2025", "analyst@tenant", unitRef: "oak-lawn");
+
+        Assert.Equal("oak-lawn", outcome.Statement!.UnitRef);
+        var record = Assert.Single(_intake.Received);
+        Assert.Equal("oak-lawn", record.UnitRef); // ratio scores will be the unit's
+    }
 }

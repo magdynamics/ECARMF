@@ -15,9 +15,12 @@ public interface IDocumentLibrary
 
     /// <summary>Metadata search: free-text over file name, source, category,
     /// template, and metadata; optionally narrowed by source and time range.</summary>
+    /// <param name="unitRef">Narrow to one unit's evidence; tenant-wide
+    /// documents (UnitRef null) are always included.</param>
     Task<IReadOnlyList<SourceDocument>> SearchAsync(
         string tenantId, string? query, string? sourceId,
-        DateTimeOffset? from, DateTimeOffset? to, int limit, CancellationToken ct = default);
+        DateTimeOffset? from, DateTimeOffset? to, int limit,
+        string? unitRef = null, CancellationToken ct = default);
 
     Task<SourceDocument?> GetAsync(string tenantId, Guid id, CancellationToken ct = default);
 

@@ -9,7 +9,8 @@ namespace ECARMF.Kernel.Api.Endpoints;
 
 public record ExtractStatementRequest(
     string TemplateId, string SubjectEntity, string Period,
-    string? DocumentKind, string? FileName, string? ContentBase64, string? Text);
+    string? DocumentKind, string? FileName, string? ContentBase64, string? Text,
+    string? UnitRef = null);
 
 public record ReviewStatementRequest(
     string Action, List<ReviewCorrection>? Corrections, string? Comment);
@@ -39,7 +40,8 @@ public static class FinancialStatementEndpoints
         group.MapPost("/extract", async (
             ExtractStatementRequest request, HttpContext context,
             IUserStore users, IFinancialStatementService service,
-            IDocumentTextReader reader, IDocumentLibrary library, CancellationToken ct) =>
+            IDocumentTextReader reader, IDocumentLibrary library,
+            ECARMF.Kernel.Application.Identity.IOrgUnitStore units, CancellationToken ct) =>
         {
             if (!TenantResolution.TryGetTenant(context, out var tenantId))
                 return TenantResolution.MissingTenantResult();
@@ -50,6 +52,11 @@ public static class FinancialStatementEndpoints
                 || string.IsNullOrWhiteSpace(request.SubjectEntity)
                 || string.IsNullOrWhiteSpace(request.Period))
                 return Results.BadRequest(new { error = "templateId, subjectEntity, and period are required." });
+
+            // Unit-scoped data integrity, same as every other ingest door.
+            var unitError = await ECARMF.Kernel.Application.Identity.UnitScope.ValidateAsync(units, tenantId, request.UnitRef, ct);
+            if (unitError is not null)
+                return Results.BadRequest(new { error = unitError });
 
             var documentName = string.IsNullOrWhiteSpace(request.FileName) ? "pasted-text" : request.FileName;
             string documentText;
@@ -79,6 +86,7 @@ public static class FinancialStatementEndpoints
                     SourceId = $"financial-statement:{request.TemplateId}",
                     SourceCategory = "financial-statement-source",
                     UploadedBy = user!.Identifier,
+                    UnitRef = string.IsNullOrWhiteSpace(request.UnitRef) ? null : request.UnitRef.Trim(),
                 }, bytes, ct);
                 sourceDocumentId = archived.Id;
             }
@@ -91,7 +99,7 @@ public static class FinancialStatementEndpoints
                 tenantId, request.TemplateId,
                 string.IsNullOrWhiteSpace(request.DocumentKind) ? "Printed" : request.DocumentKind,
                 documentName, documentText, request.SubjectEntity.Trim(), request.Period.Trim(),
-                user!.Identifier, sourceDocumentId, ct);
+                user!.Identifier, sourceDocumentId, request.UnitRef, ct);
 
             return outcome.Success
                 ? Results.Ok(new { statement = outcome.Statement, framing = Framing })

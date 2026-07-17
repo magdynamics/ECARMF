@@ -157,6 +157,7 @@ public class DocumentExtractionService : IDocumentExtractor
                 SourceId = connectorId,
                 SourceCategory = connector.DomainTag,
                 UploadedBy = actorIdentifier,
+                UnitRef = string.IsNullOrWhiteSpace(unitRef) ? null : unitRef.Trim(),
                 ExtractionBackend = backend,
                 SchemaTemplateId = template.TemplateId,
                 RecordIds = [.. ingestion.RecordIds],

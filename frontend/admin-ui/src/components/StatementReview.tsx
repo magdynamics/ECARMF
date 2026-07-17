@@ -11,6 +11,7 @@ interface LineItem {
 
 interface Statement {
   id: string
+  unitRef: string | null
   statementType: string
   subjectEntity: string
   period: string
@@ -133,7 +134,7 @@ export function StatementReview({ tenant, user }: { tenant: string; user: string
         ) : (
           <table>
             <thead>
-              <tr><th>Subject</th><th>Type</th><th>Period</th><th>Fields</th><th>Flagged</th><th>Status</th><th>Created</th><th></th></tr>
+              <tr><th>Subject</th><th>Unit</th><th>Type</th><th>Period</th><th>Fields</th><th>Flagged</th><th>Status</th><th>Created</th><th></th></tr>
             </thead>
             <tbody>
               {statements.map((s) => {
@@ -141,6 +142,7 @@ export function StatementReview({ tenant, user }: { tenant: string; user: string
                 return (
                   <tr key={s.id} className={selected?.id === s.id ? 'selected' : ''}>
                     <td className="mono">{s.subjectEntity}</td>
+                    <td className="small">{s.unitRef ?? <span className="muted">all</span>}</td>
                     <td>{s.statementType}</td>
                     <td>{s.period}</td>
                     <td>{s.lineItems.length}</td>

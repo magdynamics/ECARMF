@@ -34,11 +34,13 @@ public class InMemoryDocumentLibrary : IDocumentLibrary
 
     public Task<IReadOnlyList<SourceDocument>> SearchAsync(
         string tenantId, string? query, string? sourceId,
-        DateTimeOffset? from, DateTimeOffset? to, int limit, CancellationToken ct = default) =>
+        DateTimeOffset? from, DateTimeOffset? to, int limit,
+        string? unitRef = null, CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<SourceDocument>>(
             Items.Select(i => i.Document)
                 .Where(d => d.TenantId == tenantId
-                    && (sourceId is null || d.SourceId == sourceId))
+                    && (sourceId is null || d.SourceId == sourceId)
+                    && (string.IsNullOrWhiteSpace(unitRef) || d.UnitRef == unitRef || d.UnitRef == null))
                 .Take(limit).ToList());
 
     public Task<SourceDocument?> GetAsync(string tenantId, Guid id, CancellationToken ct = default) =>

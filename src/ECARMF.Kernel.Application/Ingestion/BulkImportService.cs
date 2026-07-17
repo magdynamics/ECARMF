@@ -157,6 +157,7 @@ public class BulkImportService : IBulkImportService
             SourceId = "bulk-import",
             SourceCategory = "bulk-import",
             UploadedBy = submittedBy,
+            UnitRef = string.IsNullOrWhiteSpace(unitRef) ? null : unitRef.Trim(),
             RecordIds = recordIds,
             Metadata = new Dictionary<string, string>
             {
