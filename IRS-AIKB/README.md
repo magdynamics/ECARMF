@@ -2,6 +2,10 @@
 
 IRS-AIKB is a version-controlled foundation for organizing public IRS examination guidance into traceable sources, audit techniques, risk indicators, and readiness assessments.
 
+The authoritative product-level definition, complete workflow, component inventory,
+current maturity, and integrated-release target are documented in
+[`docs/MAG_AUDIT_SYSTEM_MASTER_NARRATIVE.md`](docs/MAG_AUDIT_SYSTEM_MASTER_NARRATIVE.md).
+
 Within the broader MAG Audit design, this repository module is the federal `US-IRS`
 jurisdiction package. A governed, intake-only space for the future Illinois IDOR
 engine is registered as `US-IL-IDOR`; its knowledge base is intentionally not yet populated.
