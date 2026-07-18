@@ -39,6 +39,14 @@ class DatabaseTests(unittest.TestCase):
             finally:
                 connection.close()
             self.assertGreater(concept_count, 20)
+            connection = sqlite3.connect(database)
+            try:
+                mapping_count = connection.execute(
+                    "SELECT count(*) FROM line_mapping_definition"
+                ).fetchone()[0]
+            finally:
+                connection.close()
+            self.assertGreater(mapping_count, 200)
 
     def test_verified_manifest_loads_all_sources(self):
         manifest = Path(__file__).parents[1] / "source-manifest" / "sources.csv"

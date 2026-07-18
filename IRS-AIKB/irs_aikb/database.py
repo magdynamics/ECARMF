@@ -5,6 +5,7 @@ from pathlib import Path
 import sqlite3
 
 from .canonical import CANONICAL_CONCEPTS
+from .line_mapping import MAPPINGS
 
 
 def initialize(database: Path, schema: Path | None = None) -> None:
@@ -22,6 +23,18 @@ def initialize(database: Path, schema: Path | None = None) -> None:
                 """INSERT OR IGNORE INTO canonical_concept
                 (concept_id, label, data_type, concept_version) VALUES (?, ?, 'money', '0.1.0')""",
                 CANONICAL_CONCEPTS.items(),
+            )
+        if connection.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='line_mapping_definition'"
+        ).fetchone():
+            connection.executemany(
+                """INSERT OR IGNORE INTO line_mapping_definition
+                (mapping_id, form_family, tax_year, schedule, source_line, source_label,
+                 concept_id, mapping_version, review_status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                ((f"MAP-{m.form_family}-{m.tax_year}-{m.schedule}-{m.source_line}",
+                  m.form_family, m.tax_year, m.schedule, m.source_line, m.source_label,
+                  m.concept_id, m.mapping_version, m.review_status) for m in MAPPINGS),
             )
         connection.commit()
     finally:

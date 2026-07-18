@@ -10,6 +10,7 @@ from .database import database_stats, initialize, load_source_manifest
 from .extraction import ingest_registry
 from .engine import assess
 from .intake import intake_paths, write_intake_report
+from .line_mapping import map_observations, validate_official_forms, validate_registry
 from .portfolio import assess_portfolio
 
 
@@ -48,6 +49,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--include-values", action="store_true",
         help="Include populated PDF field values (sensitive; metadata-only is the default)",
     )
+    mapping_check = commands.add_parser(
+        "validate-line-mappings", help="Validate reviewed mappings against official blank forms"
+    )
+    mapping_check.add_argument("--forms-root", type=Path, required=True)
+    mapping_check.add_argument("--output", type=Path, required=True)
+    map_lines = commands.add_parser("map-lines", help="Map extracted JSON lines to canonical concepts")
+    map_lines.add_argument("input", type=Path)
+    map_lines.add_argument("--output", type=Path, required=True)
     return parser
 
 
@@ -88,6 +97,27 @@ def main(argv: list[str] | None = None) -> int:
             "review_required_count": report["review_required_count"],
             "quarantined_count": report["quarantined_count"],
         }, indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "validate-line-mappings":
+        registry_errors = validate_registry()
+        report = validate_official_forms(args.forms_root)
+        report["registry_errors"] = registry_errors
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+        print(json.dumps({"output": str(args.output), "forms_checked": report["forms_checked"],
+                          "validated": report["validated"],
+                          "registry_errors": len(registry_errors)}, indent=2))
+        return 1 if registry_errors else 0
+
+    if args.command == "map-lines":
+        payload = json.loads(args.input.read_text(encoding="utf-8"))
+        report = map_observations(payload["form_family"], int(payload["tax_year"]),
+                                  payload.get("observations", []))
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+        print(json.dumps({"output": str(args.output), "mapped": len(report["facts"]),
+                          "exceptions": len(report["exceptions"])}, indent=2))
         return 0
 
     profile = json.loads(args.profile.read_text(encoding="utf-8"))
