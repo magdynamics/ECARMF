@@ -58,6 +58,18 @@ python -m unittest discover -s tests -v
 
 Run commands from this `IRS-AIKB` directory.
 
+## Local demonstration application
+
+Double-click `Launch MAG Audit.cmd` or run:
+
+```powershell
+python launch_mag_audit.py
+```
+
+The local app uses synthetic demonstration data and is intended to test navigation,
+workflows, control gates, and product design. It is not a production client portal,
+does not connect to the IRS, and does not transmit client information.
+
 The portfolio command produces independent public-selection-indicator,
 adjustment-exposure, documentation-readiness, controversy-readiness, and
 confidence scores. Its priority ranking is CPA workflow triage—not a prediction
