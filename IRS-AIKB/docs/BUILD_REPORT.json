@@ -1,0 +1,31 @@
+{
+  "build_date": "2026-07-17",
+  "corpus": "IRS-AIKB initial ATG corpus",
+  "official_index": "https://www.irs.gov/businesses/small-businesses-self-employed/audit-techniques-guides-atgs",
+  "source_domain": "www.irs.gov",
+  "document_count": 7,
+  "page_count": 1125,
+  "total_bytes": 9420123,
+  "verification": {
+    "download_completed": true,
+    "sha256_recorded": true,
+    "pdf_parse_completed": true,
+    "cover_pages_rendered": 7,
+    "cover_pages_visually_reviewed": 7,
+    "database_schema_tests_passed": 5
+  },
+  "documents": [
+    {"publication": "5495", "file": "sources/atg/p5495.pdf", "pages": 177},
+    {"publication": "5522", "file": "sources/atg/p5522.pdf", "pages": 176},
+    {"publication": "5558", "file": "sources/atg/p5558.pdf", "pages": 66},
+    {"publication": "5602", "file": "sources/atg/p5602.pdf", "pages": 54},
+    {"publication": "5603", "file": "sources/atg/p5603.pdf", "pages": 39},
+    {"publication": "5653", "file": "sources/atg/p5653.pdf", "pages": 348},
+    {"publication": "5712", "file": "sources/atg/p5712.pdf", "pages": 265}
+  ],
+  "limitations": [
+    "Guide content has not yet been section-parsed into the database.",
+    "Legal-current review of extracted tax positions has not yet occurred.",
+    "GitHub publication remains blocked by integration write permissions."
+  ]
+}

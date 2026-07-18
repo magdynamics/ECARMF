@@ -1,0 +1,8 @@
+{
+  "bank_deposits_to_reported_receipts": 1.12,
+  "information_returns_to_books": 1.04,
+  "records_quality": "unreconciled",
+  "cash_receipts_pct": 0.25,
+  "undocumented_related_party": true,
+  "worker_classification_risk": true
+}
