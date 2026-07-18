@@ -19,6 +19,7 @@ from .case_workflow import build_case_workflow
 from .efile_xml import ingest_efile_xml
 from .production_pipeline import run_portfolio
 from .control_plane import evaluate_control_plane
+from .client_upload import evaluate_upload_session
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -89,6 +90,8 @@ def build_parser() -> argparse.ArgumentParser:
     production.add_argument("input", type=Path); production.add_argument("--output", type=Path, required=True)
     control = commands.add_parser("evaluate-control-plane", help="Evaluate governance, learning, and value controls")
     control.add_argument("input", type=Path); control.add_argument("--output", type=Path, required=True)
+    upload = commands.add_parser("evaluate-client-upload", help="Validate client upload session and completeness")
+    upload.add_argument("input", type=Path); upload.add_argument("--output", type=Path, required=True)
     return parser
 
 
@@ -208,6 +211,13 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"output":str(args.output),"status":report["governance_status"],
                           "findings":len(report["governance_findings"]),
                           "production_coverage_pct":report["capabilities"]["production_coverage_pct"]},indent=2)); return 0
+    if args.command == "evaluate-client-upload":
+        report=evaluate_upload_session(json.loads(args.input.read_text(encoding="utf-8")))
+        args.output.parent.mkdir(parents=True,exist_ok=True)
+        args.output.write_text(json.dumps(report,indent=2,sort_keys=True),encoding="utf-8")
+        print(json.dumps({"output":str(args.output),"status":report["status"],
+                          "accepted":report["accepted_count"],"rejected":report["rejected_count"],
+                          "blockers":len(report["blockers"])},indent=2)); return 0
 
     profile = json.loads(args.profile.read_text(encoding="utf-8"))
     print(json.dumps(assess(profile), indent=2, sort_keys=True))

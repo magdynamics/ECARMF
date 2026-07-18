@@ -1,0 +1,20 @@
+{
+  "session": {
+    "session_id": "UPLOAD-DEMO",
+    "matter_id": "MATTER-DEMO",
+    "client_token": "CLIENT-DEMO",
+    "uploader_token": "CONTACT-DEMO",
+    "engagement_authority_confirmed": true,
+    "consent_version": "2026.1",
+    "purpose_acknowledged": true
+  },
+  "scope": {
+    "tax_years": [2024],
+    "return_types": ["1120-S"],
+    "include_income_completeness": false
+  },
+  "files": [
+    {"file_id":"F-RETURN","original_name":"2024-return.pdf","byte_count":1000,"sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","malware_status":"passed","category":"filed_return","tax_year":2024},
+    {"file_id":"F-BOOKS","original_name":"trial-balance.xlsx","byte_count":1000,"sha256":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","malware_status":"passed","category":"books","tax_year":2024}
+  ]
+}
