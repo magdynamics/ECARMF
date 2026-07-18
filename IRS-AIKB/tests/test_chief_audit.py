@@ -37,4 +37,11 @@ class ChiefAuditTests(unittest.TestCase):
         self.assertEqual(report["assessment_status"], "preliminary_only")
         self.assertEqual(report["scoring_gate"], "preliminary_only")
 
+    def test_direct_issue_facts_do_not_require_inference(self):
+        report = assess_chief_audit({"return_id": "R", "form_family": "1065", "tax_year": 2024,
+            "current_values": {}, "issue_facts": {"basis_support_incomplete": True,
+            "foreign_form_expected_missing": True}})
+        self.assertEqual({"BASIS-001", "FOR-FORMS-001"},
+                         {x["issue_id"] for x in report["findings"]})
+
 if __name__ == "__main__": unittest.main()

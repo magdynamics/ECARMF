@@ -16,6 +16,8 @@ from .reconciliation import validate_return_package
 from .supporting_schedules import validate_supporting_forms
 from .chief_audit import assess_chief_audit
 from .case_workflow import build_case_workflow
+from .efile_xml import ingest_efile_xml
+from .production_pipeline import run_portfolio
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -79,6 +81,11 @@ def build_parser() -> argparse.ArgumentParser:
     workflow = commands.add_parser("build-case-workflow", help="Build controlled IDR and controversy workpapers")
     workflow.add_argument("input", type=Path)
     workflow.add_argument("--output", type=Path, required=True)
+    xml = commands.add_parser("ingest-efile-xml", help="Securely inventory an authorized e-file XML export")
+    xml.add_argument("input", type=Path); xml.add_argument("--output", type=Path, required=True)
+    xml.add_argument("--include-values", action="store_true")
+    production = commands.add_parser("run-production-portfolio", help="Run the gated end-to-end portfolio pipeline")
+    production.add_argument("input", type=Path); production.add_argument("--output", type=Path, required=True)
     return parser
 
 
@@ -179,6 +186,18 @@ def main(argv: list[str] | None = None) -> int:
                           "workpapers": len(report["issue_workpapers"]),
                           "draft_idrs": len(report["draft_idrs"])}, indent=2))
         return 0
+
+    if args.command == "ingest-efile-xml":
+        report = ingest_efile_xml(args.input, include_values=args.include_values)
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+        print(json.dumps({"output": str(args.output), "status": report["recognition_status"],
+                          "mapped_facts": report["mapped_fact_count"], "mode": report["security_mode"]}, indent=2)); return 0
+    if args.command == "run-production-portfolio":
+        report = run_portfolio(json.loads(args.input.read_text(encoding="utf-8")))
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+        print(json.dumps({"output": str(args.output), **report["summary"]}, indent=2)); return 0
 
     profile = json.loads(args.profile.read_text(encoding="utf-8"))
     print(json.dumps(assess(profile), indent=2, sort_keys=True))
