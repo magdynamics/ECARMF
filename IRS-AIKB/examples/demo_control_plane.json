@@ -1,0 +1,45 @@
+{
+  "capabilities": [{
+    "capability_id": "CAP-RETURN-INTAKE",
+    "maturity_stage": "sanitized_tested",
+    "owner_token": "ROLE-TAX-DATA-OWNER",
+    "reviewer_token": "ROLE-CPA-REVIEWER"
+  }],
+  "rules": [{
+    "rule_id": "INC-BANK-001",
+    "maturity_stage": "professionally_reviewed",
+    "objective": "Identify unexplained deposit differences",
+    "applicability": ["business returns"],
+    "calculation": "bank deposits / gross receipts",
+    "authorities": ["IRM 4.10.4"],
+    "evidence": ["Bank statements", "Deposit ledger"],
+    "exceptions": ["Loan proceeds", "Transfers"],
+    "materiality": "reviewed engagement threshold",
+    "tests": ["positive", "negative", "zero denominator"],
+    "owner_token": "ROLE-AUDIT-METHODOWNER",
+    "effective_from": "2026-07-18"
+  }],
+  "agents": [{
+    "agent_id": "AGENT-RECONCILIATION",
+    "allowed_inputs": ["authorized normalized returns"],
+    "allowed_actions": ["calculate and flag exceptions"],
+    "prohibited_actions": ["file returns", "transmit client records"],
+    "required_sources": ["approved mappings"],
+    "confidence_policy": "return not assessable when required inputs are missing",
+    "escalation_policy": "route failed controls to CPA reviewer",
+    "human_approver": "ROLE-CPA-REVIEWER"
+  }],
+  "learning_candidates": [{
+    "candidate_id": "LEARN-001",
+    "evidence_reviewed": true,
+    "sample_size": 12,
+    "minimum_sample_size": 20,
+    "validation_passed": false,
+    "pilot_passed": false
+  }],
+  "outcomes": [{"outcome_id": "OUT-001", "hours_saved": 4, "exposure_remediated": 25000}],
+  "decisions": [],
+  "events": [],
+  "source_changes": [],
+  "relationships": []
+}

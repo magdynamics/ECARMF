@@ -18,6 +18,7 @@ from .chief_audit import assess_chief_audit
 from .case_workflow import build_case_workflow
 from .efile_xml import ingest_efile_xml
 from .production_pipeline import run_portfolio
+from .control_plane import evaluate_control_plane
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -86,6 +87,8 @@ def build_parser() -> argparse.ArgumentParser:
     xml.add_argument("--include-values", action="store_true")
     production = commands.add_parser("run-production-portfolio", help="Run the gated end-to-end portfolio pipeline")
     production.add_argument("input", type=Path); production.add_argument("--output", type=Path, required=True)
+    control = commands.add_parser("evaluate-control-plane", help="Evaluate governance, learning, and value controls")
+    control.add_argument("input", type=Path); control.add_argument("--output", type=Path, required=True)
     return parser
 
 
@@ -198,6 +201,13 @@ def main(argv: list[str] | None = None) -> int:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
         print(json.dumps({"output": str(args.output), **report["summary"]}, indent=2)); return 0
+    if args.command == "evaluate-control-plane":
+        report=evaluate_control_plane(json.loads(args.input.read_text(encoding="utf-8")))
+        args.output.parent.mkdir(parents=True,exist_ok=True)
+        args.output.write_text(json.dumps(report,indent=2,sort_keys=True),encoding="utf-8")
+        print(json.dumps({"output":str(args.output),"status":report["governance_status"],
+                          "findings":len(report["governance_findings"]),
+                          "production_coverage_pct":report["capabilities"]["production_coverage_pct"]},indent=2)); return 0
 
     profile = json.loads(args.profile.read_text(encoding="utf-8"))
     print(json.dumps(assess(profile), indent=2, sort_keys=True))
