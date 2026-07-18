@@ -47,6 +47,14 @@ class DatabaseTests(unittest.TestCase):
             finally:
                 connection.close()
             self.assertGreater(mapping_count, 200)
+            connection = sqlite3.connect(database)
+            try:
+                issue_count = connection.execute(
+                    "SELECT count(*) FROM issue_rule_definition"
+                ).fetchone()[0]
+            finally:
+                connection.close()
+            self.assertGreaterEqual(issue_count, 8)
 
     def test_verified_manifest_loads_all_sources(self):
         manifest = Path(__file__).parents[1] / "source-manifest" / "sources.csv"

@@ -1,12 +1,14 @@
 """Database initialization helpers."""
 
 import csv
+import json
 from pathlib import Path
 import sqlite3
 
 from .canonical import CANONICAL_CONCEPTS
 from .line_mapping import MAPPINGS
 from .supporting_schedules import SUPPORTING_MAPPINGS
+from .chief_audit import ENGINE_VERSION as CHIEF_ENGINE_VERSION, RULES as CHIEF_RULES
 
 
 def initialize(database: Path, schema: Path | None = None) -> None:
@@ -37,6 +39,16 @@ def initialize(database: Path, schema: Path | None = None) -> None:
                   m.form_family, m.tax_year, m.schedule, m.source_line, m.source_label,
                   m.concept_id, m.mapping_version, m.review_status)
                  for m in (*MAPPINGS, *SUPPORTING_MAPPINGS)),
+            )
+        if connection.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='issue_rule_definition'"
+        ).fetchone():
+            connection.executemany(
+                """INSERT OR REPLACE INTO issue_rule_definition
+                (issue_id, dimension, title, rule_version, authority_json, evidence_json, review_status)
+                VALUES (?, ?, ?, ?, ?, ?, 'curated_seed_requires_cpa_approval')""",
+                ((rule.issue_id, rule.dimension, rule.title, CHIEF_ENGINE_VERSION,
+                  json.dumps(rule.authorities), json.dumps(rule.evidence)) for rule in CHIEF_RULES),
             )
         connection.commit()
     finally:

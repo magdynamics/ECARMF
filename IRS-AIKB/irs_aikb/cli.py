@@ -14,6 +14,7 @@ from .line_mapping import map_observations, validate_official_forms, validate_re
 from .portfolio import assess_portfolio
 from .reconciliation import validate_return_package
 from .supporting_schedules import validate_supporting_forms
+from .chief_audit import assess_chief_audit
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -69,6 +70,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     support_check.add_argument("--forms-root", type=Path, required=True)
     support_check.add_argument("--output", type=Path, required=True)
+    chief = commands.add_parser(
+        "chief-audit-assess", help="Run the integrated explainable audit-intelligence assessment"
+    )
+    chief.add_argument("package", type=Path)
+    chief.add_argument("--output", type=Path, required=True)
     return parser
 
 
@@ -149,6 +155,16 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"output": str(args.output), "forms_checked": report["forms_checked"],
                           "validated": report["validated"]}, indent=2))
         return 0 if report["validated"] == report["forms_checked"] else 1
+
+    if args.command == "chief-audit-assess":
+        payload = json.loads(args.package.read_text(encoding="utf-8"))
+        report = assess_chief_audit(payload)
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+        print(json.dumps({"output": str(args.output), "status": report["assessment_status"],
+                          "findings": len(report["findings"]),
+                          "portfolio_priority": report["scores"]["portfolio_priority"]}, indent=2))
+        return 0
 
     profile = json.loads(args.profile.read_text(encoding="utf-8"))
     print(json.dumps(assess(profile), indent=2, sort_keys=True))

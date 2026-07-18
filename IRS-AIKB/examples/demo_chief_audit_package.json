@@ -1,0 +1,51 @@
+{
+  "return_id": "DEMO-1120S-2024",
+  "form_family": "1120-S",
+  "tax_year": 2024,
+  "current_values": {
+    "income.gross_receipts": 1000000,
+    "income.gross_profit": 420000,
+    "income.total": 430000,
+    "expense.total": 390000,
+    "expense.wages": 180000,
+    "expense.compensation_officers": 160000,
+    "expense.other": 100000,
+    "taxable_income.total": 40000,
+    "balance.total_assets": 600000,
+    "balance.related_party_receivable": 90000
+  },
+  "historical_returns": [{
+    "tax_year": 2023,
+    "values": {
+      "income.gross_receipts": 650000,
+      "income.gross_profit": 390000,
+      "taxable_income.total": -15000
+    }
+  }, {
+    "tax_year": 2022,
+    "values": {"taxable_income.total": -25000}
+  }, {
+    "tax_year": 2021,
+    "values": {"taxable_income.total": -10000}
+  }],
+  "external_values": {
+    "bank_deposits": 1120000,
+    "information_returns": 1050000,
+    "payroll_forms_wages": 165000
+  },
+  "controls": {
+    "books_reconciled": false,
+    "third_party_reconciled": false,
+    "support_complete": false,
+    "retention_active": true,
+    "bank_reconciliations": false,
+    "journal_approval": true,
+    "payroll_controls": false,
+    "related_party_approval": false,
+    "statute_verified": true,
+    "representative_authorized": true,
+    "privilege_protocol": false,
+    "preservation_active": true
+  },
+  "reconciliation_report": {"scoring_gate": "eligible"}
+}
