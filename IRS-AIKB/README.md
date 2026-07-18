@@ -28,6 +28,8 @@ The system distinguishes procedural IRS guidance from binding legal authority. A
 - Client transparency, service-agreement and authorization signature workflows
 - Governed AI-agent contributions to communication, scheduling, evidence, rights, and value reporting
 - Staff, AI-agent, authorization, audit-program, deadline, authority-contact, and escalation case operations
+- Finding-to-recommendation-to-action-to-resolution-to-verified-outcome controls
+- Audience-specific deliverables and governed value and learning records
 - 26 official IRS-linked PDFs totaling 2,482 pages
 - 17 preserved web-native IRS source pages
 - Populated SQLite snapshot with 2,604 searchable sections
@@ -50,6 +52,7 @@ python -m irs_aikb.cli list-jurisdiction-modules
 python -m irs_aikb.cli evaluate-jurisdiction examples/demo_idor_placeholder.json --output data/demo_idor_gate.json
 python -m irs_aikb.cli evaluate-client-engagement examples/demo_client_engagement.json --output data/demo_client_engagement.json
 python -m irs_aikb.cli evaluate-case-operations examples/demo_case_operations.json --output data/demo_case_operations.json
+python -m irs_aikb.cli evaluate-outcome-chain examples/demo_outcome_chain.json --output data/demo_outcome_chain.json
 python -m unittest discover -s tests -v
 ```
 

@@ -1,0 +1,9 @@
+{
+  "case":{"matter_id":"MATTER-DEMO","client_token":"CLIENT-DEMO","taxpayer_token":"TP-DEMO","jurisdiction_module_id":"US-IRS","professional_reviewer_token":"REVIEWER"},
+  "findings":[{"finding_id":"F-1","facts_snapshot_hash":"FACT-HASH","evidence_ids":["E-1"],"source_versions":["IRS-SOURCE:1"],"rule_version":"1","confidence":0.8,"professional_conclusion":"Documentation gap validated","reviewed_by_token":"REVIEWER","jurisdiction_module_id":"US-IRS"}],
+  "recommendations":[{"recommendation_id":"REC-1","finding_id":"F-1","alternatives":["Obtain primary evidence","Document alternative evidence"],"expected_benefit":{"type":"documentation_readiness"},"risks":["Delay"],"owner_token":"CASE-OWNER","professional_approved_by_token":"REVIEWER"}],
+  "actions":[{"action_id":"A-1","recommendation_id":"REC-1","assigned_to_token":"CASE-OWNER","status":"completed","due_at":"2026-08-01","completion_evidence_ids":["E-2"]}],
+  "resolutions":[{"resolution_id":"RES-1","action_ids":["A-1"],"resolution_type":"remediated","final_position":{"status":"supported"},"evidence_ids":["E-2"],"verified_by_token":"REVIEWER"}],
+  "outcomes":[{"outcome_id":"OUT-1","resolution_id":"RES-1","outcome_type":"documentation_readiness_improved","baseline":{"status":"missing"},"method":{"type":"evidence_validation"},"evidence_ids":["E-2"],"attribution":{"action_id":"A-1"},"verified_by_token":"REVIEWER"}],
+  "deliverables":[{"deliverable_id":"DEL-1","audience":"client","professional_approved_by_token":"REVIEWER"}]
+}

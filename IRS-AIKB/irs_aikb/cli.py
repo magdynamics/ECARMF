@@ -24,6 +24,7 @@ from .sponsor_access import evaluate_sponsor_access, preview_sponsor_workspace
 from .jurisdiction import evaluate_jurisdiction_readiness, module_registry
 from .client_engagement import evaluate_client_engagement
 from .case_operations import evaluate_case_operations
+from .outcome import evaluate_outcome_chain
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -107,6 +108,8 @@ def build_parser() -> argparse.ArgumentParser:
     engagement.add_argument("input", type=Path); engagement.add_argument("--output", type=Path, required=True)
     case_ops = commands.add_parser("evaluate-case-operations", help="Validate staff, agent, authority, deadline, and external-action controls")
     case_ops.add_argument("input", type=Path); case_ops.add_argument("--output", type=Path, required=True)
+    outcome = commands.add_parser("evaluate-outcome-chain", help="Validate findings through verified outcome and release")
+    outcome.add_argument("input", type=Path); outcome.add_argument("--output", type=Path, required=True)
     return parser
 
 
@@ -265,6 +268,12 @@ def main(argv: list[str] | None = None) -> int:
         args.output.write_text(json.dumps(report,indent=2,sort_keys=True),encoding="utf-8")
         print(json.dumps({"output":str(args.output),"decision":report["decision"],
                           "blockers":len(report["blockers"]),"warnings":len(report["warnings"])},indent=2)); return 0
+    if args.command == "evaluate-outcome-chain":
+        report=evaluate_outcome_chain(json.loads(args.input.read_text(encoding="utf-8")))
+        args.output.parent.mkdir(parents=True,exist_ok=True)
+        args.output.write_text(json.dumps(report,indent=2,sort_keys=True),encoding="utf-8")
+        print(json.dumps({"output":str(args.output),"status":report["status"],
+                          "release_status":report["release_status"],"blockers":len(report["blockers"])},indent=2)); return 0
 
     profile = json.loads(args.profile.read_text(encoding="utf-8"))
     print(json.dumps(assess(profile), indent=2, sort_keys=True))
