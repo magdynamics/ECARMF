@@ -15,7 +15,7 @@
     "cover_pages_rendered": 26,
     "cover_pages_visually_reviewed": 26,
     "automated_tests_passed": 10,
-    "github_branch_published": false
+    "github_branch_published": true
   },
   "database": {
     "file": "data/mainstream_atg.db",
