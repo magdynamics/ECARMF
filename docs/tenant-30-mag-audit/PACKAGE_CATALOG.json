@@ -1,0 +1,28 @@
+{
+  "tenantId": "tenant-30-mag-audit",
+  "catalogVersion": "1.0.0",
+  "installationPolicy": "strict-ordered-dependencies",
+  "packages": [
+    {"order": 1, "packageId": "ecarmf.mag-audit-foundation", "version": "1.0.0", "scope": "tenant posture, terminology, shared entities, events, permissions and retention"},
+    {"order": 2, "packageId": "ecarmf.mag-audit-parties", "version": "1.0.0", "dependsOn": ["ecarmf.mag-audit-foundation"], "scope": "client, taxpayer, sponsor, representative, consent and relationships"},
+    {"order": 3, "packageId": "ecarmf.mag-audit-onboarding", "version": "1.0.0", "dependsOn": ["ecarmf.mag-audit-parties"], "scope": "acceptance, engagement, identity, scope and welcome journey"},
+    {"order": 4, "packageId": "ecarmf.mag-audit-case-management", "version": "1.0.0", "dependsOn": ["ecarmf.mag-audit-onboarding"], "scope": "jurisdiction cases, staff, tasks, deadlines, chronology and escalation"},
+    {"order": 5, "packageId": "ecarmf.mag-audit-evidence", "version": "1.0.0", "dependsOn": ["ecarmf.mag-audit-case-management"], "scope": "uploads, vault, classification, extraction, provenance, privilege and production logs"},
+    {"order": 6, "packageId": "ecarmf.mag-audit-return-intelligence", "version": "1.0.0", "dependsOn": ["ecarmf.mag-audit-evidence"], "scope": "return recognition, canonical facts, line mapping and reconciliation"},
+    {"order": 7, "packageId": "ecarmf.mag-audit-risk-analytics", "version": "1.0.0", "dependsOn": ["ecarmf.mag-audit-return-intelligence"], "scope": "explainable independent risk and readiness scores"},
+    {"order": 8, "packageId": "ecarmf.mag-audit-technique-engine", "version": "1.0.0", "dependsOn": ["ecarmf.mag-audit-risk-analytics"], "scope": "issues, techniques, evidence, interviews and customized audit programs"},
+    {"order": 9, "packageId": "ecarmf.mag-audit-rights-controversy", "version": "1.0.0", "dependsOn": ["ecarmf.mag-audit-technique-engine"], "scope": "rights, authorizations, IDRs, statutes, penalties, appeals and escalation"},
+    {"order": 10, "packageId": "ecarmf.mag-audit-client-collaboration", "version": "1.0.0", "dependsOn": ["ecarmf.mag-audit-rights-controversy"], "scope": "client and sponsor portals, consent, requests, decisions, signatures and updates"},
+    {"order": 11, "packageId": "ecarmf.mag-audit-workspace", "version": "1.0.0", "dependsOn": ["ecarmf.mag-audit-client-collaboration"], "scope": "staff queues, review levels, workload, communications and quality control"},
+    {"order": 12, "packageId": "ecarmf.mag-audit-ai-agents", "version": "1.0.0", "dependsOn": ["ecarmf.mag-audit-workspace"], "scope": "governed agent personas, context, prohibitions, confidence and review"},
+    {"order": 13, "packageId": "ecarmf.mag-audit-outcome-value", "version": "1.0.0", "dependsOn": ["ecarmf.mag-audit-ai-agents"], "scope": "findings, recommendations, actions, resolutions, outcomes, deliverables and value"},
+    {"order": 14, "packageId": "ecarmf.mag-audit-irs-engine", "version": "1.0.0", "dependsOn": ["ecarmf.mag-audit-outcome-value"], "scope": "IRS-AIKB, federal forms, procedures, techniques, rights and authority links"},
+    {"order": 15, "packageId": "ecarmf.mag-audit-idor-engine", "version": "0.1.0", "dependsOn": ["ecarmf.mag-audit-outcome-value"], "scope": "Illinois jurisdiction routing and fail-closed unvalidated-knowledge placeholder"},
+    {"order": 16, "packageId": "ecarmf.mag-audit-organizational-intelligence", "version": "1.0.0", "dependsOn": ["ecarmf.mag-audit-irs-engine", "ecarmf.mag-audit-idor-engine"], "scope": "controlled memory, change impact, validation queues, feedback and rollback"},
+    {"order": 17, "packageId": "ecarmf.mag-audit-reporting", "version": "1.0.0", "dependsOn": ["ecarmf.mag-audit-organizational-intelligence"], "scope": "case, portfolio, risk, workload, outcome, value and quality reporting"}
+  ],
+  "reusedEcarmfCapabilities": [
+    "tenant isolation", "identity and access keys", "package registry", "record intake", "rules and controls", "scores and risk register", "cases and tasks", "audit history", "AI provider governance", "knowledge assets", "notifications", "billing and utilization"
+  ]
+}
+

@@ -1,0 +1,26 @@
+{
+  "tenantNumber": 30,
+  "tenantId": "tenant-30-mag-audit",
+  "name": "MAG Audit",
+  "brand": "MAG Audit",
+  "industry": "Tax Examination Readiness and Controversy Services",
+  "segment": "CPA and Tax Controversy",
+  "status": "Active",
+  "sensitivityTier": "Regulated",
+  "handlesPhi": false,
+  "accentColor": "#0B6E69",
+  "billingPlanId": "enterprise-regulated",
+  "terminology": {
+    "record": "case record",
+    "subject": "taxpayer",
+    "case": "audit case",
+    "customer": "client",
+    "evidence": "case evidence",
+    "risk": "audit risk indicator"
+  },
+  "deploymentModes": ["standalone", "ecarmf-integrated"],
+  "jurisdictionModules": ["US-IRS", "US-IL-IDOR-PLACEHOLDER"],
+  "notes": "Taxpayers are clients and case subjects inside this tenant, not separate ECARMF tenants. Regulated posture requires access-key identity and enhanced audit, retention, disclosure, and approval controls.",
+  "createdBy": "MAG Dynamics"
+}
+
