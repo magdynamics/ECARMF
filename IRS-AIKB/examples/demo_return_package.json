@@ -1,0 +1,37 @@
+{
+  "returns": [{
+    "return_id": "ENTITY-DEMO",
+    "values": {
+      "income.gross_receipts": 1000000,
+      "income.returns_allowances": 25000,
+      "income.net_receipts": 975000,
+      "cogs.total": 400000,
+      "income.gross_profit": 575000,
+      "balance.total_assets": 800000,
+      "balance.total_liabilities": 300000,
+      "equity.total": 500000,
+      "reconciliation.book_income": 120000,
+      "reconciliation.permanent_differences": 5000,
+      "reconciliation.temporary_differences": -10000,
+      "reconciliation.tax_income": 115000
+    }
+  }],
+  "required_schedules": {"ENTITY-DEMO": ["K", "K-1", "L", "M-1"]},
+  "supplied_schedules": {"ENTITY-DEMO": ["K", "K-1", "L", "M-1"]},
+  "entity_allocation_totals": [{
+    "entity_return_id": "ENTITY-DEMO",
+    "concept_id": "passthrough.ordinary_income",
+    "value": 115000
+  }],
+  "allocations": [{
+    "entity_return_id": "ENTITY-DEMO",
+    "recipient_return_id": "OWNER-DEMO",
+    "concept_id": "passthrough.ordinary_income",
+    "value": 115000
+  }],
+  "recipient_reported_values": [{
+    "recipient_return_id": "OWNER-DEMO",
+    "concept_id": "passthrough.ordinary_income",
+    "value": 115000
+  }]
+}

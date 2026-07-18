@@ -6,6 +6,7 @@ import sqlite3
 
 from .canonical import CANONICAL_CONCEPTS
 from .line_mapping import MAPPINGS
+from .supporting_schedules import SUPPORTING_MAPPINGS
 
 
 def initialize(database: Path, schema: Path | None = None) -> None:
@@ -34,7 +35,8 @@ def initialize(database: Path, schema: Path | None = None) -> None:
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 ((f"MAP-{m.form_family}-{m.tax_year}-{m.schedule}-{m.source_line}",
                   m.form_family, m.tax_year, m.schedule, m.source_line, m.source_label,
-                  m.concept_id, m.mapping_version, m.review_status) for m in MAPPINGS),
+                  m.concept_id, m.mapping_version, m.review_status)
+                 for m in (*MAPPINGS, *SUPPORTING_MAPPINGS)),
             )
         connection.commit()
     finally:

@@ -12,6 +12,7 @@ from .engine import assess
 from .intake import intake_paths, write_intake_report
 from .line_mapping import map_observations, validate_official_forms, validate_registry
 from .portfolio import assess_portfolio
+from .reconciliation import validate_return_package
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -57,6 +58,11 @@ def build_parser() -> argparse.ArgumentParser:
     map_lines = commands.add_parser("map-lines", help="Map extracted JSON lines to canonical concepts")
     map_lines.add_argument("input", type=Path)
     map_lines.add_argument("--output", type=Path, required=True)
+    reconcile = commands.add_parser(
+        "validate-return-package", help="Run arithmetic and cross-return controls"
+    )
+    reconcile.add_argument("package", type=Path)
+    reconcile.add_argument("--output", type=Path, required=True)
     return parser
 
 
@@ -118,6 +124,16 @@ def main(argv: list[str] | None = None) -> int:
         args.output.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
         print(json.dumps({"output": str(args.output), "mapped": len(report["facts"]),
                           "exceptions": len(report["exceptions"])}, indent=2))
+        return 0
+
+    if args.command == "validate-return-package":
+        payload = json.loads(args.package.read_text(encoding="utf-8"))
+        report = validate_return_package(payload)
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+        print(json.dumps({"output": str(args.output), "analysis_status": report["analysis_status"],
+                          "passed": report["passed_count"], "failed": report["failed_count"],
+                          "scoring_gate": report["scoring_gate"]}, indent=2))
         return 0
 
     profile = json.loads(args.profile.read_text(encoding="utf-8"))
