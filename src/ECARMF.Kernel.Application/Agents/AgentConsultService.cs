@@ -99,6 +99,7 @@ public class AgentConsultService : IAgentConsultService
     private readonly ICapitalFlowStore _allocations;
     private readonly IDocumentLibrary _library;
     private readonly ITransactionStore _records;
+    private readonly Knowledge.IReferenceSourceStore _referenceSources;
 
     public AgentConsultService(
         ITenantRegistryProvider registries,
@@ -113,7 +114,8 @@ public class AgentConsultService : IAgentConsultService
         ITaskStore tasks,
         ICapitalFlowStore allocations,
         IDocumentLibrary library,
-        ITransactionStore records)
+        ITransactionStore records,
+        Knowledge.IReferenceSourceStore referenceSources)
     {
         _registries = registries;
         _llmProvider = llmProvider;
@@ -128,6 +130,7 @@ public class AgentConsultService : IAgentConsultService
         _allocations = allocations;
         _library = library;
         _records = records;
+        _referenceSources = referenceSources;
     }
 
     public IReadOnlyList<Registered<AgentDeclaration>> ListAgents(string tenantId) =>
@@ -358,6 +361,14 @@ public class AgentConsultService : IAgentConsultService
                         relationships = a.Declaration.Relationships
                     });
                 Append(context, "knowledgeAssets (currently effective versions only)", effective);
+
+                // Ad-hoc reference sources the operator registered (links to
+                // authoritative external sources). These are POINTERS: the agent
+                // may cite them and tell a human to consult them, but must not
+                // claim to have read live content behind the URL.
+                var refSources = (await _referenceSources.GetAllAsync(tenantId, ct))
+                    .Select(r => new { r.Title, r.Url, r.Issuer, r.Jurisdiction, r.Category, r.Description });
+                Append(context, "referenceSources (authoritative external links — cite as sources for a human to open; do NOT claim to have fetched them)", refSources);
             }
             else if (source.StartsWith("records:", StringComparison.OrdinalIgnoreCase))
             {

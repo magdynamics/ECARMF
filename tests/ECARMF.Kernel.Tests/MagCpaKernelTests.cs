@@ -156,7 +156,8 @@ public class MagCpaKernelTests
             registries, new FakeLanguageModelProvider(llm), new InMemoryAgentInteractionStore(),
             new InMemoryUserStore(), new AILearningFeedbackService(scores, audit), audit,
             scores, new InMemoryDeviationStore(), new InMemoryBenchmarkStore(), new InMemoryTaskStore(),
-            new InMemoryCapitalFlowStore(), new InMemoryDocumentLibrary(), new InMemoryTransactionStore());
+            new InMemoryCapitalFlowStore(), new InMemoryDocumentLibrary(), new InMemoryTransactionStore(),
+            new InMemoryReferenceSourceStore());
 
         var (success, error, interaction) = await service.AskAsync(
             Tenant, "tax-compliance-agent", "Is this return an audit risk?", "partner@magcpa.example");

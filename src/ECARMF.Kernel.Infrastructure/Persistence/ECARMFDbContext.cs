@@ -81,6 +81,8 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<EntityRelationshipRecord> EntityRelationships => Set<EntityRelationshipRecord>();
 
+    public DbSet<ReferenceSourceRecord> ReferenceSources => Set<ReferenceSourceRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AgentInteractionRecord>(entity =>
@@ -137,6 +139,21 @@ public class ECARMFDbContext : DbContext
             entity.Property(i => i.CreatedBy).HasMaxLength(400).IsRequired();
             entity.Property(i => i.LastFeedStatus).HasMaxLength(50);
             entity.HasIndex(i => new { i.TenantId, i.IntegrationId }).IsUnique();
+        });
+
+        modelBuilder.Entity<ReferenceSourceRecord>(entity =>
+        {
+            entity.ToTable("ReferenceSources");
+            entity.HasKey(r => r.Id);
+            entity.Property(r => r.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(r => r.Title).HasMaxLength(400).IsRequired();
+            entity.Property(r => r.Url).HasMaxLength(2000).IsRequired();
+            entity.Property(r => r.Issuer).HasMaxLength(300);
+            entity.Property(r => r.Jurisdiction).HasMaxLength(100);
+            entity.Property(r => r.Category).HasMaxLength(100).IsRequired();
+            entity.Property(r => r.Description).HasMaxLength(2000);
+            entity.Property(r => r.AddedBy).HasMaxLength(400).IsRequired();
+            entity.HasIndex(r => new { r.TenantId, r.AddedAt });
         });
 
         modelBuilder.Entity<FeedRunRecord>(entity =>

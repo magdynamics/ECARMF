@@ -275,3 +275,15 @@ public class InMemoryEntityRelationshipStore : IEntityRelationshipStore
         Task.FromResult(Items.RemoveAll(r =>
             string.Equals(r.TenantId, tenantId, StringComparison.OrdinalIgnoreCase) && r.Id == id) > 0);
 }
+
+public class InMemoryReferenceSourceStore : ECARMF.Kernel.Application.Knowledge.IReferenceSourceStore
+{
+    public List<ECARMF.Kernel.Domain.Knowledge.ReferenceSource> Items { get; } = [];
+    public Task<IReadOnlyList<ECARMF.Kernel.Domain.Knowledge.ReferenceSource>> GetAllAsync(string tenantId, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<ECARMF.Kernel.Domain.Knowledge.ReferenceSource>>(
+            Items.Where(r => r.TenantId == tenantId).ToList());
+    public Task AddAsync(ECARMF.Kernel.Domain.Knowledge.ReferenceSource source, CancellationToken ct = default)
+    { Items.Add(source); return Task.CompletedTask; }
+    public Task DeleteAsync(string tenantId, System.Guid id, CancellationToken ct = default)
+    { Items.RemoveAll(r => r.TenantId == tenantId && r.Id == id); return Task.CompletedTask; }
+}

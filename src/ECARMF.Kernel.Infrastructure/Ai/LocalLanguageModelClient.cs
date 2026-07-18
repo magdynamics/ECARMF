@@ -36,6 +36,14 @@ public class LocalLanguageModelClient : ILanguageModelClient
         {
             model = _model,
             stream = false,
+            // Cap the answer length: advisory replies don't need to ramble, and
+            // on CPU every token costs ~0.5s — a tight budget keeps responses
+            // snappy without hurting usefulness.
+            max_tokens = 220,
+            // Ollama-specific (ignored by other OpenAI-compatible servers): keep
+            // the model resident in memory between calls, so the ~28s cold-load
+            // is paid once, not on every question.
+            keep_alive = -1,
             messages = new object[]
             {
                 new { role = "system", content = systemPrompt },

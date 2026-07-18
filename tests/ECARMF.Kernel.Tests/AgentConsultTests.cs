@@ -71,7 +71,8 @@ public class AgentConsultTests
         _registries, new FakeLanguageModelProvider(_llm), _interactions, _users,
         new AILearningFeedbackService(_scores, _audit), _audit,
         _scores, _deviations, new InMemoryBenchmarkStore(), new InMemoryTaskStore(),
-        new InMemoryCapitalFlowStore(), new InMemoryDocumentLibrary(), _records);
+        new InMemoryCapitalFlowStore(), new InMemoryDocumentLibrary(), _records,
+        new InMemoryReferenceSourceStore());
 
     private void RegisterAgent(params string[] contextSources) =>
         _registries.GetFor(Tenant).Agents.Register(new AgentDeclaration
