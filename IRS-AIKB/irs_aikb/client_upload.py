@@ -3,8 +3,9 @@ from __future__ import annotations
 import re
 from collections import Counter
 from typing import Any
+from .sponsor_access import evaluate_sponsor_access
 
-UPLOAD_VERSION="0.1.0"
+UPLOAD_VERSION="0.2.0"
 ALLOWED_EXTENSIONS={".pdf",".xml",".csv",".xlsx",".xls",".txt",".zip"}
 MAX_FILE_BYTES=100_000_000
 CATEGORIES={
@@ -40,6 +41,14 @@ def evaluate_upload_session(payload: dict[str,Any]) -> dict[str,Any]:
   if not session.get(key): blockers.append(f"missing_{key}")
  for key in ("engagement_authority_confirmed","consent_version","purpose_acknowledged"):
   if not session.get(key): blockers.append(key)
+ sponsor_decision=None
+ if session.get("uploader_role","client") == "sponsor":
+  sponsor_payload=payload.get("sponsor_access",{})
+  sponsor_payload.setdefault("request",{})["permission"]="upload_documents"
+  sponsor_payload["request"].setdefault("client_token",session.get("client_token"))
+  sponsor_payload["request"].setdefault("matter_id",session.get("matter_id"))
+  sponsor_decision=evaluate_sponsor_access(sponsor_payload)
+  if sponsor_decision["decision"] != "allow": blockers.append("sponsor_upload_access_denied")
  if not scope.get("tax_years") or not scope.get("return_types"): blockers.append("scope_tax_years_and_return_types_required")
  seen=set()
  for item in files:
@@ -69,6 +78,8 @@ def evaluate_upload_session(payload: dict[str,Any]) -> dict[str,Any]:
  return {"upload_version":UPLOAD_VERSION,"session_id":session.get("session_id"),"status":status,
          "accepted_count":len(accepted),"rejected_count":len(rejected),"accepted":accepted,"rejected":rejected,
          "completeness":completeness,"blockers":sorted(set(blockers)),"warnings":warnings,
+         "sponsor_access_decision":sponsor_decision,
          "next_step":"intake_specialist_review" if status=="ready_for_intake_review" else "client_or_staff_correction",
          "controls":{"automatic_analysis":False,"automatic_external_transmission":False,
-                     "originals_immutable":True,"privilege_isolation_required":True,"human_release_required":True}}
+                     "originals_immutable":True,"privilege_isolation_required":True,"human_release_required":True,
+                     "referral_alone_grants_access":False,"sponsor_access_logged":sponsor_decision is not None}}

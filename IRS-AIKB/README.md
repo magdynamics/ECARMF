@@ -18,6 +18,9 @@ The system distinguishes procedural IRS guidance from binding legal authority. A
 - Architecture and governance notes
 - Source manifest template
 - Automated tests
+- Client onboarding, secure upload, and completeness controls
+- Sponsor/referral relationship records with deny-by-default, client-consented access
+- Case-, taxpayer-, year-, action-, and artifact-scoped sponsor authorization decisions
 - 26 official IRS-linked PDFs totaling 2,482 pages
 - 17 preserved web-native IRS source pages
 - Populated SQLite snapshot with 2,604 searchable sections
@@ -35,6 +38,7 @@ python -m irs_aikb.cli ingest-corpus --database data/mainstream_atg.db --registr
 python -m irs_aikb.cli stats --database data/mainstream_atg.db
 python -m irs_aikb.cli assess examples/demo_profile.json
 python -m irs_aikb.cli assess-portfolio examples/demo_portfolio.json
+python -m irs_aikb.cli evaluate-sponsor-access examples/demo_sponsor_access.json --output data/demo_sponsor_decision.json
 python -m unittest discover -s tests -v
 ```
 

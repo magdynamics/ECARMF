@@ -70,6 +70,18 @@ the application.
 Submission routes the package to a firm intake specialist. It does not launch final
 analysis automatically.
 
+## Sponsor and referral partner participation
+
+A referral record does not grant access. The sponsor has no access unless the client
+signs a versioned consent and the firm approves a grant limited to the applicable
+taxpayer, matter, tax years, permissions, document categories, and time period.
+
+Sponsor uploads are evaluated as the `upload_documents` permission before files are
+accepted to quarantine. Viewing status, documents, findings, reports, messages, or
+billing requires separate granular permissions. Privileged and internal artifacts
+also require an explicit firm release. See
+`SPONSOR_REFERRAL_AND_CONSENT_ACCESS.md` for the complete decision model.
+
 ## Staff workspace
 
 Firm personnel see:

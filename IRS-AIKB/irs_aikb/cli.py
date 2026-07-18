@@ -20,6 +20,7 @@ from .efile_xml import ingest_efile_xml
 from .production_pipeline import run_portfolio
 from .control_plane import evaluate_control_plane
 from .client_upload import evaluate_upload_session
+from .sponsor_access import evaluate_sponsor_access, preview_sponsor_workspace
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -92,6 +93,10 @@ def build_parser() -> argparse.ArgumentParser:
     control.add_argument("input", type=Path); control.add_argument("--output", type=Path, required=True)
     upload = commands.add_parser("evaluate-client-upload", help="Validate client upload session and completeness")
     upload.add_argument("input", type=Path); upload.add_argument("--output", type=Path, required=True)
+    sponsor = commands.add_parser("evaluate-sponsor-access", help="Evaluate scoped sponsor access under client consent")
+    sponsor.add_argument("input", type=Path); sponsor.add_argument("--output", type=Path, required=True)
+    sponsor_preview = commands.add_parser("preview-sponsor-workspace", help="Preview exactly what a sponsor can see")
+    sponsor_preview.add_argument("input", type=Path); sponsor_preview.add_argument("--output", type=Path, required=True)
     return parser
 
 
@@ -218,6 +223,18 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"output":str(args.output),"status":report["status"],
                           "accepted":report["accepted_count"],"rejected":report["rejected_count"],
                           "blockers":len(report["blockers"])},indent=2)); return 0
+    if args.command == "evaluate-sponsor-access":
+        report=evaluate_sponsor_access(json.loads(args.input.read_text(encoding="utf-8")))
+        args.output.parent.mkdir(parents=True,exist_ok=True)
+        args.output.write_text(json.dumps(report,indent=2,sort_keys=True),encoding="utf-8")
+        print(json.dumps({"output":str(args.output),"decision":report["decision"],
+                          "permission":report["permission"],"reasons":len(report["reasons"])},indent=2)); return 0
+    if args.command == "preview-sponsor-workspace":
+        report=preview_sponsor_workspace(json.loads(args.input.read_text(encoding="utf-8")))
+        args.output.parent.mkdir(parents=True,exist_ok=True)
+        args.output.write_text(json.dumps(report,indent=2,sort_keys=True),encoding="utf-8")
+        print(json.dumps({"output":str(args.output),"visible":report["visible_count"],
+                          "denied":report["denied_count"]},indent=2)); return 0
 
     profile = json.loads(args.profile.read_text(encoding="utf-8"))
     print(json.dumps(assess(profile), indent=2, sort_keys=True))

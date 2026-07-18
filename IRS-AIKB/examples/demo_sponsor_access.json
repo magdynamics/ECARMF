@@ -1,0 +1,21 @@
+{
+  "sponsor": {"sponsor_id": "SPONSOR-DEMO", "status": "active", "security_status": "active", "mfa_verified_at": "2026-07-18T12:00:00Z"},
+  "referral": {"referral_id": "REFERRAL-DEMO", "sponsor_id": "SPONSOR-DEMO"},
+  "consent": {
+    "consent_id": "CONSENT-DEMO", "sponsor_id": "SPONSOR-DEMO", "client_token": "CLIENT-DEMO",
+    "decision": "authorized", "status": "active", "signed_evidence_hash": "CONSENT-EVIDENCE-HASH"
+  },
+  "grant": {
+    "access_grant_id": "GRANT-DEMO", "consent_id": "CONSENT-DEMO", "sponsor_id": "SPONSOR-DEMO",
+    "client_token": "CLIENT-DEMO", "matter_id": "MATTER-DEMO", "status": "active",
+    "firm_approved_by_token": "FIRM-REVIEWER", "permissions": ["view_status", "upload_documents"],
+    "taxpayer_tokens": ["TAXPAYER-DEMO"], "tax_years": [2024],
+    "document_categories": ["filed_return", "information_returns"],
+    "recertified_at": "2026-07-01T00:00:00Z", "bulk_export_approved": false,
+    "effective_at": "2026-01-01T00:00:00Z", "expires_at": "2027-01-01T00:00:00Z"
+  },
+  "request": {
+    "client_token": "CLIENT-DEMO", "matter_id": "MATTER-DEMO", "taxpayer_token": "TAXPAYER-DEMO",
+    "tax_year": 2024, "permission": "view_status"
+  }
+}

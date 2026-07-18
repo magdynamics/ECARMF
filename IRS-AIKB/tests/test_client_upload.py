@@ -22,5 +22,10 @@ class ClientUploadTests(unittest.TestCase):
   data=self.base(); data["files"][0].update({"category":"legal_correspondence","privilege_status":"unreviewed","tax_year":2023})
   reasons=evaluate_upload_session(data)["rejected"][0]["reasons"]
   self.assertIn("outside_tax_year_scope",reasons); self.assertIn("legal_correspondence_requires_privilege_isolation",reasons)
+ def test_sponsor_referral_without_access_grant_is_blocked(self):
+  data=self.base(); data["session"]["uploader_role"]="sponsor"
+  result=evaluate_upload_session(data)
+  self.assertIn("sponsor_upload_access_denied",result["blockers"])
+  self.assertEqual(result["sponsor_access_decision"]["decision"],"deny")
 
 if __name__=="__main__": unittest.main()
