@@ -12,6 +12,17 @@ class DatabaseTests(unittest.TestCase):
             database = Path(directory) / "aikb.db"
             initialize(database)
             initialize(database)
+            schema_connection = sqlite3.connect(database)
+            try:
+                tables = {
+                    row[0] for row in schema_connection.execute(
+                        "SELECT name FROM sqlite_master WHERE type='table'"
+                    )
+                }
+            finally:
+                schema_connection.close()
+            self.assertIn("return_file", tables)
+            self.assertIn("return_value", tables)
             connection = sqlite3.connect(database)
             try:
                 tables = {row[0] for row in connection.execute(
@@ -20,6 +31,14 @@ class DatabaseTests(unittest.TestCase):
             finally:
                 connection.close()
             self.assertTrue({"source", "source_version", "technique", "assessment"} <= tables)
+            connection = sqlite3.connect(database)
+            try:
+                concept_count = connection.execute(
+                    "SELECT count(*) FROM canonical_concept"
+                ).fetchone()[0]
+            finally:
+                connection.close()
+            self.assertGreater(concept_count, 20)
 
     def test_verified_manifest_loads_all_sources(self):
         manifest = Path(__file__).parents[1] / "source-manifest" / "sources.csv"

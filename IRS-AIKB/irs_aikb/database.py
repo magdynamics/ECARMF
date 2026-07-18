@@ -4,13 +4,25 @@ import csv
 from pathlib import Path
 import sqlite3
 
+from .canonical import CANONICAL_CONCEPTS
+
 
 def initialize(database: Path, schema: Path | None = None) -> None:
-    schema_path = schema or Path(__file__).parents[1] / "migrations" / "001_initial.sql"
+    schema_paths = ([schema] if schema else
+                    sorted((Path(__file__).parents[1] / "migrations").glob("*.sql")))
     database.parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(database)
     try:
-        connection.executescript(schema_path.read_text(encoding="utf-8"))
+        for schema_path in schema_paths:
+            connection.executescript(schema_path.read_text(encoding="utf-8"))
+        if connection.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='canonical_concept'"
+        ).fetchone():
+            connection.executemany(
+                """INSERT OR IGNORE INTO canonical_concept
+                (concept_id, label, data_type, concept_version) VALUES (?, ?, 'money', '0.1.0')""",
+                CANONICAL_CONCEPTS.items(),
+            )
         connection.commit()
     finally:
         connection.close()
