@@ -118,7 +118,9 @@ public class DocumentExtractionTests
             Tenant, SeedConnectors.ManualEntry, "email.txt", "some deal text", "owner@platform");
 
         Assert.False(result.Success);
-        Assert.Contains(result.Errors, e => e.Contains("tenant's Anthropic API key"));
+        // The message must point the user to Setup → AI Backend and make clear
+        // a local server needs no key (the fix for MAG's "why Anthropic?" confusion).
+        Assert.Contains(result.Errors, e => e.Contains("Setup → AI Backend") && e.Contains("no key"));
         Assert.Empty(_records.Items);
     }
 
