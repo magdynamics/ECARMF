@@ -15,6 +15,7 @@ from .portfolio import assess_portfolio
 from .reconciliation import validate_return_package
 from .supporting_schedules import validate_supporting_forms
 from .chief_audit import assess_chief_audit
+from .case_workflow import build_case_workflow
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -75,6 +76,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     chief.add_argument("package", type=Path)
     chief.add_argument("--output", type=Path, required=True)
+    workflow = commands.add_parser("build-case-workflow", help="Build controlled IDR and controversy workpapers")
+    workflow.add_argument("input", type=Path)
+    workflow.add_argument("--output", type=Path, required=True)
     return parser
 
 
@@ -164,6 +168,16 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"output": str(args.output), "status": report["assessment_status"],
                           "findings": len(report["findings"]),
                           "portfolio_priority": report["scores"]["portfolio_priority"]}, indent=2))
+        return 0
+
+    if args.command == "build-case-workflow":
+        payload = json.loads(args.input.read_text(encoding="utf-8"))
+        report = build_case_workflow(payload)
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+        print(json.dumps({"output": str(args.output), "status": report["workflow_status"],
+                          "workpapers": len(report["issue_workpapers"]),
+                          "draft_idrs": len(report["draft_idrs"])}, indent=2))
         return 0
 
     profile = json.loads(args.profile.read_text(encoding="utf-8"))

@@ -1,0 +1,28 @@
+{
+  "as_of_date": "2026-07-18",
+  "matter": {
+    "matter_id": "MATTER-DEMO",
+    "client_token": "CLIENT-DEMO",
+    "engagement_type": "examination_readiness",
+    "controls": {
+      "engagement_authority": true,
+      "authorization_scope_verified": true,
+      "statute_dates_verified": true,
+      "privilege_protocol": true,
+      "document_preservation": true,
+      "secure_transmission": true
+    }
+  },
+  "notices": [],
+  "assessment": {
+    "findings": [{
+      "issue_id": "INC-BANK-001",
+      "title": "Deposits exceed reported receipts",
+      "observed_fact": "Bank-deposit ratio is 1.120.",
+      "audit_technique": "Bank deposits and cash expenditures reconciliation",
+      "evidence": ["All bank statements", "Deposit ledger", "Loan and capital documents"],
+      "possible_explanations": ["Loan proceeds", "Capital contributions", "Account transfers"],
+      "authority_refs": ["IRM 4.10.4", "IRC 61", "IRC 6001"]
+    }]
+  }
+}
