@@ -8,10 +8,17 @@
 4. **Reproducibility:** hashes, retrieval dates, parsers, and schema migrations make every build auditable.
 5. **Explainability:** each readiness finding exposes its rule, rationale, score, and recommended technique.
 
+## Product structure
+
+MAG Audit separates the shared client/case/evidence system from jurisdiction-specific
+analysis. The present IRS knowledge base is the `US-IRS` module. The `US-IL-IDOR`
+module is reserved for later Illinois knowledge work and is intake-only until approved.
+See `MAG_AUDIT_MULTI_JURISDICTION_DESIGN.md`.
+
 ## Processing flow
 
 ```text
-Official IRS source
+Official jurisdiction source
   -> immutable download + SHA-256
   -> source/version registry
   -> page and section extraction
@@ -34,7 +41,7 @@ Official IRS source
 
 ## Planned ingestion controls
 
-- IRS-domain allowlist
+- Jurisdiction-specific official-domain allowlists
 - content-type and file-size validation
 - SHA-256 duplicate detection
 - PDF page-count verification

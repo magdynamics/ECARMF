@@ -21,6 +21,7 @@ from .production_pipeline import run_portfolio
 from .control_plane import evaluate_control_plane
 from .client_upload import evaluate_upload_session
 from .sponsor_access import evaluate_sponsor_access, preview_sponsor_workspace
+from .jurisdiction import evaluate_jurisdiction_readiness, module_registry
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -97,6 +98,9 @@ def build_parser() -> argparse.ArgumentParser:
     sponsor.add_argument("input", type=Path); sponsor.add_argument("--output", type=Path, required=True)
     sponsor_preview = commands.add_parser("preview-sponsor-workspace", help="Preview exactly what a sponsor can see")
     sponsor_preview.add_argument("input", type=Path); sponsor_preview.add_argument("--output", type=Path, required=True)
+    commands.add_parser("list-jurisdiction-modules", help="List registered MAG Audit jurisdiction modules")
+    jurisdiction = commands.add_parser("evaluate-jurisdiction", help="Apply jurisdiction readiness and non-substitution gates")
+    jurisdiction.add_argument("input", type=Path); jurisdiction.add_argument("--output", type=Path, required=True)
     return parser
 
 
@@ -235,6 +239,14 @@ def main(argv: list[str] | None = None) -> int:
         args.output.write_text(json.dumps(report,indent=2,sort_keys=True),encoding="utf-8")
         print(json.dumps({"output":str(args.output),"visible":report["visible_count"],
                           "denied":report["denied_count"]},indent=2)); return 0
+    if args.command == "list-jurisdiction-modules":
+        print(json.dumps(module_registry(),indent=2,sort_keys=True)); return 0
+    if args.command == "evaluate-jurisdiction":
+        report=evaluate_jurisdiction_readiness(json.loads(args.input.read_text(encoding="utf-8")))
+        args.output.parent.mkdir(parents=True,exist_ok=True)
+        args.output.write_text(json.dumps(report,indent=2,sort_keys=True),encoding="utf-8")
+        print(json.dumps({"output":str(args.output),"module_id":report["module_id"],
+                          "decision":report["decision"],"blockers":len(report["blockers"])},indent=2)); return 0
 
     profile = json.loads(args.profile.read_text(encoding="utf-8"))
     print(json.dumps(assess(profile), indent=2, sort_keys=True))
