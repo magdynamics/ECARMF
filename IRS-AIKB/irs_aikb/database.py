@@ -46,3 +46,23 @@ def load_source_manifest(database: Path, manifest: Path) -> int:
         return count
     finally:
         connection.close()
+
+
+def database_stats(database: Path) -> dict[str, int | None]:
+    connection = sqlite3.connect(database)
+    try:
+        result = {
+            table: connection.execute(f"SELECT count(*) FROM {table}").fetchone()[0]
+            for table in ("source", "source_version", "section", "authority", "section_authority", "technique")
+        }
+        result["pdf_pages"] = connection.execute("SELECT sum(page_count) FROM source_version").fetchone()[0]
+        result["html_sections"] = connection.execute(
+            """SELECT count(*) FROM section s
+            JOIN source_version v ON s.version_id=v.version_id
+            JOIN source x ON v.source_id=x.source_id
+            WHERE x.source_type='ATG_WEB'"""
+        ).fetchone()[0]
+        result["fts_sections"] = connection.execute("SELECT count(*) FROM section_fts").fetchone()[0]
+        return result
+    finally:
+        connection.close()

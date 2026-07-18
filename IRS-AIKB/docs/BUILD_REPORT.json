@@ -1,31 +1,38 @@
 {
   "build_date": "2026-07-17",
-  "corpus": "IRS-AIKB initial ATG corpus",
+  "corpus": "IRS-AIKB complete mainstream ATG-index corpus",
   "official_index": "https://www.irs.gov/businesses/small-businesses-self-employed/audit-techniques-guides-atgs",
   "source_domain": "www.irs.gov",
-  "document_count": 7,
-  "page_count": 1125,
-  "total_bytes": 9420123,
+  "registered_source_count": 43,
+  "pdf_file_count": 26,
+  "web_source_count": 17,
+  "pdf_page_count": 2482,
+  "source_bytes": 25807598,
   "verification": {
     "download_completed": true,
     "sha256_recorded": true,
     "pdf_parse_completed": true,
-    "cover_pages_rendered": 7,
-    "cover_pages_visually_reviewed": 7,
-    "automated_tests_passed": 6,
-    "github_branch_published": true
+    "cover_pages_rendered": 26,
+    "cover_pages_visually_reviewed": 26,
+    "automated_tests_passed": 10,
+    "github_branch_published": false
   },
-  "documents": [
-    {"publication": "5495", "file": "sources/atg/p5495.pdf", "pages": 177},
-    {"publication": "5522", "file": "sources/atg/p5522.pdf", "pages": 176},
-    {"publication": "5558", "file": "sources/atg/p5558.pdf", "pages": 66},
-    {"publication": "5602", "file": "sources/atg/p5602.pdf", "pages": 54},
-    {"publication": "5603", "file": "sources/atg/p5603.pdf", "pages": 39},
-    {"publication": "5653", "file": "sources/atg/p5653.pdf", "pages": 348},
-    {"publication": "5712", "file": "sources/atg/p5712.pdf", "pages": 265}
-  ],
+  "database": {
+    "file": "data/mainstream_atg.db",
+    "bytes": 29151232,
+    "sources": 43,
+    "source_versions": 43,
+    "sections": 2604,
+    "pdf_page_sections": 2482,
+    "html_sections": 122,
+    "full_text_sections": 2604,
+    "authorities": 2396,
+    "section_authority_links": 5755,
+    "technique_candidates": 1979
+  },
   "limitations": [
-    "Guide content has not yet been section-parsed into the database.",
-    "Legal-current review of extracted tax positions has not yet occurred."
+    "Authority and technique objects are machine-extracted candidates pending professional review.",
+    "Legal-current review of extracted tax positions has not yet occurred.",
+    "IRM Part 4, Exempt Organization, LB&I, and specialized examination corpora are not part of this mainstream ATG batch."
   ]
 }

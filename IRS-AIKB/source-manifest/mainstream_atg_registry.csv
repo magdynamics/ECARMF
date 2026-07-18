@@ -1,0 +1,44 @@
+source_id,source_type,title,publication_date,official_url,local_path,status
+IRS-ATG-RETAIL,ATG,Retail Industry Audit Technique Guide,2021-03,https://www.irs.gov/pub/irs-pdf/p5495.pdf,sources/atg/p5495.pdf,current
+IRS-ATG-CONSTRUCTION,ATG,Construction Industry Audit Technique Guide,2021-04,https://www.irs.gov/pub/irs-pdf/p5522.pdf,sources/atg/p5522.pdf,current
+IRS-ATG-PROFIT-MOTIVE,ATG,Activities Not Engaged in for Profit - IRC Section 183,2021-09,https://www.irs.gov/pub/irs-pdf/p5558.pdf,sources/atg/p5558.pdf,current
+IRS-ATG-ATTORNEYS,ATG,Attorneys Audit Technique Guide,2022-01,https://www.irs.gov/pub/irs-pdf/p5602.pdf,sources/atg/p5602.pdf,current
+IRS-ATG-CHILD-CARE,ATG,Child Care Provider Audit Technique Guide,2022-01,https://www.irs.gov/pub/irs-pdf/p5603.pdf,sources/atg/p5603.pdf,current
+IRS-ATG-COST-SEGREGATION,ATG,Cost Segregation Audit Technique Guide,2025-02,https://www.irs.gov/pub/irs-pdf/p5653.pdf,sources/atg/p5653.pdf,current
+IRS-ATG-TANGIBLE-PROPERTY,ATG,Capitalization of Tangible Property Audit Technique Guide,2022-09,https://www.irs.gov/pub/irs-pdf/p5712.pdf,sources/atg/p5712.pdf,current
+IRS-ATG-CONSERVATION,ATG,Conservation Easement Audit Technique Guide,2020-11,https://www.irs.gov/pub/irs-pdf/p5464.pdf,sources/atg/pdf/p5464.pdf,current
+IRS-ATG-ENTERTAINMENT,ATG,Entertainment Audit Technique Guide,2023-03,https://www.irs.gov/pub/irs-pdf/p5774.pdf,sources/atg/pdf/p5774.pdf,current
+IRS-ATG-EQUITY-COMP,ATG,Equity Based Compensation Audit Technique Guide,2024-06,https://www.irs.gov/pub/irs-pdf/p5992.pdf,sources/atg/pdf/p5992.pdf,current
+IRS-ATG-TANNING,ATG,Excise Tax on Indoor Tanning Services Audit Technique Guide,2025-01,https://www.irs.gov/pub/irs-pdf/p6052.pdf,sources/atg/pdf/p6052.pdf,current
+IRS-ATG-GOLDEN-PARACHUTE,ATG,Golden Parachute Audit Technique Guide,2024-05,https://www.irs.gov/pub/irs-pdf/p5975.pdf,sources/atg/pdf/p5975.pdf,current
+IRS-ATG-LIHC,ATG,Low-Income Housing Credit Form 8823 Guide,2024-01,https://www.irs.gov/pub/irs-pdf/p5913.pdf,sources/atg/pdf/p5913.pdf,current
+IRS-ATG-NQDC,ATG,Nonqualified Deferred Compensation Audit Technique Guide,2024-03,https://www.irs.gov/pub/irs-pdf/p5528.pdf,sources/atg/pdf/p5528.pdf,current
+IRS-ATG-OIL-GAS,ATG,Oil and Gas Audit Technique Guide,2023-02,https://www.irs.gov/pub/irs-pdf/p5652.pdf,sources/atg/pdf/p5652.pdf,current
+IRS-ATG-PETROLEUM,ATG,Petroleum Refining Audit Technique Guide,2022-06,https://www.irs.gov/pub/irs-pdf/p5647.pdf,sources/atg/pdf/p5647.pdf,current
+IRS-ATG-PHARMACEUTICAL,ATG,Pharmaceutical Industry Research Credit Audit Technique Guide,2024-04,https://www.irs.gov/pub/irs-pdf/p5931.pdf,sources/atg/pdf/p5931.pdf,current
+IRS-ATG-FORECLOSURE,ATG,Real Estate Foreclosure and Cancellation of Debt Audit Technique Guide,2021-08,https://www.irs.gov/pub/irs-pdf/p5550.pdf,sources/atg/pdf/p5550.pdf,current
+IRS-ATG-REHABILITATION,ATG,Rehabilitation Tax Credit Audit Technique Guide,2002-12,https://www.irs.gov/pub/irs-mssp/rehab.pdf,sources/atg/pdf/rehab.pdf,current
+IRS-ATG-ENERGY-48AB,ATG,Sections 48A and 48B Project Credits Audit Technique Guide,2022-03,https://www.irs.gov/pub/irs-pdf/p5615.pdf,sources/atg/pdf/p5615.pdf,current
+IRS-ATG-162M,ATG,Section 162(m) Audit Technique Guide,2024-09,https://www.irs.gov/pub/irs-pdf/p6014.pdf,sources/atg/pdf/p6014.pdf,current
+IRS-ATG-SPLIT-DOLLAR,ATG,Split-Dollar Life Insurance Audit Technique Guide,2024-04,https://www.irs.gov/pub/irs-pdf/p5962.pdf,sources/atg/pdf/p5962.pdf,current
+IRS-ATG-AEROSPACE,ATG,Aerospace Industry Research Credit Audit Technique Guide,2005-01,https://www.irs.gov/pub/irs-lbi/aerospace_research_credit_atg_final_030305_external.pdf,sources/atg/pdf/aerospace_research_credit_atg.pdf,current
+IRS-ATG-AEROSPACE-FLOW,ATG_ATTACHMENT,Aerospace Research Credit Computation Flowchart,2005-03,https://www.irs.gov/pub/irs-lbi/flowchartaerospaceatg03032005.pdf,sources/atg/pdf/aerospace_flowchart.pdf,current
+IRS-RCC-AM2008002,AUTHORITY,Generic Legal Advice Memorandum AM 2008-002,2008-01,https://www.irs.gov/pub/irs-counsel/am2008002.pdf,sources/atg/pdf/am2008002.pdf,current
+IRS-RCC-NOTICE-2008-39,AUTHORITY,Notice 2008-39,2008-01,https://www.irs.gov/pub/irs-drop/n-08-39.pdf,sources/atg/pdf/notice-2008-39.pdf,current
+IRS-ATG-INDEX,ATG_WEB,Main Audit Technique Guides Index,2025-11,https://www.irs.gov/businesses/small-businesses-self-employed/audit-techniques-guides-atgs,sources/atg/web/atg-index.html,current
+IRS-ATG-AEROSPACE-INDEX,ATG_WEB,Aerospace Industry ATG Index,2005-01,https://www.irs.gov/businesses/corporations/aerospace-industry-audit-techniques-guide-january-2005,sources/atg/web/aerospace-index.html,current
+IRS-ATG-RC-INDEX,ATG_WEB,Research Credit ATG Table of Contents,2005-06,https://www.irs.gov/businesses/audit-techniques-guide-credit-for-increasing-research-activities-ie-research-tax-credit-irc-section-41-table-of-contents,sources/atg/web/research-credit-index.html,current
+IRS-ATG-RC-INTRO,ATG_WEB,Research Credit ATG Introduction,2005-06,https://www.irs.gov/businesses/audit-techniques-guide-credit-for-increasing-research-activities-ie-research-tax-credit-irc-ss41-introduction,sources/atg/web/research-credit-introduction.html,current
+IRS-ATG-RC-SCOPE,ATG_WEB,Research Credit ATG Determining the Scope,2005-06,https://www.irs.gov/businesses/audit-techniques-guide-credit-for-increasing-research-activities-ie-research-tax-credit-irc-ss-41-determining-the-scope,sources/atg/web/research-credit-scope.html,current
+IRS-ATG-RC-COMPUTATION,ATG_WEB,Research Credit ATG Computation,2005-06,https://www.irs.gov/businesses/audit-techniques-guide-credit-for-increasing-research-activities-ie-research-tax-credit-irc-ss-41-research-credit-computation,sources/atg/web/research-credit-computation.html,current
+IRS-ATG-RC-QRE,ATG_WEB,Research Credit ATG Qualified Research Expenses,2005-06,https://www.irs.gov/businesses/audit-techniques-guide-credit-for-increasing-research-activities-ie-research-tax-credit-irc-ss-41-qualified-research-expenses,sources/atg/web/research-credit-qres.html,current
+IRS-ATG-RC-ACTIVITIES,ATG_WEB,Research Credit ATG Qualified Research Activities,2005-06,https://www.irs.gov/businesses/audit-techniques-guide-credit-for-increasing-research-activities-ie-research-tax-credit-irc-ss-41-qualified-research-activities,sources/atg/web/research-credit-activities.html,current
+IRS-ATG-RC-CONSISTENCY,ATG_WEB,Research Credit ATG Consistency Requirement,2005-06,https://www.irs.gov/businesses/audit-techniques-guide-credit-for-increasing-research-activities-ie-research-tax-credit-irc-section-41-the-consistency-requirement,sources/atg/web/research-credit-consistency.html,current
+IRS-ATG-RC-SUBSTANTIATION,ATG_WEB,Research Credit ATG Substantiation and Recordkeeping,2005-06,https://www.irs.gov/businesses/audit-techniques-guide-credit-for-increasing-research-activities-ie-research-tax-credit-irc-ss-41-substantiation-and-recordkeeping,sources/atg/web/research-credit-substantiation.html,current
+IRS-ATG-RC-SAMPLING,ATG_WEB,Research Credit ATG Sampling Methodologies,2005-06,https://www.irs.gov/businesses/audit-techniques-guide-credit-for-increasing-research-activities-ie-research-tax-credit-sampling-methodologies,sources/atg/web/research-credit-sampling.html,current
+IRS-ATG-RC-ISSUES,ATG_WEB,Research Credit ATG Issues,2005-06,https://www.irs.gov/businesses/audit-techniques-guide-credit-for-increasing-research-activities-ie-research-tax-credit-research-credit-issues,sources/atg/web/research-credit-issues.html,current
+IRS-ATG-RC-CONTACT,ATG_WEB,Research Credit ATG Contact Information,2005-06,https://www.irs.gov/businesses/audit-techniques-guide-credit-for-increasing-research-activities-ie-research-tax-credit-contact-information,sources/atg/web/research-credit-contact.html,current
+IRS-RCC-INDEX,ATG_WEB,Research Credit Claims ATG Index,2008-05,https://www.irs.gov/businesses/research-credit-claims-audit-techniques-guide-rccatg-credit-for-increasing-research-activities-section-41,sources/atg/web/research-claims-index.html,current
+IRS-RCC-EXHIBIT-A,ATG_WEB,Research Credit Claim Checklist Exhibit A,2008-05,https://www.irs.gov/businesses/exhibit-a-research-credit-claim-check-sheet-published-may-2008,sources/atg/web/research-claims-exhibit-a.html,current
+IRS-RCC-EXHIBIT-C,ATG_WEB,Research Credit Claims IDR Exhibit C,2009-02,https://www.irs.gov/businesses/exhibit-c-recommended-research-credit-claims-idr-revised-feb-2009,sources/atg/web/research-claims-exhibit-c.html,current
+IRS-RCC-EXHIBIT-D,ATG_WEB,Research Credit Computational Issues Exhibit D,2008-05,https://www.irs.gov/businesses/exhibit-d-research-credit-computational-issues-may-2008,sources/atg/web/research-claims-exhibit-d.html,current

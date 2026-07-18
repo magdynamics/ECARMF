@@ -4,7 +4,7 @@ IRS-AIKB is a version-controlled foundation for organizing public IRS examinatio
 
 ## Status
 
-This repository module contains the verified seven-document initial IRS ATG corpus: Publications 5495, 5522, 5558, 5602, 5603, 5653, and 5712. Together they contain 1,125 pages. Each PDF was downloaded from `irs.gov`, parsed for page count, cover-rendered for visual verification, and registered with a SHA-256 hash. The broader IRS examination corpus and section-level extraction remain future work.
+This repository module contains the complete mainstream corpus linked by the IRS Audit Technique Guides index as checked on July 17, 2026. It includes 26 PDF artifacts totaling 2,482 pages and 17 web-native source pages. PDF covers were rendered and visually verified, every source is hashed and versioned, and page/heading text is extracted into a populated SQLite database. IRM Part 4, Exempt Organization ATGs/TGs, LB&I materials, and other specialized examination programs remain separate expansion phases.
 
 The system distinguishes procedural IRS guidance from binding legal authority. Audit Technique Guides and the Internal Revenue Manual help identify examination procedures and risks; they do not replace the Internal Revenue Code, Treasury Regulations, controlling cases, or professional judgment.
 
@@ -18,16 +18,21 @@ The system distinguishes procedural IRS guidance from binding legal authority. A
 - Architecture and governance notes
 - Source manifest template
 - Automated tests
-- Seven official IRS ATG PDFs totaling 1,125 pages
+- 26 official IRS-linked PDFs totaling 2,482 pages
+- 17 preserved web-native IRS source pages
+- Populated SQLite snapshot with 2,604 searchable sections
+- 2,396 authority candidates and 1,979 technique candidates
 - SHA-256 source manifest and build report
 
 ## Quick start
 
-Requires Python 3.11 or newer and no third-party packages.
+Requires Python 3.11 or newer. Install the package to obtain its PDF dependency.
 
 ```powershell
 python -m irs_aikb.cli init-db --database data/irs_aikb.db
 python -m irs_aikb.cli load-manifest --database data/irs_aikb.db --manifest source-manifest/sources.csv
+python -m irs_aikb.cli ingest-corpus --database data/mainstream_atg.db --registry source-manifest/mainstream_atg_registry.csv --root . --retrieval-date 2026-07-17
+python -m irs_aikb.cli stats --database data/mainstream_atg.db
 python -m irs_aikb.cli assess examples/demo_profile.json
 python -m unittest discover -s tests -v
 ```

@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "IRS audit intelligence knowledge base and readiness rules engine"
 requires-python = ">=3.11"
 license = {text = "Proprietary"}
+dependencies = ["pypdf>=5,<7"]
 
 [project.scripts]
 irs-aikb = "irs_aikb.cli:main"
