@@ -41,11 +41,15 @@ export function AiSettings({ tenant, user }: { tenant: string; user: string }) {
     setError(null)
     setMessage(null)
     try {
+      // A local server needs a model name to route the request; if the user
+      // left it as the placeholder hint, default to it rather than saving a
+      // blank that silently breaks agent calls.
+      const effectiveModel = provider === 'local' ? (model.trim() || 'llama3.1') : (model || null)
       setStatus(await api.put<AiStatus>('/api/settings/ai', {
         provider,
         apiKey: apiKey || null,
-        endpoint: provider === 'local' ? endpoint : null,
-        model: model || null,
+        endpoint: provider === 'local' ? (endpoint.trim() || 'http://localhost:11434') : null,
+        model: effectiveModel,
       }))
       setApiKeyInput('')
       setMessage(
