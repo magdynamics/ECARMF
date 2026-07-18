@@ -13,6 +13,7 @@ from .intake import intake_paths, write_intake_report
 from .line_mapping import map_observations, validate_official_forms, validate_registry
 from .portfolio import assess_portfolio
 from .reconciliation import validate_return_package
+from .supporting_schedules import validate_supporting_forms
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -63,6 +64,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     reconcile.add_argument("package", type=Path)
     reconcile.add_argument("--output", type=Path, required=True)
+    support_check = commands.add_parser(
+        "validate-supporting-mappings", help="Validate schedule mappings against official IRS PDFs"
+    )
+    support_check.add_argument("--forms-root", type=Path, required=True)
+    support_check.add_argument("--output", type=Path, required=True)
     return parser
 
 
@@ -135,6 +141,14 @@ def main(argv: list[str] | None = None) -> int:
                           "passed": report["passed_count"], "failed": report["failed_count"],
                           "scoring_gate": report["scoring_gate"]}, indent=2))
         return 0
+
+    if args.command == "validate-supporting-mappings":
+        report = validate_supporting_forms(args.forms_root)
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+        print(json.dumps({"output": str(args.output), "forms_checked": report["forms_checked"],
+                          "validated": report["validated"]}, indent=2))
+        return 0 if report["validated"] == report["forms_checked"] else 1
 
     profile = json.loads(args.profile.read_text(encoding="utf-8"))
     print(json.dumps(assess(profile), indent=2, sort_keys=True))
