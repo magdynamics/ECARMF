@@ -115,7 +115,7 @@ public class FinancialStatementService : IFinancialStatementService
         var llm = await _llmProvider.GetForTenantAsync(tenantId, ct);
         if (!llm.IsConfigured)
             return new ExtractionOutcome(false, null,
-                "AI extraction needs this tenant's AI backend — configure the Anthropic API key (Setup → AI Backend).");
+                "AI extraction needs this tenant's AI backend — configure it under Setup → AI Backend (a local Ollama/LM Studio server needs no key, or use an Anthropic API key).");
 
         string response;
         try

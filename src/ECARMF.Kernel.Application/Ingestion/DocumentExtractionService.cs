@@ -116,7 +116,7 @@ public class DocumentExtractionService : IDocumentExtractor
             {
                 return new DocumentExtractionResult(false, null, "none", null,
                     [$"Template '{template.TemplateId}' is {template.SourceFormat}-format, so document extraction needs the AI backend. " +
-                     "Configure this tenant's Anthropic API key (Setup → AI Backend), or use a connector whose template is text-format with regex patterns."]);
+                     "Configure this tenant's AI backend (Setup → AI Backend — a local Ollama/LM Studio server needs no key), or use a connector whose template is text-format with regex patterns."]);
             }
 
             string? extracted;

@@ -150,7 +150,8 @@ public class AgentConsultService : IAgentConsultService
         if (!llm.IsConfigured)
         {
             return (false,
-                "Consulting an agent needs the AI backend. Configure this tenant's Anthropic API key (Setup → AI Backend).",
+                "Consulting an agent needs this tenant's AI backend. Configure it under Setup → AI Backend: " +
+                "either a local server (Ollama/LM Studio — no key, nothing leaves the premises) or an Anthropic API key.",
                 null);
         }
 
