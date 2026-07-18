@@ -1,0 +1,9 @@
+{
+  "case":{"matter_id":"MATTER-DEMO","client_token":"CLIENT-DEMO","taxpayer_token":"TP-DEMO","jurisdiction_module_id":"US-IRS","case_owner_token":"STAFF-1","professional_reviewer_token":"STAFF-2"},
+  "team":[{"staff_token":"STAFF-1","eligible_to_represent_before_irs":true},{"staff_token":"STAFF-2","eligible_to_represent_before_irs":true}],
+  "agents":[{"agent_id":"EVIDENCE-AGENT","contract_version":"1","human_approver_token":"STAFF-2","allowed_actions":["draft","classify"],"prohibited_actions":["external_contact","release"]}],
+  "authorization":{"type":"2848","status":"accepted","tax_forms":["1120-S"],"tax_periods":[2024]},
+  "deadlines":[{"deadline_id":"D1","deadline_type":"verified_external","source_document_id":"NOTICE-1","verified_by_token":"STAFF-2","responsible_staff_token":"STAFF-1","status":"open"}],
+  "audit_program":{"program_id":"PROGRAM-1","program_version":"1","jurisdiction_module_id":"US-IRS","source_versions":["IRS-SOURCE:1"],"approved_by_token":"STAFF-2","procedures":[{"procedure_id":"PROC-1","assigned_to_token":"STAFF-1","reviewer_token":"STAFF-2"}]},
+  "requested_action":{"action":"irs_call","human_actor_token":"STAFF-1","professional_approved_by_token":"STAFF-2","jurisdiction_module_id":"US-IRS","tax_form":"1120-S","tax_period":2024}
+}
