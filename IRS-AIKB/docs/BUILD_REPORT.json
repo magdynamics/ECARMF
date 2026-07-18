@@ -12,7 +12,8 @@
     "pdf_parse_completed": true,
     "cover_pages_rendered": 7,
     "cover_pages_visually_reviewed": 7,
-    "database_schema_tests_passed": 5
+    "automated_tests_passed": 6,
+    "github_branch_published": true
   },
   "documents": [
     {"publication": "5495", "file": "sources/atg/p5495.pdf", "pages": 177},
@@ -25,7 +26,6 @@
   ],
   "limitations": [
     "Guide content has not yet been section-parsed into the database.",
-    "Legal-current review of extracted tax positions has not yet occurred.",
-    "GitHub publication remains blocked by integration write permissions."
+    "Legal-current review of extracted tax positions has not yet occurred."
   ]
 }
