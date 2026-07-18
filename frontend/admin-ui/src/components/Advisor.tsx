@@ -146,6 +146,13 @@ export function Advisor({ tenant, user }: { tenant: string; user: string }) {
               {asking ? 'Consulting…' : 'Ask'}
             </button>
           </div>
+          {asking && (
+            <p className="muted small" style={{ marginTop: '0.4rem' }}>
+              <span className="spinner-dot" /> Consulting {currentAgent?.name ?? 'the agent'}… on a
+              local model (Ollama) this usually takes <strong>20–30 seconds</strong>. The answer will
+              appear just below when it's ready — no need to refresh.
+            </p>
+          )}
           <textarea
             rows={2}
             placeholder={currentAgent?.sampleQuestions[0] ?? 'Ask a question grounded in this tenant’s data…'}

@@ -216,7 +216,7 @@ function App() {
     })
   }
 
-  function openTab(next: string) {
+  function openTab(next: string, fromHistory = false) {
     setTab(next)
     setNavOpen(false)
     // Navigating into a collapsed group (via ⌘K, System Map, Home cards…)
@@ -226,7 +226,30 @@ function App() {
     // A new screen starts at its top — carrying the previous screen's
     // scroll position leaves users staring at the middle of a page.
     window.scrollTo({ top: 0 })
+    // Push a browser-history entry so the Back button navigates BETWEEN
+    // screens instead of leaving the app entirely. When the change came
+    // FROM a Back/Forward press (popstate), we must not push again.
+    if (!fromHistory) {
+      window.history.pushState({ ecarmfTab: next }, '', `#${next}`)
+    }
   }
+
+  // Back/Forward move through the screens visited in this session rather than
+  // dumping the user out of the platform (their #1 confusion — "the back arrow
+  // takes me out of the system"). The initial tab is seeded as a history entry
+  // so the very first Back stays inside the app.
+  useEffect(() => {
+    if (!window.history.state?.ecarmfTab) {
+      window.history.replaceState({ ecarmfTab: tab }, '', `#${tab}`)
+    }
+    const onPop = (e: PopStateEvent) => {
+      const t = (e.state?.ecarmfTab as string) || 'home'
+      openTab(t, true)
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Autocomplete + validation list. In header mode, fetched with explicit
   // operator headers regardless of the tenant currently viewed — otherwise a
