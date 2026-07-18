@@ -9,6 +9,7 @@ from pathlib import Path
 from .database import database_stats, initialize, load_source_manifest
 from .extraction import ingest_registry
 from .engine import assess
+from .portfolio import assess_portfolio
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -33,6 +34,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     run = commands.add_parser("assess", help="Assess a JSON taxpayer profile")
     run.add_argument("profile", type=Path)
+    portfolio = commands.add_parser(
+        "assess-portfolio", help="Assess and rank an array of normalized return profiles"
+    )
+    portfolio.add_argument("portfolio", type=Path)
     return parser
 
 
@@ -55,6 +60,11 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "stats":
         print(json.dumps(database_stats(args.database), indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "assess-portfolio":
+        profiles = json.loads(args.portfolio.read_text(encoding="utf-8"))
+        print(json.dumps(assess_portfolio(profiles), indent=2, sort_keys=True))
         return 0
 
     profile = json.loads(args.profile.read_text(encoding="utf-8"))

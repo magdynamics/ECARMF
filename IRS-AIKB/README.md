@@ -34,10 +34,16 @@ python -m irs_aikb.cli load-manifest --database data/irs_aikb.db --manifest sour
 python -m irs_aikb.cli ingest-corpus --database data/mainstream_atg.db --registry source-manifest/mainstream_atg_registry.csv --root . --retrieval-date 2026-07-17
 python -m irs_aikb.cli stats --database data/mainstream_atg.db
 python -m irs_aikb.cli assess examples/demo_profile.json
+python -m irs_aikb.cli assess-portfolio examples/demo_portfolio.json
 python -m unittest discover -s tests -v
 ```
 
 Run commands from this `IRS-AIKB` directory.
+
+The portfolio command produces independent public-selection-indicator,
+adjustment-exposure, documentation-readiness, controversy-readiness, and
+confidence scores. Its priority ranking is CPA workflow triage—not a prediction
+that the IRS will audit a return.
 
 ## Review states
 
