@@ -25,6 +25,8 @@ The system distinguishes procedural IRS guidance from binding legal authority. A
 - Client onboarding, secure upload, and completeness controls
 - Sponsor/referral relationship records with deny-by-default, client-consented access
 - Case-, taxpayer-, year-, action-, and artifact-scoped sponsor authorization decisions
+- Client transparency, service-agreement and authorization signature workflows
+- Governed AI-agent contributions to communication, scheduling, evidence, rights, and value reporting
 - 26 official IRS-linked PDFs totaling 2,482 pages
 - 17 preserved web-native IRS source pages
 - Populated SQLite snapshot with 2,604 searchable sections
@@ -45,6 +47,7 @@ python -m irs_aikb.cli assess-portfolio examples/demo_portfolio.json
 python -m irs_aikb.cli evaluate-sponsor-access examples/demo_sponsor_access.json --output data/demo_sponsor_decision.json
 python -m irs_aikb.cli list-jurisdiction-modules
 python -m irs_aikb.cli evaluate-jurisdiction examples/demo_idor_placeholder.json --output data/demo_idor_gate.json
+python -m irs_aikb.cli evaluate-client-engagement examples/demo_client_engagement.json --output data/demo_client_engagement.json
 python -m unittest discover -s tests -v
 ```
 

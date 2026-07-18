@@ -1,0 +1,7 @@
+{
+  "client": {"client_token":"CLIENT-DEMO","preferred_channel":"portal","language":"en","update_cadence_days":7},
+  "case": {"matter_id":"MATTER-DEMO","case_owner_token":"CASE-DIRECTOR","jurisdiction_module_id":"US-IRS"},
+  "service_agreement": {"required":true,"status":"sent","template_version":"2026.1"},
+  "authorization": {"representation_required":true,"authorization_type":"2848","status":"draft","tax_forms":["1120-S"],"tax_periods":[2024]},
+  "events": [{"event_id":"UPDATE-1","event_type":"general_status"}]
+}

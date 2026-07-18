@@ -22,6 +22,7 @@ from .control_plane import evaluate_control_plane
 from .client_upload import evaluate_upload_session
 from .sponsor_access import evaluate_sponsor_access, preview_sponsor_workspace
 from .jurisdiction import evaluate_jurisdiction_readiness, module_registry
+from .client_engagement import evaluate_client_engagement
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -101,6 +102,8 @@ def build_parser() -> argparse.ArgumentParser:
     commands.add_parser("list-jurisdiction-modules", help="List registered MAG Audit jurisdiction modules")
     jurisdiction = commands.add_parser("evaluate-jurisdiction", help="Apply jurisdiction readiness and non-substitution gates")
     jurisdiction.add_argument("input", type=Path); jurisdiction.add_argument("--output", type=Path, required=True)
+    engagement = commands.add_parser("evaluate-client-engagement", help="Validate client transparency, signatures, and communication controls")
+    engagement.add_argument("input", type=Path); engagement.add_argument("--output", type=Path, required=True)
     return parser
 
 
@@ -247,6 +250,12 @@ def main(argv: list[str] | None = None) -> int:
         args.output.write_text(json.dumps(report,indent=2,sort_keys=True),encoding="utf-8")
         print(json.dumps({"output":str(args.output),"module_id":report["module_id"],
                           "decision":report["decision"],"blockers":len(report["blockers"])},indent=2)); return 0
+    if args.command == "evaluate-client-engagement":
+        report=evaluate_client_engagement(json.loads(args.input.read_text(encoding="utf-8")))
+        args.output.parent.mkdir(parents=True,exist_ok=True)
+        args.output.write_text(json.dumps(report,indent=2,sort_keys=True),encoding="utf-8")
+        print(json.dumps({"output":str(args.output),"status":report["status"],
+                          "actions":len(report["required_actions"]),"updates":len(report["client_updates"])},indent=2)); return 0
 
     profile = json.loads(args.profile.read_text(encoding="utf-8"))
     print(json.dumps(assess(profile), indent=2, sort_keys=True))
