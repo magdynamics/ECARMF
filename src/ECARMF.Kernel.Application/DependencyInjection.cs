@@ -57,6 +57,7 @@ public static class DependencyInjection
         services.AddScoped<Analysis.IFinancialStatementService, Analysis.FinancialStatementService>();
         services.AddScoped<Billing.IBillingService, Billing.BillingService>();
         services.AddScoped<Agents.IAgentConsultService, Agents.AgentConsultService>();
+        services.AddScoped<MagAudit.Documents.IMagAuditBulkDocumentIngestion, MagAudit.Documents.MagAuditBulkDocumentIngestion>();
 
         return services;
     }

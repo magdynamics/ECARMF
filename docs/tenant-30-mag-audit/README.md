@@ -30,6 +30,7 @@ The implementation is accepted only when a persistent synthetic case completes t
 - `PACKAGE_CATALOG.json` — ordered package family and dependencies.
 - `CODING_AGENT_WORK_ORDER.md` — implementation boundaries, phases, and acceptance controls.
 - `DATA_AND_KNOWLEDGE_INTEGRATION.md` — exact source, database, manifest, evidence and runtime connection map.
+- `BULK_DOCUMENT_INGESTION_BUILD.md` — implemented ingestion core, provider boundaries, security decisions and next build increment.
 - `REQUIREMENTS_TRACEABILITY.csv` — accountable requirement baseline and maturity state.
 
 ## Governing sources
