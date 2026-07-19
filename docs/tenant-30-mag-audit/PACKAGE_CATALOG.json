@@ -7,7 +7,7 @@
     {"order": 2, "packageId": "ecarmf.mag-audit-parties", "version": "1.0.0", "dependsOn": ["ecarmf.mag-audit-foundation"], "scope": "client, taxpayer, sponsor, representative, consent and relationships"},
     {"order": 3, "packageId": "ecarmf.mag-audit-onboarding", "version": "1.0.0", "dependsOn": ["ecarmf.mag-audit-parties"], "scope": "acceptance, engagement, identity, scope and welcome journey"},
     {"order": 4, "packageId": "ecarmf.mag-audit-case-management", "version": "1.0.0", "dependsOn": ["ecarmf.mag-audit-onboarding"], "scope": "jurisdiction cases, staff, tasks, deadlines, chronology and escalation"},
-    {"order": 5, "packageId": "ecarmf.mag-audit-evidence", "version": "1.0.0", "dependsOn": ["ecarmf.mag-audit-case-management"], "scope": "uploads, vault, classification, extraction, provenance, privilege and production logs"},
+    {"order": 5, "packageId": "ecarmf.mag-audit-evidence", "version": "1.1.0", "dependsOn": ["ecarmf.mag-audit-case-management"], "scope": "bulk inventory, resumable uploads, quarantine, scanning, OCR, classification, exception review, vault, provenance, retention and reconciliation"},
     {"order": 6, "packageId": "ecarmf.mag-audit-return-intelligence", "version": "1.0.0", "dependsOn": ["ecarmf.mag-audit-evidence"], "scope": "return recognition, canonical facts, line mapping and reconciliation"},
     {"order": 7, "packageId": "ecarmf.mag-audit-risk-analytics", "version": "1.0.0", "dependsOn": ["ecarmf.mag-audit-return-intelligence"], "scope": "explainable independent risk and readiness scores"},
     {"order": 8, "packageId": "ecarmf.mag-audit-technique-engine", "version": "1.0.0", "dependsOn": ["ecarmf.mag-audit-risk-analytics"], "scope": "issues, techniques, evidence, interviews and customized audit programs"},
@@ -25,4 +25,3 @@
     "tenant isolation", "identity and access keys", "package registry", "record intake", "rules and controls", "scores and risk register", "cases and tasks", "audit history", "AI provider governance", "knowledge assets", "notifications", "billing and utilization"
   ]
 }
-

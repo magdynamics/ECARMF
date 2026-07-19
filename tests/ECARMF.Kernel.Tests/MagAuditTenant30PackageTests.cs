@@ -78,4 +78,36 @@ public class MagAuditTenant30PackageTests
         Assert.Contains("Fail closed", idor);
         Assert.Contains("no IRS rule may be substituted", idor);
     }
+
+    [Fact]
+    public void Coding_handoff_registry_covers_every_package_and_backlog_item()
+    {
+        var root = RepositoryRoot().FullName;
+        using var catalogDocument = JsonDocument.Parse(File.ReadAllText(Path.Combine(
+            root, "docs", "tenant-30-mag-audit", "PACKAGE_CATALOG.json")));
+        using var registryDocument = JsonDocument.Parse(File.ReadAllText(Path.Combine(
+            root, "docs", "tenant-30-mag-audit", "COMPONENT_REGISTRY.json")));
+        using var deliveryDocument = JsonDocument.Parse(File.ReadAllText(Path.Combine(
+            root, "docs", "tenant-30-mag-audit", "DELIVERY_MANIFEST.json")));
+
+        var catalogIds = catalogDocument.RootElement.GetProperty("packages").EnumerateArray()
+            .Select(p => p.GetProperty("packageId").GetString()).ToHashSet();
+        var registryPackages = registryDocument.RootElement.GetProperty("packages").EnumerateArray().ToList();
+        var registryIds = registryPackages.Select(p => p.GetProperty("packageId").GetString()).ToHashSet();
+
+        Assert.Equal(catalogIds, registryIds);
+        Assert.All(registryPackages, p =>
+        {
+            Assert.NotEmpty(p.GetProperty("components").EnumerateArray());
+            Assert.NotEmpty(p.GetProperty("existingAssets").EnumerateArray());
+            Assert.False(string.IsNullOrWhiteSpace(p.GetProperty("maturity").GetString()));
+            Assert.False(string.IsNullOrWhiteSpace(p.GetProperty("next").GetString()));
+        });
+        Assert.Equal(17, deliveryDocument.RootElement.GetProperty("packageCount").GetInt32());
+
+        var backlogLines = File.ReadAllLines(Path.Combine(root, "docs", "tenant-30-mag-audit", "IMPLEMENTATION_BACKLOG.csv"))
+            .Where(line => !string.IsNullOrWhiteSpace(line)).ToArray();
+        Assert.Equal(31, backlogLines.Length); // header + 30 ordered work items
+        Assert.Equal(30, deliveryDocument.RootElement.GetProperty("backlogCount").GetInt32());
+    }
 }

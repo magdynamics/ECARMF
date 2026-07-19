@@ -4,6 +4,8 @@
 
 This directory is the authoritative coding-agent handoff for integrating MAG Audit into ECARMF as `tenant-30-mag-audit` while preserving a standalone deployment boundary.
 
+The coding agent starts with `CODING_AGENT_HANDOFF.md`. `DELIVERY_MANIFEST.json` lists the complete handoff and repository dependencies.
+
 MAG Audit is the tax-audit domain product. ECARMF is the enterprise operating platform. Taxpayer clients are records inside Tenant 30; they are not ECARMF tenants. A case is scoped to taxpayer, jurisdiction, tax type, return/form, period, and engagement.
 
 ## Required outcome
@@ -31,6 +33,10 @@ The implementation is accepted only when a persistent synthetic case completes t
 - `CODING_AGENT_WORK_ORDER.md` — implementation boundaries, phases, and acceptance controls.
 - `DATA_AND_KNOWLEDGE_INTEGRATION.md` — exact source, database, manifest, evidence and runtime connection map.
 - `BULK_DOCUMENT_INGESTION_BUILD.md` — implemented ingestion core, provider boundaries, security decisions and next build increment.
+- `CODING_AGENT_HANDOFF.md` — single entry point and execution instructions.
+- `COMPONENT_REGISTRY.json` — every component, existing asset, maturity and next integration action across all 17 packages.
+- `IMPLEMENTATION_BACKLOG.csv` — ordered 30-item coding plan with acceptance criteria.
+- `DELIVERY_MANIFEST.json` — machine-readable package handoff inventory.
 - `REQUIREMENTS_TRACEABILITY.csv` — accountable requirement baseline and maturity state.
 
 ## Governing sources

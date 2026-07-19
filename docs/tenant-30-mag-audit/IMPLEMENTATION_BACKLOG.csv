@@ -1,0 +1,32 @@
+sequence,work_id,package_id,requirement_ids,deliverable,acceptance,status
+1,T30-B01,ecarmf.mag-audit-foundation,MAG-T30-001;MAG-T30-031,Persist Tenant 30 profile and regulated production identity,Tenant exists and header identity is rejected,ready
+2,T30-B02,ecarmf.mag-audit-evidence,MAG-T30-008,Persistent import batch and item store,Batches survive restart and remain tenant/case isolated,ready
+3,T30-B03,ecarmf.mag-audit-evidence,MAG-T30-008,Encrypted local synthetic evidence adapter,Quarantine accept delete and path traversal tests pass,ready
+4,T30-B04,ecarmf.mag-audit-evidence,MAG-T30-008,Out-of-process ClamAV adapter,EICAR test is rejected and engine-unavailable fails closed,ready
+5,T30-B05,ecarmf.mag-audit-evidence,MAG-T30-008,Tesseract/native text extraction adapter,Searchable PDF image and text fixtures extract with page provenance,ready
+6,T30-B06,ecarmf.mag-audit-evidence,MAG-T30-008,Initial tax-document classifier,W-2 1099 K-1 return bank statement and IRS notice fixtures classify with confidence,ready
+7,T30-B07,ecarmf.mag-audit-evidence,MAG-T30-008,Resumable tus upload API,Interrupted upload resumes and final size/hash match inventory,ready
+8,T30-B08,ecarmf.mag-audit-evidence,MAG-T30-008,Import manifest and reconciliation report,Every inventoried file has a terminal or exception disposition,ready
+9,T30-B09,ecarmf.mag-audit-evidence,MAG-T30-008,Staff exception-review API and UI,Authorized reviewer can correct classification without changing original,ready
+10,T30-B10,ecarmf.mag-audit-evidence,MAG-T30-008,Desktop folder importer,1000 synthetic files upload in batches with resume and reconciliation,ready
+11,T30-B11,ecarmf.mag-audit-parties,MAG-T30-003;MAG-T30-004,Persistent client taxpayer sponsor and consent services,Revocation immediately removes sponsor access,planned
+12,T30-B12,ecarmf.mag-audit-onboarding,MAG-T30-005,Connected onboarding journey,Client engagement and checklist persist,planned
+13,T30-B13,ecarmf.mag-audit-case-management,MAG-T30-006;MAG-T30-007,Tax case context and operations adapter,Two years and jurisdictions remain isolated,planned
+14,T30-B14,ecarmf.mag-audit-return-intelligence,MAG-T30-010;MAG-T30-011,Return intake canonical model and line mapping adapter,2024 1120-S facts persist with provenance,planned
+15,T30-B15,ecarmf.mag-audit-return-intelligence,MAG-T30-012,Reconciliation service adapter,Exceptions disposition and evidence links persist,planned
+16,T30-B16,ecarmf.mag-audit-irs-engine,MAG-T30-026;MAG-T30-030,Read-only knowledge repository adapter,Case search returns source/version/page/review envelope,planned
+17,T30-B17,ecarmf.mag-audit-risk-analytics,MAG-T30-013;MAG-T30-014,Persistent explainable independent scoring,Factors weights sources uncertainty and no-DIF control pass,planned
+18,T30-B18,ecarmf.mag-audit-technique-engine,MAG-T30-015;MAG-T30-016,Cited customized audit program,Reviewed techniques produce assigned evidence-backed steps,planned
+19,T30-B19,ecarmf.mag-audit-rights-controversy,MAG-T30-017;MAG-T30-018;MAG-T30-019,Rights authorization and IDR state machines,No external contact occurs before approval and production receipt,planned
+20,T30-B20,ecarmf.mag-audit-client-collaboration,MAG-T30-020;MAG-T30-021,Authenticated client and sponsor portals,Role and consent isolation tests pass,planned
+21,T30-B21,ecarmf.mag-audit-workspace,MAG-T30-022,Connected staff case command center,Every action reads/writes persistent APIs,planned
+22,T30-B22,ecarmf.mag-audit-ai-agents,MAG-T30-023,Governed agent workforce,Each output records context citations confidence and human disposition,planned
+23,T30-B23,ecarmf.mag-audit-outcome-value,MAG-T30-024;MAG-T30-025,Persistent finding-to-value chain,Value traces to independently verified outcome,planned
+24,T30-B24,ecarmf.mag-audit-organizational-intelligence,MAG-T30-028,Controlled learning workflow,Approval publish supersession and rollback pass,planned
+25,T30-B25,ecarmf.mag-audit-reporting,MAG-T30-029,Connected operational reporting,Dashboards reconcile to source records,planned
+26,T30-B26,ecarmf.mag-audit-foundation,MAG-T30-002,Standalone adapters and parity suite,Vertical case behaves consistently in both deployment modes,planned
+27,T30-B27,ecarmf.mag-audit-irs-engine,MAG-T30-026;MAG-T30-030,Complete and professionally review federal corpus,Coverage report and reviewed source release approved,planned
+28,T30-B28,ecarmf.mag-audit-idor-engine,MAG-T30-027,IDOR knowledge build,Illinois sources and rules are independently validated,blocked_for_later_scope
+29,T30-B29,all,MAG-T30-032,Complete synthetic vertical case,Onboarding through verified outcome passes in both modes,planned
+30,T30-B30,all,MAG-T30-031,Production security and operations certification,Threat accessibility performance backup restore retention and incident gates pass,planned
+

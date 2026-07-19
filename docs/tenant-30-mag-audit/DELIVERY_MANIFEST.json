@@ -1,0 +1,16 @@
+{
+  "deliveryId": "tenant-30-mag-audit-handoff-v1",
+  "tenantId": "tenant-30-mag-audit",
+  "branch": "agent/irs-aikb-foundation",
+  "entryPoint": "docs/tenant-30-mag-audit/CODING_AGENT_HANDOFF.md",
+  "governance": ["README.md","TENANT_PROFILE.json","CODING_AGENT_WORK_ORDER.md","DATA_AND_KNOWLEDGE_INTEGRATION.md","COMPONENT_REGISTRY.json","PACKAGE_CATALOG.json","IMPLEMENTATION_BACKLOG.csv","REQUIREMENTS_TRACEABILITY.csv","BULK_DOCUMENT_INGESTION_BUILD.md"],
+  "packagePattern": "packages/mag-audit-*.json",
+  "packageCount": 17,
+  "requirementsCount": 32,
+  "backlogCount": 30,
+  "knowledgeRoot": "IRS-AIKB",
+  "implementedCore": ["src/ECARMF.Kernel.Application/MagAudit/Documents/BulkDocumentIngestion.cs"],
+  "validation": ["tests/ECARMF.Kernel.Tests/MagAuditTenant30PackageTests.cs","tests/ECARMF.Kernel.Tests/MagAuditBulkDocumentIngestionTests.cs"],
+  "prohibitedContents": ["real client evidence","credentials","absolute workstation paths","unreviewed claims of production readiness"]
+}
+

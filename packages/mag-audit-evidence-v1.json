@@ -1,1 +1,30 @@
-{"packageId":"ecarmf.mag-audit-evidence","name":"MAG Audit Evidence","packageVersion":"1.0.0","publisher":"MAG Dynamics","dependencies":[{"packageId":"ecarmf.mag-audit-case-management","minimumVersion":"1.0.0"}],"entities":[{"entityTypeName":"CaseEvidenceArtifact","description":"Immutable case evidence version and provenance metadata.","attributes":[{"name":"artifactId","dataType":"string","required":true},{"name":"caseId","dataType":"string","required":true},{"name":"versionId","dataType":"string","required":true},{"name":"sha256","dataType":"string","required":true},{"name":"classification","dataType":"string","required":true}]}],"events":[{"eventName":"CaseEvidenceArtifactReceived"}],"rules":[],"capabilities":[{"capabilityId":"MagAuditEvidence","name":"Evidence Vault","description":"Upload validation preservation extraction provenance privilege and production logging."}],"workflows":[],"agents":[]}
+{
+  "packageId": "ecarmf.mag-audit-evidence",
+  "name": "MAG Audit Evidence and Bulk Document Intelligence",
+  "packageVersion": "1.1.0",
+  "publisher": "MAG Dynamics",
+  "dependencies": [{"packageId":"ecarmf.mag-audit-case-management","minimumVersion":"1.0.0"}],
+  "entities": [
+    {"entityTypeName":"DocumentImportBatch","description":"Tenant- and case-scoped accountable bulk import session.","attributes":[{"name":"batchId","dataType":"string","required":true},{"name":"caseId","dataType":"string","required":true},{"name":"name","dataType":"string","required":true},{"name":"createdBy","dataType":"string","required":true},{"name":"status","dataType":"string","required":true}]},
+    {"entityTypeName":"DocumentImportItem","description":"Inventoried file and guarded ingestion state.","attributes":[{"name":"itemId","dataType":"string","required":true},{"name":"batchId","dataType":"string","required":true},{"name":"caseId","dataType":"string","required":true},{"name":"relativePath","dataType":"string","required":true},{"name":"sizeBytes","dataType":"number","required":true},{"name":"sha256","dataType":"string","required":true},{"name":"state","dataType":"string","required":true}]},
+    {"entityTypeName":"CaseEvidenceArtifact","description":"Immutable accepted case evidence version and provenance metadata.","attributes":[{"name":"artifactId","dataType":"string","required":true},{"name":"caseId","dataType":"string","required":true},{"name":"versionId","dataType":"string","required":true},{"name":"sha256","dataType":"string","required":true},{"name":"classification","dataType":"string","required":true},{"name":"storageLocation","dataType":"string","required":true}]},
+    {"entityTypeName":"DocumentExtractionResult","description":"Field/text extraction with provider version confidence and source location.","attributes":[{"name":"resultId","dataType":"string","required":true},{"name":"artifactId","dataType":"string","required":true},{"name":"provider","dataType":"string","required":true},{"name":"confidence","dataType":"number","required":true},{"name":"reviewState","dataType":"string","required":true}]},
+    {"entityTypeName":"ImportReconciliationReport","description":"Disposition of every inventoried file in a completed import batch.","attributes":[{"name":"reportId","dataType":"string","required":true},{"name":"batchId","dataType":"string","required":true},{"name":"inventoried","dataType":"number","required":true},{"name":"accepted","dataType":"number","required":true},{"name":"exceptions","dataType":"number","required":true}]}
+  ],
+  "events": [
+    {"eventName":"DocumentImportBatchReceived"},
+    {"eventName":"DocumentImportItemReceived"},
+    {"eventName":"CaseEvidenceArtifactReceived"},
+    {"eventName":"DocumentExtractionResultReceived"},
+    {"eventName":"ImportReconciliationReportReceived"}
+  ],
+  "rules": [],
+  "capabilities": [
+    {"capabilityId":"MagAuditBulkImport","name":"Bulk Document Import","description":"Folder inventory resumable upload hashing quarantine and accountable reconciliation."},
+    {"capabilityId":"MagAuditEvidenceVault","name":"Evidence Vault","description":"Immutable versions provenance privilege retention legal hold and authorized retrieval."},
+    {"capabilityId":"MagAuditDocumentIntelligence","name":"Document Intelligence","description":"Replaceable malware OCR classification extraction duplicate and review providers."},
+    {"capabilityId":"MagAuditExceptionReview","name":"Document Exception Review","description":"Human review for conflicts low confidence unsupported content and restricted evidence."}
+  ],
+  "workflows": [],
+  "agents": []
+}
