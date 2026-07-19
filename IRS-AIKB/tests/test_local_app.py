@@ -5,11 +5,21 @@ from pathlib import Path
 class LocalAppTests(unittest.TestCase):
     def test_demo_app_contains_major_components(self):
         html=(Path(__file__).parents[1]/"app"/"index.html").read_text(encoding="utf-8")
-        for label in ("Command center","Clients","Case workspace","Evidence vault","Jurisdictions",
-                      "Audit program","Outcomes","Client updates","Sponsors & consent"):
+        for label in ("Command center","Client onboarding","Taxpayers & cases","Case workspace",
+                      "Bulk document intake","Evidence vault","Returns & reconciliation",
+                      "Tasks & deadlines","Risk analysis","Knowledge research","Audit program",
+                      "Rights & IRS response","Staff & AI agents","Client communications",
+                      "Sponsors & consent","Findings & outcomes","Jurisdictions"):
             self.assertIn(label,html)
         self.assertIn("synthetic data only",html)
         self.assertIn("Illinois IDOR",html)
+
+    def test_demo_app_exposes_controlled_audit_workflow(self):
+        html=(Path(__file__).parents[1]/"app"/"index.html").read_text(encoding="utf-8")
+        for control in ("Form 2848","IRS response deadline","human approval",
+                        "originals remain immutable","cannot approve scope",
+                        "do not predict IRS selection"):
+            self.assertIn(control,html)
 
     def test_launcher_exists(self):
         root=Path(__file__).parents[1]
