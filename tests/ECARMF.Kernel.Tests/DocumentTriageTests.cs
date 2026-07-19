@@ -18,6 +18,15 @@ public class InMemoryDocumentAllocationStore : IDocumentAllocationStore
     public Task UpdateAsync(DocumentAllocation a, CancellationToken ct = default) => Task.CompletedTask;
 }
 
+public class InMemoryExtractedDataStore : IExtractedDataStore
+{
+    public List<ExtractedDocumentData> Items { get; } = [];
+    public Task AddAsync(ExtractedDocumentData d, CancellationToken ct = default) { Items.Add(d); return Task.CompletedTask; }
+    public Task<IReadOnlyList<ExtractedDocumentData>> GetByTypeAsync(string tenantId, string documentType, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<ExtractedDocumentData>>(
+            Items.Where(d => d.TenantId == tenantId && string.Equals(d.DocumentType, documentType, StringComparison.OrdinalIgnoreCase)).ToList());
+}
+
 /// <summary>Bulk mixed-document triage: the AI recommends which business unit
 /// each document belongs to; a human confirms; only then is it filed with the
 /// unit stamped. AI recommends, humans decide.</summary>
@@ -36,7 +45,7 @@ public class DocumentTriageTests
         _units.Items.Add(new OrganizationalUnit { TenantId = Tenant, UnitId = "oak-lawn", Name = "Oak Lawn", UnitType = "LegalEntity", Industry = "dental" });
         _units.Items.Add(new OrganizationalUnit { TenantId = Tenant, UnitId = "pulaski", Name = "Pulaski", UnitType = "LegalEntity", Industry = "dental" });
         _units.Items.Add(new OrganizationalUnit { TenantId = Tenant, UnitId = "ahmad-ramaha", Name = "Ahmad Ramaha", UnitType = "Principal" });
-        return new DocumentTriageService(_units, new FakeLanguageModelProvider(_llm), _library, _allocations, _audit);
+        return new DocumentTriageService(_units, new FakeLanguageModelProvider(_llm), _library, _allocations, new InMemoryExtractedDataStore(), _audit);
     }
 
     [Fact]

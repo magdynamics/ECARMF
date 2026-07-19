@@ -85,6 +85,8 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<DocumentAllocationRecord> DocumentAllocations => Set<DocumentAllocationRecord>();
 
+    public DbSet<ExtractedDataRecord> ExtractedData => Set<ExtractedDataRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AgentInteractionRecord>(entity =>
@@ -141,6 +143,21 @@ public class ECARMFDbContext : DbContext
             entity.Property(i => i.CreatedBy).HasMaxLength(400).IsRequired();
             entity.Property(i => i.LastFeedStatus).HasMaxLength(50);
             entity.HasIndex(i => new { i.TenantId, i.IntegrationId }).IsUnique();
+        });
+
+        modelBuilder.Entity<ExtractedDataRecord>(entity =>
+        {
+            entity.ToTable("ExtractedData");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(x => x.FileName).HasMaxLength(500).IsRequired();
+            entity.Property(x => x.DocumentType).HasMaxLength(100).IsRequired();
+            entity.Property(x => x.UnitRef).HasMaxLength(200);
+            entity.Property(x => x.SubjectKey).HasMaxLength(400);
+            entity.Property(x => x.Period).HasMaxLength(100);
+            entity.Property(x => x.FieldsJson).IsRequired();
+            entity.Property(x => x.Backend).HasMaxLength(200);
+            entity.HasIndex(x => new { x.TenantId, x.DocumentType });
         });
 
         modelBuilder.Entity<DocumentAllocationRecord>(entity =>

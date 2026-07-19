@@ -1234,3 +1234,5 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   vertical-align: -1px; animation: spinner-rot 0.7s linear infinite;
 }
 @keyframes spinner-rot { to { transform: rotate(360deg); } }
+
+.reconcile-total{background:var(--bg-card);border:1px solid var(--border-1);border-left:3px solid var(--accent);border-radius:var(--radius);padding:0.8rem 1rem;display:inline-block;min-width:16rem;}

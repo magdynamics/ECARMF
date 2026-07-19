@@ -48,19 +48,24 @@ public interface IDocumentTriageService
 public class DocumentTriageService : IDocumentTriageService
 {
     private const string SystemPrompt =
-        "You are a document-routing analyst inside the ECARMF platform. You are given (a) the list " +
-        "of a business group's organizational units — legal entities, locations, divisions, properties, " +
-        "and principals — and (b) the text of ONE document. Decide which SINGLE unit the document most " +
-        "likely belongs to, what kind of document it is, and how confident you are. Rules: choose only " +
-        "from the provided unit slugs; if the document plainly applies to the whole group or you cannot " +
-        "confidently place it, return unitRef null; never invent a unit; be honest with confidence. " +
-        "Respond with ONLY a JSON object: {\"unitRef\": string|null, \"documentType\": string, " +
-        "\"confidence\": number 0..1, \"reasoning\": string (one sentence)}.";
+        "You are a document-routing and extraction analyst inside the ECARMF platform. You are given " +
+        "(a) the business group's organizational units, (b) the catalog of known document types, and " +
+        "(c) the text of ONE document. Do three things: route it to a unit, classify its type, and " +
+        "extract its key data. Rules: choose the unit only from the provided unit slugs (null if it " +
+        "applies to the whole group or you're unsure — never invent a unit); classify documentType to " +
+        "one of the catalog type keys (or \"other\"); extract subjectKey (the account number, employee " +
+        "name, or entity the document is primarily about), period (the year or period it covers), and " +
+        "fields (a flat object of the type's numeric key fields as plain numbers — no currency symbols " +
+        "or commas). Never invent numbers; omit a field you cannot find. Respond with ONLY JSON: " +
+        "{\"unitRef\": string|null, \"documentType\": string, \"confidence\": number 0..1, " +
+        "\"reasoning\": string, \"subjectKey\": string|null, \"period\": string|null, " +
+        "\"fields\": object}.";
 
     private readonly IOrgUnitStore _units;
     private readonly ILanguageModelProvider _llmProvider;
     private readonly IDocumentLibrary _library;
     private readonly IDocumentAllocationStore _allocations;
+    private readonly IExtractedDataStore _extracted;
     private readonly IAuditLog _audit;
 
     public DocumentTriageService(
@@ -68,12 +73,14 @@ public class DocumentTriageService : IDocumentTriageService
         ILanguageModelProvider llmProvider,
         IDocumentLibrary library,
         IDocumentAllocationStore allocations,
+        IExtractedDataStore extracted,
         IAuditLog audit)
     {
         _units = units;
         _llmProvider = llmProvider;
         _library = library;
         _allocations = allocations;
+        _extracted = extracted;
         _audit = audit;
     }
 
@@ -117,14 +124,17 @@ public class DocumentTriageService : IDocumentTriageService
             FileName = fileName,
             CreatedBy = actor
         };
+        Recommendation? parsed = null;
 
         try
         {
             var truncated = documentText.Length > 6000 ? documentText[..6000] : documentText;
             var response = await llm.CompleteAsync(SystemPrompt,
-                $"Organizational units (slug :: name (type) — notes):\n{unitList}\n\nDocument: {fileName}\n\nText:\n{truncated}", ct);
+                $"Organizational units (slug :: name (type) — notes):\n{unitList}\n\n" +
+                $"Known document types:\n{DocumentTypeCatalog.ForPrompt()}\n\n" +
+                $"Document: {fileName}\n\nText:\n{truncated}", ct);
 
-            var parsed = ParseRecommendation(response);
+            parsed = ParseRecommendation(response);
             if (parsed is not null)
             {
                 var match = string.IsNullOrWhiteSpace(parsed.UnitRef)
@@ -147,6 +157,25 @@ public class DocumentTriageService : IDocumentTriageService
         }
 
         await _allocations.AddAsync(allocation, ct);
+
+        // Capture the structured data so reconciliation can query real numbers.
+        // Only for a recognized canonical type with extracted fields.
+        if (parsed is not null && DocumentTypeCatalog.Find(parsed.DocumentType) is not null && parsed.Fields.Count > 0)
+        {
+            await _extracted.AddAsync(new ExtractedDocumentData
+            {
+                TenantId = tenantId,
+                DocumentId = doc.Id,
+                FileName = fileName,
+                DocumentType = parsed.DocumentType,
+                UnitRef = allocation.RecommendedUnitRef,
+                SubjectKey = parsed.SubjectKey?.ToLowerInvariant(),
+                Period = parsed.Period,
+                Fields = new Dictionary<string, string>(parsed.Fields, StringComparer.OrdinalIgnoreCase),
+                Backend = llm.ModelReference
+            }, ct);
+        }
+
         return new TriageOutcome(true, allocation, null);
     }
 
@@ -198,7 +227,9 @@ public class DocumentTriageService : IDocumentTriageService
         return new TriageOutcome(true, allocation, null);
     }
 
-    private sealed record Recommendation(string? UnitRef, string DocumentType, decimal Confidence, string Reasoning);
+    private sealed record Recommendation(
+        string? UnitRef, string DocumentType, decimal Confidence, string Reasoning,
+        string? SubjectKey, string? Period, Dictionary<string, string> Fields);
 
     private static Recommendation? ParseRecommendation(string raw)
     {
@@ -210,10 +241,20 @@ public class DocumentTriageService : IDocumentTriageService
             using var doc = JsonDocument.Parse(raw[start..(end + 1)]);
             var root = doc.RootElement;
             string? unit = root.TryGetProperty("unitRef", out var u) && u.ValueKind == JsonValueKind.String ? u.GetString() : null;
-            var type = root.TryGetProperty("documentType", out var t) ? t.GetString() ?? "Unknown" : "Unknown";
+            var type = root.TryGetProperty("documentType", out var t) ? t.GetString() ?? "other" : "other";
             var conf = root.TryGetProperty("confidence", out var c) && c.TryGetDecimal(out var cd) ? cd : 0m;
             var reason = root.TryGetProperty("reasoning", out var r) ? r.GetString() ?? "" : "";
-            return new Recommendation(unit, type, conf, reason);
+            string? subject = root.TryGetProperty("subjectKey", out var s) && s.ValueKind == JsonValueKind.String ? s.GetString() : null;
+            string? period = root.TryGetProperty("period", out var p) && p.ValueKind == JsonValueKind.String ? p.GetString() : null;
+            var fields = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            if (root.TryGetProperty("fields", out var f) && f.ValueKind == JsonValueKind.Object)
+                foreach (var prop in f.EnumerateObject())
+                {
+                    var val = prop.Value.ValueKind == JsonValueKind.Number ? prop.Value.GetRawText()
+                        : prop.Value.ValueKind == JsonValueKind.String ? prop.Value.GetString() ?? "" : "";
+                    if (!string.IsNullOrWhiteSpace(val)) fields[prop.Name] = val;
+                }
+            return new Recommendation(unit, type, conf, reason, subject, period, fields);
         }
         catch (JsonException)
         {
