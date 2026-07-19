@@ -28,6 +28,12 @@ class LocalAppTests(unittest.TestCase):
                            "Reconciliation Specialist","Document Verification Agent"):
             self.assertIn(capability,html)
 
+    def test_pilot_review_has_actionable_verification_state(self):
+        html=(Path(__file__).parents[1]/"app"/"index.html").read_text(encoding="utf-8")
+        self.assertIn("Continue staff verification",html)
+        self.assertIn("openPilotVerification",html)
+        self.assertIn("Pilot document verification",html)
+
     def test_launcher_exists(self):
         root=Path(__file__).parents[1]
         self.assertTrue((root/"launch_mag_audit.py").is_file())

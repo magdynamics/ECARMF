@@ -23,6 +23,12 @@ class MagAuditHandler(SimpleHTTPRequestHandler):
     pilot_database: Path
     pilot_vault: Path
 
+    def end_headers(self) -> None:
+        # Prevent a stale cached pilot page from appearing frozen during active builds.
+        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate")
+        self.send_header("Pragma", "no-cache")
+        super().end_headers()
+
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
         if parsed.path == "/api/pilot/cases":
