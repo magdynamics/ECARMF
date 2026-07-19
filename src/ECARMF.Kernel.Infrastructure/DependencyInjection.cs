@@ -30,6 +30,8 @@ public static class DependencyInjection
         services.AddScoped<Application.Cases.ICaseStore, EfCaseStore>();
         services.AddScoped<Application.Risk.IRiskTreatmentStore, EfRiskTreatmentStore>();
         services.AddScoped<Application.Knowledge.IReferenceSourceStore, EfReferenceSourceStore>();
+        services.AddScoped<Application.Knowledge.IDocumentAllocationStore, EfDocumentAllocationStore>();
+        services.AddScoped<Application.Knowledge.IDocumentTriageService, Application.Knowledge.DocumentTriageService>();
         services.AddScoped<Application.Operations.IAuditRetentionService, AuditRetentionService>();
         services.AddScoped<ITransactionStore, EfTransactionStore>();
         services.AddScoped<IOutcomeStore, EfOutcomeStore>();

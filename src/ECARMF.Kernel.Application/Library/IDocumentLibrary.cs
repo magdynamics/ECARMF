@@ -26,4 +26,11 @@ public interface IDocumentLibrary
 
     /// <summary>The archived original, byte-for-byte.</summary>
     Task<byte[]?> GetContentAsync(string tenantId, Guid id, CancellationToken ct = default);
+
+    /// <summary>Files a previously-archived document to a unit: sets its
+    /// UnitRef and moves its category (e.g. triage-pending → triage-filed).
+    /// The content and hash are never touched — this is routing metadata only,
+    /// so the append-only evidence guarantee holds.</summary>
+    Task SetUnitAndCategoryAsync(
+        string tenantId, Guid id, string? unitRef, string category, CancellationToken ct = default);
 }

@@ -48,6 +48,13 @@ public class InMemoryDocumentLibrary : IDocumentLibrary
 
     public Task<byte[]?> GetContentAsync(string tenantId, Guid id, CancellationToken ct = default) =>
         Task.FromResult(Items.FirstOrDefault(i => i.Document.TenantId == tenantId && i.Document.Id == id).Content);
+
+    public Task SetUnitAndCategoryAsync(string tenantId, Guid id, string? unitRef, string category, CancellationToken ct = default)
+    {
+        var doc = Items.Select(i => i.Document).FirstOrDefault(d => d.TenantId == tenantId && d.Id == id);
+        if (doc is not null) { doc.UnitRef = string.IsNullOrWhiteSpace(unitRef) ? null : unitRef.Trim(); doc.SourceCategory = category; }
+        return Task.CompletedTask;
+    }
 }
 
 public class InMemoryBenchmarkStore : IBenchmarkStore

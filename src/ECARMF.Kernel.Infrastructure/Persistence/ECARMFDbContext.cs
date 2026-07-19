@@ -83,6 +83,8 @@ public class ECARMFDbContext : DbContext
 
     public DbSet<ReferenceSourceRecord> ReferenceSources => Set<ReferenceSourceRecord>();
 
+    public DbSet<DocumentAllocationRecord> DocumentAllocations => Set<DocumentAllocationRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AgentInteractionRecord>(entity =>
@@ -139,6 +141,24 @@ public class ECARMFDbContext : DbContext
             entity.Property(i => i.CreatedBy).HasMaxLength(400).IsRequired();
             entity.Property(i => i.LastFeedStatus).HasMaxLength(50);
             entity.HasIndex(i => new { i.TenantId, i.IntegrationId }).IsUnique();
+        });
+
+        modelBuilder.Entity<DocumentAllocationRecord>(entity =>
+        {
+            entity.ToTable("DocumentAllocations");
+            entity.HasKey(a => a.Id);
+            entity.Property(a => a.TenantId).HasMaxLength(100).IsRequired();
+            entity.Property(a => a.FileName).HasMaxLength(500).IsRequired();
+            entity.Property(a => a.RecommendedUnitRef).HasMaxLength(200);
+            entity.Property(a => a.RecommendedUnitName).HasMaxLength(400);
+            entity.Property(a => a.DocumentType).HasMaxLength(200);
+            entity.Property(a => a.Confidence).HasPrecision(5, 4);
+            entity.Property(a => a.Reasoning).HasMaxLength(2000);
+            entity.Property(a => a.Status).HasMaxLength(30).IsRequired();
+            entity.Property(a => a.DecidedUnitRef).HasMaxLength(200);
+            entity.Property(a => a.DecidedBy).HasMaxLength(400);
+            entity.Property(a => a.CreatedBy).HasMaxLength(400).IsRequired();
+            entity.HasIndex(a => new { a.TenantId, a.Status, a.CreatedAt });
         });
 
         modelBuilder.Entity<ReferenceSourceRecord>(entity =>

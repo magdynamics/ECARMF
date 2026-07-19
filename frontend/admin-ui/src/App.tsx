@@ -45,6 +45,7 @@ import { Reports } from './components/Reports'
 import { StatementReview } from './components/StatementReview'
 import { Treasury } from './components/Treasury'
 import { ReferenceSources } from './components/ReferenceSources'
+import { DocumentTriage } from './components/DocumentTriage'
 
 const SEEDED_USERS = [
   { id: 'owner@platform', label: 'Owner / Executive' },
@@ -108,6 +109,7 @@ const NAV: { tab: string; label: string; icon: string; group: string }[] = [
   { tab: 'refsources', label: 'Reference Sources', icon: 'book', group: 'Setup' },
   { tab: 'dataentry', label: 'Data Entry', icon: 'inbox-in', group: 'Input' },
   { tab: 'statements', label: 'Statement Review', icon: 'file-search', group: 'Input' },
+  { tab: 'triage', label: 'Document Triage', icon: 'folders', group: 'Input' },
   { tab: 'activity', label: 'Record Activity', icon: 'list', group: 'Output' },
   { tab: 'dashboard', label: 'Dashboard', icon: 'gauge', group: 'Output' },
   { tab: 'risk', label: 'Risk Register', icon: 'alert-triangle', group: 'Output' },
@@ -671,6 +673,8 @@ function App() {
             <AiSettings tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'refsources' ? (
             <ReferenceSources tenant={effectiveTenant} user={effectiveUser} />
+          ) : tab === 'triage' ? (
+            <DocumentTriage tenant={effectiveTenant} user={effectiveUser} />
           ) : tab === 'dataentry' ? (
             <DataEntry tenant={effectiveTenant} user={effectiveUser} go={setTab} />
           ) : tab === 'statements' ? (

@@ -120,6 +120,16 @@ public class EfDocumentLibrary : IDocumentLibrary
         return record?.Content;
     }
 
+    public async Task SetUnitAndCategoryAsync(
+        string tenantId, Guid id, string? unitRef, string category, CancellationToken ct = default)
+    {
+        var record = await _db.SourceDocuments.FirstOrDefaultAsync(d => d.TenantId == tenantId && d.Id == id, ct);
+        if (record is null) return;
+        record.UnitRef = string.IsNullOrWhiteSpace(unitRef) ? null : unitRef.Trim();
+        record.SourceCategory = category;
+        await _db.SaveChangesAsync(ct);
+    }
+
     private static SourceDocument ToDomain(SourceDocumentRecord record) => new()
     {
         Id = record.Id,

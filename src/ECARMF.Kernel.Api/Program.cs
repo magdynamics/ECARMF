@@ -155,6 +155,7 @@ app.MapCaseEndpoints();
 app.MapCapabilityEndpoints();
 app.MapRiskTreatmentEndpoints();
 app.MapReferenceSourceEndpoints();
+app.MapDocumentTriageEndpoints();
 app.MapHealthBoardEndpoints();
 app.MapHardeningEndpoints();
 app.MapOrgUnitEndpoints();
