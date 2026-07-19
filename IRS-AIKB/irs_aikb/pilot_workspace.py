@@ -52,6 +52,13 @@ def initialize_pilot(database: Path) -> None:
           requested_by TEXT NOT NULL, status TEXT NOT NULL, current_stage TEXT NOT NULL,
           result_json TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
           updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+        CREATE TABLE IF NOT EXISTS pilot_document_assignment_event(
+          event_id TEXT PRIMARY KEY,
+          document_id TEXT NOT NULL REFERENCES pilot_document(document_id),
+          from_case_id TEXT NOT NULL REFERENCES pilot_case(case_id),
+          to_case_id TEXT NOT NULL REFERENCES pilot_case(case_id),
+          document_sha256 TEXT NOT NULL, reason TEXT NOT NULL,
+          changed_by TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
         """)
         connection.commit()
     finally:
@@ -111,6 +118,73 @@ def case_documents(database: Path, case_id: str) -> list[dict]:
     finally:
         connection.close()
     return [dict(row) for row in rows]
+
+
+def document_assignment_history(database: Path, document_id: str) -> list[dict]:
+    initialize_pilot(database)
+    connection=sqlite3.connect(database)
+    connection.row_factory=sqlite3.Row
+    try:
+        rows=connection.execute("""SELECT event_id,document_id,from_case_id,to_case_id,
+            document_sha256,reason,changed_by,created_at
+            FROM pilot_document_assignment_event WHERE document_id=? ORDER BY created_at""",
+            (document_id,)).fetchall()
+    finally:
+        connection.close()
+    return [dict(row) for row in rows]
+
+
+def reassign_document(database: Path, document_id: str, target_case_id: str,
+                      reason: str, changed_by: str) -> dict:
+    """Correct case ownership without changing or relocating immutable evidence bytes."""
+    reason=reason.strip(); changed_by=changed_by.strip()
+    if len(reason)<8:
+        raise ValueError("a specific reassignment reason is required")
+    if not changed_by:
+        raise ValueError("changed_by is required")
+    initialize_pilot(database)
+    connection=sqlite3.connect(database)
+    connection.row_factory=sqlite3.Row
+    try:
+        connection.execute("BEGIN IMMEDIATE")
+        document=connection.execute("""SELECT document_id,case_id,original_name,sha256,
+            byte_count,local_path FROM pilot_document WHERE document_id=?""",
+            (document_id,)).fetchone()
+        if not document:
+            raise ValueError("pilot document does not exist")
+        old_case=document["case_id"]
+        if old_case==target_case_id:
+            raise ValueError("document is already assigned to the selected case")
+        if not connection.execute("SELECT 1 FROM pilot_case WHERE case_id=?",
+                                  (target_case_id,)).fetchone():
+            raise ValueError("target pilot case does not exist")
+        duplicate=connection.execute("""SELECT document_id FROM pilot_document
+            WHERE case_id=? AND sha256=? AND document_id<>?""",
+            (target_case_id,document["sha256"],document_id)).fetchone()
+        if duplicate:
+            raise ValueError("the target case already contains this exact document")
+        event_id=f"PASSIGN-{uuid.uuid4().hex[:12].upper()}"
+        connection.execute("UPDATE pilot_document SET case_id=? WHERE document_id=?",
+                           (target_case_id,document_id))
+        connection.execute("""INSERT INTO pilot_document_assignment_event
+            (event_id,document_id,from_case_id,to_case_id,document_sha256,reason,changed_by)
+            VALUES(?,?,?,?,?,?,?)""",(event_id,document_id,old_case,target_case_id,
+            document["sha256"],reason,changed_by))
+        connection.execute("""UPDATE pilot_analysis_job SET status='superseded_document_reassignment',
+            current_stage='Document reassigned - review restart required',updated_at=CURRENT_TIMESTAMP
+            WHERE case_id=? AND status IN ('queued','running','awaiting_staff_verification')""",
+            (old_case,))
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        connection.close()
+    return {"event_id":event_id,"document_id":document_id,"original_name":document["original_name"],
+            "from_case_id":old_case,"to_case_id":target_case_id,"sha256":document["sha256"],
+            "byte_count":document["byte_count"],"original_file_unchanged":True,
+            "storage_path_unchanged":True,"reason":reason,"changed_by":changed_by,
+            "review_restart_required":True}
 
 
 def record_document_derivative(database: Path, payload: dict) -> dict:

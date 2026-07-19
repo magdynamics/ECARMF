@@ -5,7 +5,8 @@ import unittest
 
 from irs_aikb.pilot_workspace import (create_client_case, inspect_case_documents,
                                       list_cases, quarantine_upload, record_document_derivative,
-                                      case_review_status, start_case_ai_review)
+                                      case_review_status, document_assignment_history,
+                                      reassign_document, start_case_ai_review)
 
 
 class PilotWorkspaceTests(unittest.TestCase):
@@ -76,6 +77,39 @@ class PilotWorkspaceTests(unittest.TestCase):
             self.assertEqual(result["status"],"awaiting_staff_verification")
             self.assertEqual(result["classified_documents"][0]["jurisdictions"],
                              ["Federal IRS","Illinois IDOR"])
+
+    def test_document_reassignment_preserves_bytes_and_records_custody(self):
+        with TemporaryDirectory() as folder:
+            root=Path(folder); database=root/"pilot.db"; vault=root/"vault"
+            source=create_client_case(database,{"client_name":"Incorrect client"})
+            target=create_client_case(database,{"client_name":"Correct client"})
+            upload=quarantine_upload(database,vault,{"case_id":source["case_id"],
+                "original_name":"return.pdf","content_base64":base64.b64encode(b"immutable").decode()})
+            original_path=next(vault.rglob("*.pdf")); original_hash=upload["sha256"]
+            result=reassign_document(database,upload["document_id"],target["case_id"],
+                "Uploaded under the wrong client during intake","case_manager")
+            self.assertTrue(result["original_file_unchanged"])
+            self.assertEqual(original_path.read_bytes(),b"immutable")
+            self.assertEqual(result["sha256"],original_hash)
+            self.assertEqual(len(document_assignment_history(database,upload["document_id"])),1)
+            self.assertEqual(case_review_status(database,source["case_id"])["documents"],[])
+            self.assertEqual(len(case_review_status(database,target["case_id"])["documents"]),1)
+
+    def test_reassignment_requires_reason_and_prevents_target_duplicate(self):
+        with TemporaryDirectory() as folder:
+            root=Path(folder); database=root/"pilot.db"; vault=root/"vault"
+            source=create_client_case(database,{"client_name":"Source"})
+            target=create_client_case(database,{"client_name":"Target"})
+            encoded=base64.b64encode(b"same evidence").decode()
+            first=quarantine_upload(database,vault,{"case_id":source["case_id"],
+                "original_name":"a.pdf","content_base64":encoded})
+            quarantine_upload(database,vault,{"case_id":target["case_id"],
+                "original_name":"b.pdf","content_base64":encoded})
+            with self.assertRaises(ValueError):
+                reassign_document(database,first["document_id"],target["case_id"],"wrong","manager")
+            with self.assertRaises(ValueError):
+                reassign_document(database,first["document_id"],target["case_id"],
+                    "Incorrect client assignment","manager")
 
 
 if __name__ == "__main__": unittest.main()

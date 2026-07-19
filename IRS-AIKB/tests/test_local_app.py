@@ -34,6 +34,12 @@ class LocalAppTests(unittest.TestCase):
         self.assertIn("openPilotVerification",html)
         self.assertIn("Pilot document verification",html)
 
+    def test_document_integrity_correction_is_user_accessible(self):
+        html=(Path(__file__).parents[1]/"app"/"index.html").read_text(encoding="utf-8")
+        self.assertIn("Document ownership and integrity",html)
+        self.assertIn("Move safely",html)
+        self.assertIn("Assignment history",html)
+
     def test_launcher_exists(self):
         root=Path(__file__).parents[1]
         self.assertTrue((root/"launch_mag_audit.py").is_file())
