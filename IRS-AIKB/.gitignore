@@ -4,6 +4,8 @@ __pycache__/
 !data/mainstream_atg.db
 .pytest_cache/
 .venv/
+.venv-ocr/
+tools/Tesseract-OCR/
 dist/
 build/
 *.egg-info/

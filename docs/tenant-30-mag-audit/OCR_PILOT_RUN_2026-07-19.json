@@ -1,0 +1,48 @@
+{
+  "run_date": "2026-07-19",
+  "case_reference": "PCASE-3A965EB605",
+  "purpose": "Validate governed full-page OCR on two mixed federal and Illinois S-corporation packages",
+  "tool": {
+    "name": "OCRmyPDF",
+    "version": "17.8.1",
+    "ocr_engine": "Tesseract 5.5.0",
+    "configuration": [
+      "--output-type", "pdf", "--rotate-pages", "--deskew",
+      "--optimize", "1", "--force-ocr"
+    ]
+  },
+  "privacy": "No taxpayer identifiers or extracted dollar values are included in this report.",
+  "documents": [
+    {
+      "document_id": "PDOC-EE31F6BCEA27",
+      "original_pages": 20,
+      "original_bytes": 12548472,
+      "working_copy_bytes": 34969227,
+      "searchable_pages": 20,
+      "visual_review": "passed representative federal and Illinois pages",
+      "classification": ["2022 federal S-corporation package", "2022 Illinois IL-1120-ST material"]
+    },
+    {
+      "document_id": "PDOC-3B407E7B6EAA",
+      "original_pages": 18,
+      "original_bytes": 10982099,
+      "working_copy_bytes": 30257951,
+      "searchable_pages": 18,
+      "visual_review": "passed representative federal and Illinois pages",
+      "classification": ["2022 federal S-corporation package", "2022 Illinois IL-1120-ST material"]
+    }
+  ],
+  "findings": [
+    "Full-page OCR achieved searchable text on all 38 pages.",
+    "A selective OCR pass was insufficient because existing and missing text layers were mixed.",
+    "The lossless searchable copies are approximately 2.76 to 2.79 times the original size.",
+    "OCR and archival size reduction must be treated as separate governed objectives.",
+    "Page-level subdocument classification is required before IRS and IDOR workflows are assigned."
+  ],
+  "next_actions": [
+    "Validate extracted form and line values against representative pages.",
+    "Split federal and Illinois subdocuments without changing the originals.",
+    "Test a separate quality-controlled access-copy optimization profile.",
+    "Map federal data to IRS SOI cohorts and Illinois data to the future IDOR engine."
+  ]
+}

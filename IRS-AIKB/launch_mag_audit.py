@@ -12,7 +12,7 @@ import json
 from urllib.parse import parse_qs, urlparse
 
 from irs_aikb.knowledge_agent import search_knowledge
-from irs_aikb.pilot_workspace import create_client_case, list_cases, quarantine_upload
+from irs_aikb.pilot_workspace import case_documents, create_client_case, list_cases, quarantine_upload
 
 
 class MagAuditHandler(SimpleHTTPRequestHandler):
@@ -27,6 +27,10 @@ class MagAuditHandler(SimpleHTTPRequestHandler):
         if parsed.path == "/api/pilot/cases":
             return self._json_response(200, {"cases": list_cases(self.pilot_database),
                 "pilot_only": True})
+        if parsed.path.startswith("/api/pilot/cases/") and parsed.path.endswith("/documents"):
+            case_id=parsed.path.split("/")[4]
+            return self._json_response(200,{"case_id":case_id,
+                "documents":case_documents(self.pilot_database,case_id),"pilot_only":True})
         if parsed.path != "/api/knowledge/search":
             return super().do_GET()
         question = parse_qs(parsed.query).get("q", [""])[0]
