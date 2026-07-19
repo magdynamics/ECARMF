@@ -12,15 +12,21 @@ import json
 from urllib.parse import parse_qs, urlparse
 
 from irs_aikb.knowledge_agent import search_knowledge
+from irs_aikb.pilot_workspace import create_client_case, list_cases, quarantine_upload
 
 
 class MagAuditHandler(SimpleHTTPRequestHandler):
     """Serve the preview and its read-only, grounded knowledge endpoint."""
 
     database: Path
+    pilot_database: Path
+    pilot_vault: Path
 
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
+        if parsed.path == "/api/pilot/cases":
+            return self._json_response(200, {"cases": list_cases(self.pilot_database),
+                "pilot_only": True})
         if parsed.path != "/api/knowledge/search":
             return super().do_GET()
         question = parse_qs(parsed.query).get("q", [""])[0]
@@ -30,6 +36,25 @@ class MagAuditHandler(SimpleHTTPRequestHandler):
         except ValueError as error:
             payload = {"answer_status": "invalid_question", "error": str(error)}
             status = 400
+        self._json_response(status, payload)
+
+    def do_POST(self) -> None:
+        if self.path not in {"/api/pilot/client-case", "/api/pilot/import"}:
+            return self._json_response(404, {"error": "endpoint not found"})
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            if length <= 0 or length > 35_000_000:
+                raise ValueError("request is empty or exceeds the pilot limit")
+            payload = json.loads(self.rfile.read(length).decode("utf-8"))
+            if self.path == "/api/pilot/client-case":
+                result = create_client_case(self.pilot_database, payload)
+            else:
+                result = quarantine_upload(self.pilot_database, self.pilot_vault, payload)
+            self._json_response(201, result)
+        except (ValueError, json.JSONDecodeError) as error:
+            self._json_response(400, {"error": str(error)})
+
+    def _json_response(self, status: int, payload: dict) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
@@ -54,7 +79,9 @@ def main() -> int:
                 webbrowser.open(url)
             return 0
     handler_class = type("ConfiguredMagAuditHandler", (MagAuditHandler,), {
-        "database": Path(__file__).resolve().parent / "data" / "mainstream_atg.db"
+        "database": Path(__file__).resolve().parent / "data" / "mainstream_atg.db",
+        "pilot_database": Path(__file__).resolve().parent / "data" / "pilot_workspace.db",
+        "pilot_vault": Path(__file__).resolve().parent / "tmp" / "pilot_vault",
     })
     handler = partial(handler_class, directory=str(app_dir))
     server = ThreadingHTTPServer((args.host, args.port), handler)
