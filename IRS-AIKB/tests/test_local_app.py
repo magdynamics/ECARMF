@@ -40,6 +40,12 @@ class LocalAppTests(unittest.TestCase):
         self.assertIn("Move safely",html)
         self.assertIn("Assignment history",html)
 
+    def test_live_pilot_clients_are_visible_and_selectable(self):
+        html=(Path(__file__).parents[1]/"app"/"index.html").read_text(encoding="utf-8")
+        self.assertIn("Live pilot clients",html)
+        self.assertIn("Select client case",html)
+        self.assertIn("Already assigned",html)
+
     def test_launcher_exists(self):
         root=Path(__file__).parents[1]
         self.assertTrue((root/"launch_mag_audit.py").is_file())
