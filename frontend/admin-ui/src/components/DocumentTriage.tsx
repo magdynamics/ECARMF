@@ -40,27 +40,45 @@ export function DocumentTriage({ tenant, user }: { tenant: string; user: string 
 
   useEffect(() => { void load() }, [load, tenant, user])
 
+  // How many documents to analyze at once. A cloud backend (Anthropic) handles
+  // this comfortably and turns hours into minutes; a local model serializes
+  // anyway, so this is safe either way.
+  const CONCURRENCY = 8
+
+  async function analyzeOne(f: File): Promise<boolean> {
+    try {
+      const buf = new Uint8Array(await f.arrayBuffer())
+      let binary = ''
+      buf.forEach((b) => (binary += String.fromCharCode(b)))
+      await api.post('/api/document-triage/analyze', { fileName: f.name, contentBase64: btoa(binary) })
+      return true
+    } catch {
+      return false // one bad file shouldn't stop the batch
+    }
+  }
+
   async function analyzeFiles(files: FileList | null) {
     if (!files || files.length === 0) return
+    const list = Array.from(files)
     setBusy(true); setError(null); setMessage(null)
-    setProgress({ done: 0, total: files.length })
-    let ok = 0
-    for (let i = 0; i < files.length; i++) {
-      const f = files[i]
-      try {
-        const buf = new Uint8Array(await f.arrayBuffer())
-        let binary = ''
-        buf.forEach((b) => (binary += String.fromCharCode(b)))
-        await api.post('/api/document-triage/analyze', { fileName: f.name, contentBase64: btoa(binary) })
-        ok++
-      } catch {
-        // one bad file shouldn't stop the batch; it just won't appear in the queue
+    let done = 0, ok = 0
+    setProgress({ done: 0, total: list.length })
+
+    // A bounded worker pool: CONCURRENCY documents in flight at a time.
+    let next = 0
+    async function worker() {
+      while (next < list.length) {
+        const i = next++
+        if (await analyzeOne(list[i])) ok++
+        done++
+        setProgress({ done, total: list.length })
       }
-      setProgress({ done: i + 1, total: files.length })
     }
+    await Promise.all(Array.from({ length: Math.min(CONCURRENCY, list.length) }, worker))
+
     setBusy(false)
     setProgress(null)
-    setMessage(`Analyzed ${ok} of ${files.length} document(s) — review the recommendations below.`)
+    setMessage(`Analyzed ${ok} of ${list.length} document(s) — review the recommendations below.`)
     await load()
   }
 
@@ -112,11 +130,13 @@ export function DocumentTriage({ tenant, user }: { tenant: string; user: string 
               Confirm all high-confidence ({queue.filter((a) => a.recommendedUnitRef && a.confidence >= 0.75).length})
             </button>
           )}
-          {progress && <span className="muted small"><span className="spinner-dot" /> Analyzing {progress.done}/{progress.total}… (local model ~10–40s each)</span>}
+          {progress && <span className="muted small"><span className="spinner-dot" /> Analyzing {progress.done}/{progress.total}… ({CONCURRENCY} at a time)</span>}
         </div>
         <p className="muted small">
-          Tip: for a very large batch (hundreds+), a cloud AI key (Setup → AI Backend) makes triage
-          far faster than the local model.
+          Documents are analyzed {CONCURRENCY} at a time. For real volume (hundreds–thousands),
+          set a <strong>cloud AI key</strong> (Setup → AI Backend): ~1–3 seconds per document and
+          far more accurate than a local model — roughly a few dollars per 1,000 documents. A local
+          model is fine for testing the flow, but it processes one document at a time and is slower.
         </p>
       </section>
 
