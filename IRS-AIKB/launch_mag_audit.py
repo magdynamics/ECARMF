@@ -12,7 +12,8 @@ import json
 from urllib.parse import parse_qs, urlparse
 
 from irs_aikb.knowledge_agent import search_knowledge
-from irs_aikb.pilot_workspace import case_documents, create_client_case, list_cases, quarantine_upload
+from irs_aikb.pilot_workspace import (case_documents, case_review_status, create_client_case,
+    list_cases, quarantine_upload, start_case_ai_review)
 
 
 class MagAuditHandler(SimpleHTTPRequestHandler):
@@ -31,6 +32,9 @@ class MagAuditHandler(SimpleHTTPRequestHandler):
             case_id=parsed.path.split("/")[4]
             return self._json_response(200,{"case_id":case_id,
                 "documents":case_documents(self.pilot_database,case_id),"pilot_only":True})
+        if parsed.path.startswith("/api/pilot/cases/") and parsed.path.endswith("/review-status"):
+            case_id=parsed.path.split("/")[4]
+            return self._json_response(200,case_review_status(self.pilot_database,case_id))
         if parsed.path != "/api/knowledge/search":
             return super().do_GET()
         question = parse_qs(parsed.query).get("q", [""])[0]
@@ -43,18 +47,22 @@ class MagAuditHandler(SimpleHTTPRequestHandler):
         self._json_response(status, payload)
 
     def do_POST(self) -> None:
-        if self.path not in {"/api/pilot/client-case", "/api/pilot/import"}:
+        is_review=self.path.startswith("/api/pilot/cases/") and self.path.endswith("/start-ai-review")
+        if self.path not in {"/api/pilot/client-case", "/api/pilot/import"} and not is_review:
             return self._json_response(404, {"error": "endpoint not found"})
         try:
             length = int(self.headers.get("Content-Length", "0"))
             if length <= 0 or length > 35_000_000:
                 raise ValueError("request is empty or exceeds the pilot limit")
             payload = json.loads(self.rfile.read(length).decode("utf-8"))
-            if self.path == "/api/pilot/client-case":
+            if is_review:
+                case_id=self.path.split("/")[4]
+                result=start_case_ai_review(self.pilot_database,case_id,payload.get("requested_by","pilot_user"))
+            elif self.path == "/api/pilot/client-case":
                 result = create_client_case(self.pilot_database, payload)
             else:
                 result = quarantine_upload(self.pilot_database, self.pilot_vault, payload)
-            self._json_response(201, result)
+            self._json_response(202 if is_review else 201, result)
         except (ValueError, json.JSONDecodeError) as error:
             self._json_response(400, {"error": str(error)})
 

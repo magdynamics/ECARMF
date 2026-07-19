@@ -4,8 +4,8 @@ from tempfile import TemporaryDirectory
 import unittest
 
 from irs_aikb.pilot_workspace import (create_client_case, inspect_case_documents,
-                                      list_cases, quarantine_upload,
-                                      record_document_derivative)
+                                      list_cases, quarantine_upload, record_document_derivative,
+                                      case_review_status, start_case_ai_review)
 
 
 class PilotWorkspaceTests(unittest.TestCase):
@@ -58,6 +58,24 @@ class PilotWorkspaceTests(unittest.TestCase):
                 "sha256":"a"*64,"byte_count":100,"page_count":18,"tool_name":"OCRmyPDF",
                 "configuration":"{}","quality_status":"review_ready"})
             self.assertTrue(derivative["derivative_id"].startswith("PDER-"))
+
+    def test_user_can_start_bounded_review_after_ocr_is_ready(self):
+        with TemporaryDirectory() as folder:
+            root=Path(folder); database=root/"pilot.db"; vault=root/"vault"
+            case=create_client_case(database,{"client_name":"Pilot"})
+            upload=quarantine_upload(database,vault,{"case_id":case["case_id"],
+                "original_name":"return.pdf","content_base64":base64.b64encode(b"original").decode()})
+            working=root/"return_fullocr_searchable.pdf"; working.write_bytes(b"working")
+            (root/"return_fullocr.txt").write_text("Form 1120-S\fIllinois Department of Revenue IL-1120-ST")
+            record_document_derivative(database,{"document_id":upload["document_id"],
+                "derivative_kind":"searchable_ocr_pdf","local_path":str(working),
+                "sha256":"b"*64,"byte_count":7,"page_count":2,"tool_name":"OCRmyPDF",
+                "tool_version":"17.8.1","configuration":"{}","quality_status":"review_ready"})
+            self.assertTrue(case_review_status(database,case["case_id"])["can_start_ai_review"])
+            result=start_case_ai_review(database,case["case_id"])
+            self.assertEqual(result["status"],"awaiting_staff_verification")
+            self.assertEqual(result["classified_documents"][0]["jurisdictions"],
+                             ["Federal IRS","Illinois IDOR"])
 
 
 if __name__ == "__main__": unittest.main()

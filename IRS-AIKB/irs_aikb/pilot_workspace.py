@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import json
 from pathlib import Path
 import re
 import sqlite3
@@ -46,6 +47,11 @@ def initialize_pilot(database: Path) -> None:
           page_count INTEGER, tool_name TEXT NOT NULL, tool_version TEXT,
           configuration TEXT NOT NULL, quality_status TEXT NOT NULL,
           created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+        CREATE TABLE IF NOT EXISTS pilot_analysis_job(
+          job_id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES pilot_case(case_id),
+          requested_by TEXT NOT NULL, status TEXT NOT NULL, current_stage TEXT NOT NULL,
+          result_json TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
         """)
         connection.commit()
     finally:
@@ -132,6 +138,82 @@ def record_document_derivative(database: Path, payload: dict) -> dict:
     finally:
         connection.close()
     return {"derivative_id":derivative_id,**payload}
+
+
+def case_review_status(database: Path, case_id: str) -> dict:
+    """Return user-facing document and AI-review progress for one pilot case."""
+    initialize_pilot(database)
+    connection=sqlite3.connect(database)
+    connection.row_factory=sqlite3.Row
+    try:
+        documents=connection.execute("""SELECT d.document_id,d.original_name,d.status,d.byte_count,
+            COUNT(x.derivative_id) derivative_count,
+            SUM(CASE WHEN x.quality_status='review_ready' THEN 1 ELSE 0 END) review_ready_count
+            FROM pilot_document d LEFT JOIN pilot_document_derivative x
+              ON x.document_id=d.document_id
+            WHERE d.case_id=? GROUP BY d.document_id ORDER BY d.uploaded_at""",(case_id,)).fetchall()
+        job=connection.execute("""SELECT job_id,status,current_stage,result_json,created_at,updated_at
+            FROM pilot_analysis_job WHERE case_id=? ORDER BY created_at DESC LIMIT 1""",
+            (case_id,)).fetchone()
+    finally:
+        connection.close()
+    document_rows=[dict(row) for row in documents]
+    latest=None
+    if job:
+        latest=dict(job); latest["result"]=json.loads(latest.pop("result_json"))
+    active_job=bool(latest and latest["status"] in {"queued","running","awaiting_staff_verification"})
+    return {"case_id":case_id,"documents":document_rows,"latest_job":latest,
+            "can_start_ai_review":bool(document_rows) and
+                all(row["review_ready_count"] for row in document_rows) and not active_job,
+            "stages":["Original preserved","Security scan","OCR and searchability",
+                "Page classification","Value extraction","Staff verification",
+                "Reconciliation","Ratio and audit-technique review","Risk report"]}
+
+
+def start_case_ai_review(database: Path, case_id: str, requested_by: str="pilot_user") -> dict:
+    """Start bounded review from approved OCR derivatives; no final conclusion is issued."""
+    status=case_review_status(database,case_id)
+    if not status["documents"]:
+        raise ValueError("case has no documents")
+    if not status["can_start_ai_review"]:
+        raise ValueError("review-ready OCR derivatives are required before AI review")
+    initialize_pilot(database)
+    connection=sqlite3.connect(database)
+    try:
+        rows=connection.execute("""SELECT d.document_id,d.original_name,x.local_path,x.page_count
+            FROM pilot_document d JOIN pilot_document_derivative x ON x.document_id=d.document_id
+            WHERE d.case_id=? AND x.quality_status='review_ready'
+            ORDER BY x.created_at DESC""",(case_id,)).fetchall()
+        seen=set(); classified=[]
+        for document_id,name,local_path,pages in rows:
+            if document_id in seen: continue
+            seen.add(document_id)
+            pdf=Path(local_path)
+            sidecar=pdf.with_name(pdf.name.replace("_searchable.pdf",".txt"))
+            text=sidecar.read_text(encoding="utf-8",errors="ignore") if sidecar.exists() else ""
+            jurisdictions=[]
+            if "1120-S" in text or "8879-CORP" in text: jurisdictions.append("Federal IRS")
+            if "IL-1120-ST" in text or "Illinois Department of Revenue" in text: jurisdictions.append("Illinois IDOR")
+            classified.append({"document_id":document_id,"original_name":name,"pages":pages,
+                "jurisdictions":jurisdictions or ["Requires staff classification"],
+                "classification_status":"staff_confirmation_required"})
+        result={"classified_documents":classified,"completed_stages":[
+            "Original preserved","Security scan","OCR and searchability","Page classification"],
+            "current_stage":"Value extraction and staff verification",
+            "next_actions":["Confirm page-level federal and Illinois boundaries",
+                "Review extracted form and tax-year labels","Verify material return-line values",
+                "Approve reconciliation inputs before ratio or risk analysis"],
+            "limitations":["No audit probability or final tax conclusion has been issued",
+                "Illinois scoring is blocked until the IDOR knowledge base is approved"]}
+        job_id=f"PJOB-{uuid.uuid4().hex[:12].upper()}"
+        connection.execute("""INSERT INTO pilot_analysis_job
+            (job_id,case_id,requested_by,status,current_stage,result_json)
+            VALUES(?,?,?,?,?,?)""",(job_id,case_id,requested_by,"awaiting_staff_verification",
+            result["current_stage"],json.dumps(result)))
+        connection.commit()
+    finally:
+        connection.close()
+    return {"job_id":job_id,"case_id":case_id,"status":"awaiting_staff_verification",**result}
 
 
 def quarantine_upload(database: Path, vault: Path, payload: dict) -> dict:
