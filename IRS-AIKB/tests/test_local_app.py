@@ -17,9 +17,16 @@ class LocalAppTests(unittest.TestCase):
     def test_demo_app_exposes_controlled_audit_workflow(self):
         html=(Path(__file__).parents[1]/"app"/"index.html").read_text(encoding="utf-8")
         for control in ("Form 2848","IRS response deadline","human approval",
-                        "originals remain immutable","cannot approve scope",
+                        "originals remain immutable","cannot change scope or approve output",
                         "do not predict IRS selection"):
             self.assertIn(control,html)
+
+    def test_demo_app_exposes_grounded_advisor_and_specialist_agents(self):
+        html=(Path(__file__).parents[1]/"app"/"index.html").read_text(encoding="utf-8")
+        for capability in ("MAG Knowledge Advisor","Applicable techniques","Gross-profit percentage",
+                           "Taxpayer rights","Case Orchestrator","Return & Ratio Analyst",
+                           "Reconciliation Specialist","Document Verification Agent"):
+            self.assertIn(capability,html)
 
     def test_launcher_exists(self):
         root=Path(__file__).parents[1]

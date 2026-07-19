@@ -8,6 +8,34 @@ from pathlib import Path
 import threading
 import webbrowser
 import socket
+import json
+from urllib.parse import parse_qs, urlparse
+
+from irs_aikb.knowledge_agent import search_knowledge
+
+
+class MagAuditHandler(SimpleHTTPRequestHandler):
+    """Serve the preview and its read-only, grounded knowledge endpoint."""
+
+    database: Path
+
+    def do_GET(self) -> None:
+        parsed = urlparse(self.path)
+        if parsed.path != "/api/knowledge/search":
+            return super().do_GET()
+        question = parse_qs(parsed.query).get("q", [""])[0]
+        try:
+            payload = search_knowledge(self.database, question)
+            status = 200
+        except ValueError as error:
+            payload = {"answer_status": "invalid_question", "error": str(error)}
+            status = 400
+        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
 
 
 def main() -> int:
@@ -25,7 +53,10 @@ def main() -> int:
             if not args.no_browser:
                 webbrowser.open(url)
             return 0
-    handler = partial(SimpleHTTPRequestHandler, directory=str(app_dir))
+    handler_class = type("ConfiguredMagAuditHandler", (MagAuditHandler,), {
+        "database": Path(__file__).resolve().parent / "data" / "mainstream_atg.db"
+    })
+    handler = partial(handler_class, directory=str(app_dir))
     server = ThreadingHTTPServer((args.host, args.port), handler)
     print(f"MAG Audit demonstration is available at {url}")
     print("Press Ctrl+C to stop it.")
